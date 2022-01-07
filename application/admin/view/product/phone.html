@@ -1,0 +1,86 @@
+{include file="public/header" /}
+<style>
+    .table-bordered > tbody > tr:hover {
+        background-color: #f5f5f5
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>归属地列表</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups">
+                        <div class="col-md-2 form-inline text-left">
+                            <div class="form-group">
+                                <a class="btn btn-sm btn-white open-reload"><i
+                                        class="glyphicon glyphicon-repeat"></i></a>
+                                <a class="btn btn-sm btn-primary open-window" title="新增归属地"
+                                   href="{:U('phone_edit')}"><i class="fa fa-plus"></i><strong> 新增</strong></a>
+                            </div>
+                        </div>
+                        <div class="col-md-10 m-b-xs form-inline text-right">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="hidden" name="customer_id" value="{:I('customer_id')}">
+                                    <input type="text" name="key" placeholder="请输入号段/号码/地区/运营商" value="{:I('key')}"
+                                           class="input-sm form-control">
+                                    <span class="input-group-btn"><button type="button" id="search"
+                                                                          class="btn btn-sm btn-primary"
+                                                                          url="{:U('phone')}"> 搜索</button></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>号段</th>
+                                <th>号码</th>
+                                <th>地区</th>
+                                <th>运营商</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="_list" id="vo"}
+                            <tr>
+                                <td>{$vo.prefix}</td>
+                                <td>{$vo.phone}</td>
+                                <td>{$vo.province}-{$vo.city}</td>
+                                <td>{$vo.isp}</td>
+                                <td>
+                                    <a class="text-navy open-window" title="编辑"
+                                       href="{:U('phone_edit',array('phone'=>$vo['phone']))}">编辑</a>
+                                    <a class="text-danger ajax-get confirm"
+                                       href="{:U('phone_del',array('phone'=>$vo['phone']))}">删除
+                                    </a>
+                                </td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="page">
+                        {$_list->render()}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green'
+        });
+    });
+</script>
+</body>
+</html>

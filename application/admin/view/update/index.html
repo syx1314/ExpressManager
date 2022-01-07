@@ -1,0 +1,48 @@
+{include file="public/header" /}
+<style>
+    .table-bordered > tbody > tr:hover {
+        background-color: #f5f5f5
+    }
+
+    .td {
+        max-width: 100px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>系统更新</h5>
+                </div>
+                <form method="post" class="form-horizontal" action="{:U('now_update')}">
+                    <div class="ibox-content">
+                        <p class="text-danger">更新前请先备份数据库和站点目录！以免造成不必要的损失！切记！切记！切记！</p>
+                        <p>当前版本：{:C('dtupdate.version')}</p>
+                        <p>提示：{$check_msg}</p>
+                        {notempty name="updata"}
+                        <p>最新版本：{$updata.version}</p>
+                        <p>新版介绍：{$updata.desc}</p>
+                        <div class="form-group">
+                            <div class="col-sm-6">
+                                <label>谷歌身份验证码<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <input type="text" class="form-control" name="verifycode" autocomplete="off"
+                                       placeholder="请填写谷歌身份验证吗">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary confirm ajax-post" target-form="form-horizontal">
+                            立即更新
+                        </button>
+                        {/notempty}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

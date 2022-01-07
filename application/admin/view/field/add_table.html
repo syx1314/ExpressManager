@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title> {:C('WEB_SITE_TITLE')}</title>
+    <!--<link rel="shortcut icon" href="favicon.ico">-->
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.css?v=4.4.0" rel="stylesheet">
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+    <link href="__CSS__/plugins/treeview/bootstrap-treeview.css" rel="stylesheet">
+    <link href="__CSS__/plugins/toastr/toastr.min.css" rel="stylesheet">
+    <link href="__CSS__/plugins/iCheck/custom.css" rel="stylesheet">
+</head>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    .main {
+        background: #fff;
+        padding: 20px;
+        color: #404040;
+    }
+
+    h2 {
+        display: block;
+        font-size: 1.5em;
+        -webkit-margin-before: 0.83em;
+        -webkit-margin-after: 0.83em;
+        -webkit-margin-start: 0px;
+        -webkit-margin-end: 0px;
+        font-weight: bold;
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content" id="page">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="tabs-container">
+                <ul class="nav nav-tabs">
+                    <li class="active"><a data-toggle="tab" href="#tab-1" aria-expanded="true"> 栏位</a>
+                    </li>
+                    <li class=""><a data-toggle="tab" href="#tab-2" aria-expanded="false">选项</a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div id="tab-1" class="tab-pane active">
+                        <div class="panel-body">
+                            <a type="button" class="btn btn-primary btn-xs" @click="add_column"><i
+                                    class="fa fa-plus"></i>添加栏位</a>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>名</th>
+                                        <th>类型</th>
+                                        <th>长度</th>
+                                        <th>小数点</th>
+                                        <th>允许空</th>
+                                        <th>自动递增</th>
+                                        <th>无符号</th>
+                                        <th>默认值</th>
+                                        <th>注释</th>
+                                        <th>操作</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr v-for="(item,index) in column">
+                                        <td>
+                                            <i class="fa fa-key" v-if="item.is_key"></i>
+                                        </td>
+                                        <td>
+                                            <input type="text" v-model="item.name"/>
+                                        </td>
+                                        <td>
+                                            <select v-model="item.data_type">
+                                                <option value="varchar">varchar</option>
+                                                <option value="int">int</option>
+                                                <option value="tinyint">tinyint</option>
+                                                <option value="text">text</option>
+                                                <option value="decimal">decimal</option>
+                                                <option value="float">float</option>
+                                                <option value="double">double</option>
+                                                <option value="smallint">smallint</option>
+                                                <option value="bigint">bigint</option>
+                                                <option value="char">char</option>
+                                                <option value="timestamp">timestamp</option>
+                                                <option value="datetime">datetime</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="number" v-model="item.length"/>
+                                        </td>
+                                        <td>
+                                            <input type="number" v-model="item.point"/>
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" v-model="item.is_null">
+                                        </td>
+                                        <td>
+                                            <input type="checkbox"
+                                                   v-if="contains(allow_data_type,item.data_type) && item.is_key"
+                                                   v-model="item.auto_increment">
+                                        </td>
+                                        <td>
+                                            <input type="checkbox"
+                                                   v-if="contains(allow_data_type,item.data_type)"
+                                                   v-model="item.unsigned">
+                                        </td>
+                                        <td>
+                                            <input type="text" v-model="item.default"/>
+                                        </td>
+                                        <td>
+                                            <input type="text" v-model="item.comment"/>
+                                        </td>
+                                        <td>
+                                            <a class="text-danger" @click="set_key(index)"
+                                               v-if="!item.is_key && !have_key">设为主键</a>
+                                            <a class="text-danger" @click="cancal_key(index)"
+                                               v-if="item.is_key">取消主键</a>
+                                            <a class="text-danger" @click="del_column(index)">删除</a>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="tab-2" class="tab-pane">
+                        <div class="panel-body">
+                            <form role="form" action="{:U()}" method="post" class="config_form  form-horizontal">
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>表名称</label>
+                                        <input type="text" placeholder="表名/英文,如dyr_table" class="form-control"
+                                               v-model="info.tabename">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>表备注</label>
+                                        <input type="text" placeholder="表备注、名称" class="form-control"
+                                               v-model="info.comment">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>引擎</label>
+                                        <select class="form-control m-b" v-model="info.engine">
+                                            <option value="MyISAM">MyISAM</option>
+                                            <option value="InnoDB">InnoDB</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>字符集</label>
+                                        <select class="form-control m-b" v-model="info.collation">
+                                            <option value="utf8">utf-8</option>
+                                            <option value="gbk">gbk</option>
+                                            <option value="gb2312">gb2312</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12" style="margin-top: 10px;">
+            <button class="btn btn-primary" type="submit" @click="save_info">保存内容</button>
+            <a class="btn btn-white" href="{:U('index')}">返回</a>
+        </div>
+    </div>
+</div>
+</body>
+<!-- 全局js -->
+<script src="__JS__/jquery.min.js?v=2.1.4"></script>
+<script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+<!-- 自定义js -->
+<script src="__JS__/content.js?v=1.0.0"></script>
+<script src="__JS__/dayuanren.js?v=2.0.0"></script>
+<!-- Bootstrap-Treeview plugin javascript -->
+<script src="__JS__/plugins/treeview/bootstrap-treeview.js"></script>
+<script src="__JS__/plugins/toastr/toastr.min.js"></script>
+<!-- layer javascript -->
+<script src="__JS__/plugins/layer/layer.min.js"></script>
+<script src="__JS__/demo/layer-demo.js"></script>
+<script src="__JS__/plugins/iCheck/icheck.min.js"></script>
+<script src="__JS__/vue.min.js"></script>
+<script>
+    var vue = new Vue({
+        el: '#page',
+        data: {
+            info: {tabename: '', comment: '', engine: 'MyISAM', collation: 'utf8'},
+            column: [
+                {
+                    name: 'id',
+                    data_type: 'int',
+                    length: 10,
+                    point: 0,
+                    is_key: true,
+                    is_null: true,
+                    default: '',
+                    comment: '',
+                    auto_increment: true,
+                    unsigned: false
+                }
+            ],
+            have_key: true,//是否存在主键
+            allow_data_type: ['int', 'tinyint', 'smallint', 'bigint']
+        },
+        methods: {
+            add_column: function () {
+                vue.column.push({
+                    name: '',
+                    data_type: '',
+                    length: 0,
+                    point: 0,
+                    is_key: false,
+                    is_null: true,
+                    default: '',
+                    comment: '',
+                    auto_increment: false,
+                    unsigned: false
+                });
+            },
+            del_column: function (index) {
+                if (confirm('是否确定要删除该列？')) {
+                    vue.column.splice(index);
+                }
+            },
+            set_key: function (index) {
+                vue.have_key = true;
+                vue.column[index].is_key = true;
+                vue.column[index].is_null = false;
+            },
+            cancal_key: function (index) {
+                vue.have_key = false;
+                vue.column[index].is_key = false;
+                vue.column[index].auto_increment=false;
+            },
+            save_info: function () {
+                var index = layer.load(1, {
+                    shade: [0.1, '#fff'] //0.1透明度的白色背景
+                });
+                $.post("{:U('add_table')}", {column: vue.column, info: vue.info}, function (ret) {
+                    layer.closeAll();
+//                    console.log(ret);
+                    if (ret.errno == 0) {
+                        layer.msg(ret.errmsg);
+                    } else {
+                        layer.alert(ret.errmsg, {
+                            icon: 2,
+                            skin: 'layer-ext-moon'
+                        });
+                    }
+                });
+            }
+        }
+    })
+
+    function contains(arr, obj) {
+        var i = arr.length;
+        while (i--) {
+            if (arr[i] === obj) {
+                return true;
+            }
+        }
+        return false;
+    }
+</script>
+
+</html>
+

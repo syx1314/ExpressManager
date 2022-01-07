@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>充值凭证</title>
+    <script src="__JS__/jquery.min.js?v=2.1.4"></script>
+</head>
+<body>
+<div class='page'>
+    <div style="width: 100%;display: flex;flex-direction: row;justify-content: center;">
+        <img id="img" style="width: 50%;height: auto;border: 1px solid #888;"/>
+    </div>
+</div>
+</body>
+<script>
+    $(function () {
+        draw(function (base64) {
+            $('#img').attr("src", base64);
+        });
+    });
+
+    function draw(fn) {
+        var txtdata = JSON.parse('{$txtdata}');
+        console.log(txtdata);
+        var img1 = new Image;
+        img1.src = '{$bgpath}';
+        img1.onload = function () {
+            var c = document.createElement('canvas'),
+                ctx = c.getContext('2d');
+            c.width = img1.naturalWidth;
+            c.height = img1.naturalHeight;
+            ctx.rect(0, 0, c.width, c.height);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+            //生成一张图片1的底图
+            /*下面是为底图增加上文字*/
+            ctx.drawImage(img1, 0, 0, c.width, c.height);
+
+            for (let i = 0; i < txtdata.length; i++) {
+                if (txtdata[i].type == 'txt') {
+                    //设置字体样式
+                    ctx.font = txtdata[i].size + "px Courier New";
+                    //设置字体填充颜色
+                    ctx.fillStyle = txtdata[i].color;
+                    //从坐标点(92,800)开始绘制文字
+                    ctx.fillText(txtdata[i].text, parseFloat(txtdata[i].left) / 100 * img1.naturalWidth, parseFloat(txtdata[i].top) / 100 * img1.naturalHeight);
+                }
+            }
+            fn(c.toDataURL("image/jpeg", 1))
+        };
+    }
+
+</script>
+</html>

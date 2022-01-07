@@ -1,0 +1,98 @@
+{include file="public/header" /}
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>微信日志</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups">
+                        <div class="col-md-2 form-inline text-left">
+                            <div class="form-group">
+                                <a class="btn btn-white btn-sm open-reload"><i
+                                        class="glyphicon glyphicon-repeat"></i></a>
+                            </div>
+                        </div>
+                        <div class="col-md-10 m-b-xs form-inline text-right">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="text" name="key" placeholder="请输入关键词" value="{:I('key')}"
+                                           class="input-sm form-control search-input">
+                                    <span class="input-group-btn"><button type="button" class="btn btn-sm btn-primary"
+                                                                          id="search"
+                                                                          url="{:U('log')}"> 搜索</button> </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive tooltip-demo">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th>openid</th>
+                                <th>消息类型</th>
+                                <th>消息事件</th>
+                                <th>内容</th>
+                                <th>日期</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="list" id="vo" key="key"}
+                            <tr>
+                                <td>{$vo.openid}</td>
+                                <td>{$vo.msg_type}</td>
+                                <td class="tiptext" data-text='{$vo.event}'>{:msubstr($vo['event'],0,50)}</td>
+                                <td class="tiptext" data-text='{$vo.text}'>
+                                    {:msubstr($vo['text'],0,50)}
+                                </td>
+                                <td>{:time_format($vo['create_time'])}</td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                    {$list->render()}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<!-- 全局js -->
+<script src="__JS__/jquery.min.js?v=2.1.4"></script>
+<script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+<!-- Peity -->
+<script src="__JS__/plugins/peity/jquery.peity.min.js"></script>
+<!-- 自定义js -->
+<script src="__JS__/content.js?v=1.0.0"></script>
+<script src="__JS__/dayuanren.js?v=1.0.0"></script>
+<!-- iCheck -->
+<script src="__JS__/plugins/iCheck/icheck.min.js"></script>
+<script src="__JS__/plugins/layer/layer.min.js"></script>
+<script type="text/javascript" src="__JS__/clipboard.min.js"></script>
+<script src="__JS__/plugins/toastr/toastr.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green',
+        });
+    });
+    $(".tiptext").click(function () {
+        var text = JSON.stringify($(this).data('text'));
+        layer.alert(text, {
+            skin: 'layui-layer-molv' //样式类名
+            , closeBtn: 0
+        }, function () {
+            layer.closeAll();
+        });
+    });
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,175 @@
+{include file="public/header" /}
+<style>
+    .table-bordered > tbody > tr:hover {
+        background-color: #f5f5f5
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>充值产品列表</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="tabs-container">
+                        <ul class="nav nav-tabs">
+                            {volist name="types" id="vo"}
+                            <li class="{$typeid==$key?'active':''} typetab" data-typeid="{$key}">
+                                <a data-toggle="tab" href="#tab-{$key}" aria-expanded="false">{$vo}</a>
+                            </li>
+                            {/volist}
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="row input-groups" style="margin-top: 10px;">
+                        <div class="col-md-3 form-inline text-left">
+                            <div class="form-group">
+                                <button class="btn btn-sm btn-info ajax-post" target-form="i-checks"
+                                        href="{:U('added',['added'=>1])}">
+                                    批量上架
+                                </button>
+                                <button class="btn btn-sm btn-warning ajax-post" target-form="i-checks"
+                                        href="{:U('added',['added'=>0])}">
+                                    批量下架
+                                </button>
+                                <a class="btn btn-sm btn-primary open-window no-refresh"
+                                   href="{:U('cates',['type'=>$typeid])}"
+                                   title="分类管理">分类</a>
+                                <a class="btn btn-sm btn-primary open-window" href="{:U('edit',['type'=>$typeid])}"
+                                   title="新增套餐"><i
+                                        class="fa fa-plus"></i> 新增</a>
+                                <a class="btn btn-sm btn-white open-reload"><i
+                                        class="glyphicon glyphicon-repeat"></i></a>
+                            </div>
+                        </div>
+
+                        <div class="col-md-9 m-b-xs form-inline text-right">
+
+                            <div class="form-group">
+                                <label class="control-label">分类:</label>
+                                <select class="input-sm form-control input-s-sm inline serach_selects" name="cate_id"
+                                        style="width: auto;">
+                                    <option value="0">请选择</option>
+                                    {volist name="cates" id="vo"}
+                                    <option value="{$vo.id}"
+                                    <?php if(I('cate_id')==$vo['id']){ echo "selected='selected'"; } ?>>{$vo.cate}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">状态:</label>
+                                <select class="input-sm form-control input-s-sm inline serach_selects" name="added"
+                                        style="width: auto;">
+                                    <option value="0">请选择</option>
+                                    <option value="2"
+                                    <?php if(I('added')==2){ echo "selected='selected'"; } ?>>上架</option>
+                                    <option value="1"
+                                    <?php if(I('added')==1){ echo "selected='selected'"; } ?>>下架</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="hidden" name="type" value="{:I('type')}"/>
+                                    <input type="text" name="key" placeholder="请输入套餐/描述" value="{:I('key')}"
+                                           class="input-sm form-control">
+                                    <span class="input-group-btn"><button type="button" id="search"
+                                                                          class="btn btn-sm btn-primary"
+                                                                          url="{:U('index')}"> 搜索</button></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th><input type="checkbox" class="i-checks check-all">全选</th>
+                                <th>ID</th>
+                                <th>套餐/分类/描述</th>
+                                <th>类型</th>
+                                <th>基础价</th>
+                                <th>价格</th>
+                                <th>其他</th>
+                                <th>接口</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="_list" id="vo"}
+                            <tr>
+                                <td style="width: 70px;">
+                                    <input type="checkbox" class="i-checks ids" name="id[]" value="{$vo.id}">
+                                </td>
+                                <td>{$vo.id}</td>
+                                <td>套餐：{$vo.name}<br/>
+                                    分类：{$vo.cate_name}<br/>
+                                    描述：{$vo.desc}
+                                </td>
+                                <td>
+                                    [{:C('PRODUCT_TYPE')[$vo['type']]}]<br/>
+                                    {$vo.isp|getISPText}
+                                </td>
+                                <td>{$vo.price}</td>
+                                <td>
+                                    {volist name="vo.grade" id="g"}
+                                    {$g.grade_name}:￥{$g.price}<br/>
+                                    {/volist}
+                                </td>
+                                <td>排序:{$vo.sort}<br/>
+                                    tag:{$vo.ys_tag}<br/>
+                                    状态:{eq name="vo.added" value="0"}<span
+                                            class="text-danger">下架</span>{else/}<span
+                                            class="text-info">上架</span>{/eq}
+                                </td>
+                                <td>
+                                    [{$vo.api_open?'开启':'关闭'}]<br/>
+                                    {eq name="vo.api_open" value="1"}
+                                    {volist name="vo.api_list" id="ap" key="key"}
+                                    {$key}. {$ap.status==1?'':'[停用]'}{$ap.reapi_id|getReapiName}-{$ap.param_id|getReapiParamName}<br/>
+                                    {/volist}
+                                    {/eq}
+                                </td>
+                                <td>
+                                    {eq name="vo.added" value="1"}
+                                    <a class="text-warning ajax-get"
+                                       href="{:U('added?id='.$vo.id.'&added=0')}" title="下架">下架</a>
+                                    {else/}
+                                    <a class="text-info ajax-get" href="{:U('added?id='.$vo.id.'&added=1')}"
+                                       title="上架">上架</a>
+                                    {/eq}
+                                    <a class="open-window" href="{:U('edit?id='.$vo.id)}" title="编辑">编辑</a>
+                                    <a class="open-window" href="{:U('Customer/price?product_id='.$vo.id)}"
+                                       title="{$vo.name}价格设置">产品价格</a>
+                                    <a class="open-window no-refresh" href="{:U('api?id='.$vo.id)}" title="接口选择">接口选择</a>
+                                    <a class="text-danger ajax-get confirm" href="{:U('deletes?id='.$vo.id)}"
+                                       title="删除">删除</a>
+                                </td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(".typetab").click(function () {
+        var type_id = $(this).data('typeid');
+        $("[name=type]").val(type_id);
+        $("#search").trigger("click");
+    });
+    $(document).ready(function () {
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green'
+        });
+    });
+
+</script>
+</body>
+</html>

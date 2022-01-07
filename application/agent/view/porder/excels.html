@@ -1,0 +1,168 @@
+{include file="public/header" /}
+<style>
+    .table-bordered > tbody > tr:hover {
+        background-color: #f5f5f5
+    }
+
+    .tjnum {
+        color: #f00;
+        margin-right: 20px;
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>提单记录（表格、批量）</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups">
+                        <div class="col-md-4 form-inline text-left">
+                            <div class="form-group">
+                                <a class="btn btn-sm btn-white open-reload"><i
+                                        class="glyphicon glyphicon-repeat"></i></a>
+                            </div>
+                            <div class="form-group">
+                                <a href="{:U('in_excel')}" class="btn btn-sm btn-info open-window"
+                                   title="表格提单">表格提单</a>
+                            </div>
+                            <div class="form-group">
+                                <a href="{:U('order_batch')}" class="btn btn-sm btn-success open-window"
+                                   title="批量提单">批量提单</a>
+                            </div>
+                        </div>
+                        <div class="col-md-8 m-b-xs form-inline text-right">
+                            <div class="form-group">
+                                <span class="control-label">开始：</span>
+                                <input type="text" name="begin_time" id="begin_time" value="{:I('begin_time')}"
+                                       class="input-sm input-s-sm serach_selects" style="border: 1px solid #e5e6e7;"
+                                       placeholder="开始日期" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <span class="control-label">&nbsp;结束：</span>
+                                <input type="text" name="end_time" id="end_time" value="{:I('end_time')}"
+                                       style="border: 1px solid #e5e6e7;"
+                                       class="input-sm input-s-sm serach_selects" placeholder="结束日期"
+                                       autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">类型:</label>
+                                <select class="input-sm form-control input-s-sm inline serach_selects" name="type"
+                                        style="width: auto;">
+                                    <option value="0">请选择</option>
+                                    <option value="1"
+                                    <?php if(1==I('type')){ echo "selected='selected'"; } ?>>批量提单</option>
+                                    <option value="2"
+                                    <?php if(2==I('type')){ echo "selected='selected'"; } ?>>表格提单</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="text" name="key" placeholder="请输入文件名" value="{:I('key')}"
+                                           class="input-sm form-control">
+                                    <span class="input-group-btn"><button type="button" id="search"
+                                                                          class="btn btn-sm btn-primary"
+                                                                          url="{:U('excels')}"> 搜索</button></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row input-groups">
+                        <div class="col-md-12 form-inline text-left">
+                            想要导出不同状态的订单，请填写状态数字，进入列表导出
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>文件</th>
+                                <th>类型</th>
+                                <th>上传时间</th>
+                                <th>总数(行)</th>
+                                <th>未下单(行)</th>
+                                <th>已下单(单)</th>
+                                <th>充值中(单)</th>
+                                <th>成功(单)</th>
+                                <th>失败(单)</th>
+                                <th>订单金额</th>
+                                <th>实际花费</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="_list" id="vo"}
+                            <tr>
+                                <td>{$vo.name}</td>
+                                <td>{$vo.type==1?'批量提单':'表格提单'}</td>
+                                <td>{$vo.create_time|time_format}</td>
+                                <td><a class="text-primary open-window no-refresh"
+                                       href="{:U('porder_excel',['excel_id'=>$vo.id])}">{$vo.all_count}</a></td>
+                                <td><a class="text-danger open-window no-refresh"
+                                       href="{:U('porder_excel',['excel_id'=>$vo.id,'status2'=>'1,2,3,5'])}">{$vo.weidao_count}</a>
+                                </td>
+                                <td><a class="text-primary open-window no-refresh"
+                                       href="{:U('index',['excel_id'=>$vo.id,'status2'=>'2,3,4,5,6'])}">{$vo.daoru_count}</a>
+                                </td>
+                                <td>
+                                    <a class="text-warning open-window no-refresh"
+                                       href="{:U('index',['excel_id'=>$vo.id,'status2'=>'2,3'])}">{$vo.ing_count}</a>
+                                </td>
+                                <td>
+                                    <a class="text-success open-window no-refresh"
+                                       href="{:U('index',['excel_id'=>$vo.id,'status2'=>4])}">{$vo.sus_count}</a>
+                                </td>
+                                <td>
+                                    <a class="text-danger open-window no-refresh"
+                                       href="{:U('index',['excel_id'=>$vo.id,'status2'=>'5,6'])}">{$vo.fail_count}</a>
+                                </td>
+                                <td>￥{$vo.total_price}</td>
+                                <td>￥{$vo.total_price-$vo.refund_price}</td>
+                                <td>
+                                    <a class="text-success" href="{:U('excels_out',['id'=>$vo.id])}">导出订单</a>
+                                </td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="page">
+                        {$_list->render()}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="__JS__/laydate/laydate.js"></script>
+<script>
+    //执行一个laydate实例
+    laydate.render({
+        elem: '#begin_time',
+        type: 'datetime',
+        done: function (value, date, endDate) {
+            $('#begin_time').val(value);
+        }
+    });
+    laydate.render({
+        elem: '#end_time',
+        type: 'datetime',
+        done: function (value, date, endDate) {
+            $('#end_time').val(value);
+        }
+    });
+
+</script>
+<script>
+    $(document).ready(function () {
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green'
+        });
+    });
+
+</script>
+</body>
+</html>

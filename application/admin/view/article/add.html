@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{:C('WEB_SITE_TITLE')}</title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.css?v=4.4.0" rel="stylesheet">
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+    <link href="__CSS__/plugins/treeview/bootstrap-treeview.css" rel="stylesheet">
+    <link href="__CSS__/plugins/toastr/toastr.min.css" rel="stylesheet">
+    <!--下拉搜索样式-->
+    <link href="__CSS__/select2.min.css" rel="stylesheet" type="text/css">
+</head>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    .main {
+        background: #fff;
+        padding: 20px;
+        color: #404040;
+    }
+
+    h2 {
+        display: block;
+        font-size: 1.5em;
+        -webkit-margin-before: 0.83em;
+        -webkit-margin-after: 0.83em;
+        -webkit-margin-start: 0px;
+        -webkit-margin-end: 0px;
+        font-weight: bold;
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content" id="page">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>{:isset($info['id'])?'编辑':'新增'}栏目</h5>
+                </div>
+                <div class="ibox-content">
+                    <form role="form" action="{:U('add')}" method="post" class="menu_form form-horizontal">
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>标题<span style="margin-left: 8px;color: #aaa;">（栏目显示名称）</span></label>
+                                <input type="text" placeholder="请输入菜单标题" class="form-control" name="typename"
+                                       value="{$info.typename|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>排序<span style="margin-left: 8px;color: #aaa;">（用于分组显示的顺序）</span></label>
+                                <input type="text" placeholder="" class="form-control" name="sort"
+                                       value="{$info.sort|default=0}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>上级栏目<span style="margin-left: 8px;color: #aaa;">（所属的上级栏目）</span></label>
+                                <select class=" select form-control m-b" name="topid">
+                                    {volist name="arctypes" id="type"}
+                                    <option value="{$type.id}"
+                                    <?php if($info['topid']==$type['id'] || $type['id']==I('topid')){ echo "selected='selected'"; } ?>
+                                    >{$type.typename}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>所属模型</label>
+                                <div>
+                                    <select class="select form-control m-b" name="channeltype">
+                                        {volist name="channel" id="vo"}
+                                        <option value="{$vo.id}"
+                                        <?php if($vo['id']==$info['channeltype']){ echo "selected='selected'"; } ?>
+                                        >{$vo.typename}</option>
+                                        {/volist}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>详情模板<span style="margin-left: 8px;color: #aaa;">（详情模板文件）</span></label>
+                                <input type="text" placeholder="请输入模板文件名称" class="form-control" name="article_template"
+                                       value="{$info.article_template|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>列表模板<span style="margin-left: 8px;color: #aaa;">（列表模板文件）</span></label>
+                                <input type="text" placeholder="请输入模板文件名称" class="form-control" name="list_template"
+                                       value="{$info.list_template|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>是否显示<span style="margin-left: 8px;color: #aaa;">（是否显示该栏目）</span></label>
+                                <div>
+                                    <select class="select form-control m-b" name="isshow">
+                                        <option value="1"
+                                        <?php if(1===$info['isshow']){ echo "selected='selected'"; } ?> >显示</option>
+                                        <option value="0"
+                                        <?php if(0===$info['isshow']){ echo "selected='selected'"; } ?> >隐藏</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <input type="hidden" name="id" value="{$info.id|default=''}">
+                                <button class="btn btn-primary ajax-post" type="submit" target-form="menu_form">
+                                    <strong>确 定</strong></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<!-- 全局js -->
+<script src="__JS__/jquery.min.js?v=2.1.4"></script>
+<script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+<!-- 自定义js -->
+<script src="__JS__/content.js?v=1.0.0"></script>
+<!-- Bootstrap-Treeview plugin javascript -->
+<script src="__JS__/plugins/treeview/bootstrap-treeview.js"></script>
+<script src="__JS__/dayuanren.js?v=2.0.0"></script>
+<script src="__JS__/plugins/toastr/toastr.min.js"></script>
+
+<!--下拉框-->
+<script type="text/javascript" src="__JS__/select2.full.js"></script>
+
+<script>
+    $(document).ready(function () {
+        /*下拉查询选择*/
+        $('.js-example-basic-single').select2();
+    });
+</script>

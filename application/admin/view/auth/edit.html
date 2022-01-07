@@ -1,0 +1,66 @@
+{include file="public/header" /}
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5> 新增权限组</h5>
+                </div>
+                <div class="ibox-content">
+                    <form method="post" class="form-horizontal" action="{:U('edit')}">
+                        <input type="hidden" name="id" value="{$info.id}">
+                        <div class="form-group">
+                            <?php $module=C('MENU_MODULE');?>
+                            <div class="col-sm-12">
+                                <label>模块<span style="margin-left: 8px;color: #aaa;">该地址所属模块</span></label>
+                                <select class="form-control m-b" name="module">
+                                    {volist name="module" id="to"}
+                                    <option value="{$to}"
+                                    <?php if($info['module']==$to){ echo "selected='selected'"; } ?>>{$to}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group ">
+                            <div class="col-sm-12">
+                                <label>组名称</label>
+                                <input type="text" class="form-control" name="title" value="{$info.title}">
+                            </div>
+                        </div>
+                        <div class="form-group ">
+                            <div class="col-sm-12">
+                                <label>描述</label>
+                                <input type="text" class="form-control" name="description" value="{$info.description}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>是否超级组<span style="margin-left: 8px;color: #aaa;">新增菜单的时候，超级组会自动增加权限</span></label>
+                                <select class="form-control m-b" name="is_admin">
+                                    <option value="0"
+                                    <?php if($info['is_admin']==0){ echo "selected='selected'"; } ?>>否</option>
+                                    <option value="1"
+                                    <?php if($info['is_admin']==1){ echo "selected='selected'"; } ?>>是</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <button type="submit" class="btn btn-primary ajax-post" target-form="form-horizontal">确定
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+</body>
+
+</html>

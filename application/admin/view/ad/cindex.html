@@ -1,0 +1,67 @@
+{include file="public/header" /}
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>广告位内容</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups">
+                        <div class="col-md-2 form-inline text-left">
+                            <div class="form-group">
+                                <a class="btn btn-sm btn-primary open-window btn-sm"
+                                   title="新增"
+                                   href="{:U('Ad/cedit',array('ad_id'=>I('ad_id')))}"><i class="fa fa-plus"></i><strong>
+                                    新增</strong></a>
+                                <a class="btn btn-white open-reload btn-sm"><i
+                                        class="glyphicon glyphicon-repeat"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>图片</th>
+                                <th>地址</th>
+                                <th>描述</th>
+                                <th>排序</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {notempty name="list"}
+                            {volist name="list" id="vo"}
+                            <tr>
+                                <td>{$key+1}</td>
+                                <td><img src="{$vo.path}" style="width: 100px;height: auto;"/></td>
+                                <td>{:msubstr($vo.url,0,50)}</td>
+                                <td>{$vo.words}</td>
+                                <td>{$vo.sort}</td>
+                                <td>
+                                    <a class="text-info open-window" title="编辑"
+                                       href="{:U('Ad/cedit',array('id'=>$vo['id'],'ad_id'=>I('ad_id')))}">编辑
+                                    </a>
+                                    <a class="text-danger ajax-get confirm"
+                                       href="{:U('Ad/cdel',array('id'=>$vo['id']))}">删除</a>
+                                </td>
+                            </tr>
+                            {/volist}
+                            {else}
+                            <tr class="no-records-found">
+                                <td colspan="6">没有找到匹配的记录</td>
+                            </tr>
+                            {/notempty}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{:C('WEB_SITE_TITLE')}</title>
+    <link rel="shortcut icon" href="__ROOT__/favicon.ico">
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.css?v=4.4.0" rel="stylesheet">
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="__CSS__/plugins/simditor/simditor.css"/>
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+    <link href="__CSS__/plugins/toastr/toastr.min.css" rel="stylesheet">
+
+</head>
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content" id="page">
+    <div class="row">
+        <form action="{:U('edit_reply')}" method="post" class="allform">
+            <div class="col-sm-6">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>规则编辑</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="form-horizontal">
+                            <input type="hidden" name="id" value="{$info.id}">
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <label>触发类型<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                    <select class="form-control m-b" name="type" v-model="info.type">
+                                        <option value="1">关键词回复</option>
+                                        <option value="2">事件回复</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group" v-if="info.type==1">
+                                <div class="col-sm-12">
+                                    <label>关键词<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                    <input type="text" class="form-control" name="keywords"
+                                           v-model="info.keywords"
+                                           placeholder="关键词">
+                                </div>
+                            </div>
+                            <div class="form-group" v-if="info.type==2">
+                                <div class="col-sm-12">
+                                    <label>事件<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                    <?php $event = C('WEIXINEVENT');?>
+                                    <select class="form-control m-b" name="event" v-model="info.event">
+                                        {volist name="event" id="vo"}
+                                        <option value="{$key}">{$vo}</option>
+                                        {/volist}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group" v-if="info.type==2">
+                                <div class="col-sm-12">
+                                    <label>事件key<span
+                                            style="margin-left: 8px;color: #aaa;">菜单设置的KEY,或者二维码中的场景ID,关注事件可不填key，如果是扫码关注带有场景ID必须填。</span></label>
+                                    <input type="text" class="form-control" name="eventkey"
+                                           v-model="info.eventkey">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <label>回复方式<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                    <?php $reply_style = C('WEIXINREPLYSTYLE');?>
+                                    <select class="form-control m-b" name="reply_style" v-model="info.reply_style">
+                                        {volist name="reply_style" id="vo"}
+                                        <option value="{$key}">{$vo}</option>
+                                        {/volist}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <button type="submit" class="btn btn-primary ajax-post"
+                                            target-form="form-horizontal">
+                                        确定
+                                    </button>
+                                    <a type="button" class="btn btn-white" href="{:U('reply')}">返回</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>回复内容</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="form-horizontal">
+                            <div class="form-group" v-if="info.reply_style==1">
+                                <div class="col-sm-12">
+                                    <label>回复文本<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                    <textarea name="text" class="form-control" v-model="info.text" maxlength="679"
+                                              placeholder="回复的文本内容" style="min-height: 200px"></textarea>
+                                </div>
+                            </div>
+                            <div v-if="info.reply_style==2">
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>图文标题<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                        <input type="text" class="form-control" name="title"
+                                               v-model="info.title"
+                                               placeholder="标题">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>图文描述<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                        <textarea name="description" class="form-control" v-model="info.text"
+                                                  placeholder="描述" v-model="info.description"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>图片地址<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                        <input type="button" data-file="#twpic" class="btn btn-primary" value="上传图片"
+                                               @click="upload"/>
+                                        <input class="hidden" type="file" id="twpic" name="file"
+                                               accept="image/png,image/gif" @change="fileUploadtw"/>
+                                        <input type="text" class="form-control hidden" name="picurl" id=""
+                                               v-model="info.picurl"
+                                               placeholder="图片地址">
+                                        <br/>
+                                        <img :src="info.picurl" width="col-sm-3"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>图文链接<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                        <input type="text" class="form-control" name="url"
+                                               v-model="info.url"
+                                               placeholder="链接">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" v-if="info.reply_style==3">
+                                <div class="col-sm-12">
+                                    <label>图片media_id<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                    <input type="text" class="form-control" name="media_id" v-model="info.media_id"
+                                           placeholder="media_id">
+                                </div>
+                            </div>
+                            <div class="form-group" v-if="info.reply_style==4">
+                                <div class="col-sm-12">
+                                    <label>语音media_id<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                    <input type="text" class="form-control" name="media_id" v-model="info.media_id"
+                                           placeholder="media_id">
+                                </div>
+                            </div>
+                            <div v-if="info.reply_style==5">
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>视频标题<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                        <input type="text" class="form-control" name="title"
+                                               v-model="info.title"
+                                               placeholder="标题">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>视频描述<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                        <input type="text" class="form-control" name="description"
+                                               v-model="info.description" placeholder="描述">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>视频media_id<span
+                                                style="margin-left: 8px;color: #aaa;">请到素材管理复制</span></label>
+                                        <input type="text" class="form-control" name="media_id" v-model="info.media_id"
+                                               placeholder="media_id"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="info.reply_style==6">
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>音乐标题<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                        <input type="text" class="form-control" name="title" v-model="info.title"
+                                               placeholder="标题">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>音乐描述</label>
+                                        <input type="text" class="form-control" name="description"
+                                               v-model="info.description" placeholder="描述">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>音乐资源链接</label>
+                                        <input type="button" data-file="#musicfile" class="btn btn-primary" value="上传资源"
+                                               @click="upload"/>
+                                        <input class="hidden" type="file" id="musicfile" name="file"
+                                               @change="fileUploadmc"/>
+                                        <input type="text" class="form-control" name="musicurl" v-model="info.musicurl"
+                                               placeholder="音乐链接">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>音乐缩略图media_id</label>
+                                        <input type="text" class="form-control" name="media_id"
+                                               v-model="info.media_id" placeholder="media_id">
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="info.reply_style==7">
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>
+                                            该消息触发的时候，用户发送的消息将转发至客服系统。<br/>
+                                            用户被客服接入以后，客服关闭会话以前，处于会话过程中时，用户发送的消息均会被直接转发至客服系统。<br/>
+                                            当会话超过30分钟客服没有关闭时，微信服务器会自动停止转发至客服。<br/>
+                                            用户在等待队列中时，用户发送的消息仍然会被推送至开发者填写的url上。<br/>
+                                            这里特别要注意，只针对微信用户发来的消息才进行转发，而对于其他任何事件（比如菜单点击、地理位置上报等）都不应该转接，否则客服在客服系统上就会看到一些无意义的消息了。
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="__JS__/jquery.min.js?v=2.1.4"></script>
+<script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+<script src="__JS__/content.js?v=1.0.0"></script>
+<script src="__JS__/plugins/layer/layer.min.js"></script>
+<script src="__JS__/ajaxfileupload.js" type="text/javascript"></script>
+<script src="__JS__/plugins/toastr/toastr.min.js"></script>
+<script src="__JS__/dayuanren.js"></script>
+<script src="__JS__/vue.min.js"></script>
+<script>
+    var v = new Vue({
+        el: '#page',
+        data: {
+            info: {},
+        },
+        created: function () {
+            // this.info = eval('({:json_encode($info)})');
+            this.init();
+        },
+        methods: {
+            upload: function (ev) {
+                $($(ev.target).data('file')).trigger("click");
+            },
+            init: function () {
+                var that = this;
+                $.post("{:U('edit_reply_init')}", {id: "{:I('id')}"}, function (ret) {
+                    if (ret.errno == 0) {
+                        that.info = ret.data;
+                    }
+                });
+            },
+            fileUploadtw: function (ev) {
+                var index = layer.load(1, {
+                    shade: [0.1, '#fff'] //0.1透明度的白色背景
+                });
+                //上传图片
+                $.ajaxFileUpload({
+                    url: "{:U('qiniu/uploadOne')}", //文件上传到哪个地址，告诉ajaxFileUpload
+                    secureuri: false, //一般设置为false
+                    fileElementId: 'twpic', //文件上传控件的Id  <input type="file" id="fileUpload" name="file" />
+                    dataType: 'json', //返回值类型 一般设置为json
+                    success: function (ret, status)  //服务器成功响应处理函数
+                    {
+                        layer.closeAll();
+                        v.info.picurl = ret.data.url;
+                    }
+                })
+            },
+            fileUploadmc: function (ev) {
+                var index = layer.load(1, {
+                    shade: [0.1, '#fff'] //0.1透明度的白色背景
+                });
+                //上传图片
+                $.ajaxFileUpload({
+                    url: "{:U('qiniu/uploadOne')}", //文件上传到哪个地址，告诉ajaxFileUpload
+                    secureuri: false, //一般设置为false
+                    fileElementId: 'musicfile', //文件上传控件的Id  <input type="file" id="fileUpload" name="file" />
+                    dataType: 'json', //返回值类型 一般设置为json
+                    success: function (ret, status)  //服务器成功响应处理函数
+                    {
+                        layer.closeAll();
+                        v.info.musicurl = ret.data.url;
+                    }
+                })
+            }
+        }
+    });
+</script>
+</body>
+
+</html>

@@ -1,0 +1,130 @@
+{include file="public/header" /}
+<style>
+    .table-bordered > tbody > tr:hover {
+        background-color: #f5f5f5
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>用户账单</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups" style="display: flex;flex-direction: row;flex-wrap: nowrap;justify-content: space-between;align-items: center;">
+                        <div class="col-sm-2 m-b-xs">
+                            <a class="btn btn-white open-reload"><i class="glyphicon glyphicon-repeat"></i></a>
+                            <input type="hidden" name="id" value="{:I('id')}"/>
+                        </div>
+                        <div class="col-sm-4 m-b-xs"
+                             style="display: flex;flex-direction: row;flex-wrap: nowrap;justify-content: flex-end;align-items: center;">
+                            <span class="control-label">开始：</span>
+                            <input type="text" name="begin_time" id="begin_time" value="{:I('begin_time')}"
+                                   class="input-sm input-s-sm serach_selects" style="border: 1px solid #e5e6e7;"
+                                   placeholder="账单开始日期" autocomplete="off">
+                            <span class="control-label">&nbsp;结束：</span>
+                            <input type="text" name="end_time" id="end_time" value="{:I('end_time')}"
+                                   style="border: 1px solid #e5e6e7;"
+                                   class="input-sm input-s-sm serach_selects" placeholder="账单结束日期" autocomplete="off">
+                        </div>
+
+                        <div class="col-sm-3">
+                            <div class="input-group">
+                                <input type="text" name="key" placeholder="请输入交易明细查询" value="{:I('key')}"
+                                       class="input-sm form-control">
+                                <span class="input-group-btn"><button type="button" id="search"
+                                                                      class="btn btn-sm btn-primary"
+                                                                      url="{:U('balance_log')}"> 搜索</button></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>交易时间</th>
+                                <th>交易方式</th>
+                                <th>交易金额</th>
+                                <th>交易明细</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="_list" id="vo"}
+                            <tr>
+                                <td>{$vo.create_time|time_format}</td>
+                                <td>{$vo.type==1?'收入':'支出'}</td>
+                                <td>{$vo.type==1?'+':'-'}{$vo.money}</td>
+                                <td>{$vo.remark}</td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="page">
+                        {$_list->render()}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="__JS__/laydate/laydate.js"></script>
+<script>
+    //执行一个laydate实例
+    laydate.render({
+        elem: '#begin_time',
+        type: 'datetime',
+        done: function (value, date, endDate) {
+            $('#begin_time').val(value);
+        }
+    });
+    laydate.render({
+        elem: '#end_time',
+        type: 'datetime',
+        done: function (value, date, endDate) {
+            $('#end_time').val(value);
+        }
+    });
+
+</script>
+<script>
+    $(document).ready(function () {
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green'
+        });
+    });
+    $("#search,#excel").click(function () {
+        var url = $(this).attr('url');
+        var query = $('.input-groups').find('input').serialize();
+        var select = $('.input-groups').find('select').serialize();
+        query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+        query = query.replace(/^&/g, '');
+        if (url.indexOf('?') > 0) {
+            url += '&' + query;
+        } else {
+            url += '?' + query;
+        }
+        if (url.indexOf('?') > 0) {
+            url += '&' + select;
+        } else {
+            url += '?' + select;
+        }
+        window.location.href = url;
+    });
+    //回车搜索
+    $(".input-sm").keyup(function (e) {
+        if (e.keyCode === 13) {
+            $("#search").click();
+            return false;
+        }
+    });
+    $(".serach_selects").change(function () {
+        $("#search").click();
+        return false;
+    });
+</script>
+</body>
+</html>

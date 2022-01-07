@@ -1,0 +1,134 @@
+{include file="public/header" /}
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>产品编辑</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <form method="post" class="form-horizontal" action="{:U('edit')}">
+                        <input type="hidden" name="id" value="{$info.id}">
+                        <div class="form-group">
+                            <div class="col-sm-6">
+                                <label>套餐<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <input type="text" class="form-control" name="name" value="{$info.name}">
+                            </div>
+                            <div class="col-sm-6">
+                                <label>描述<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <input type="text" class="form-control" name="desc" value="{$info.desc}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-6">
+                                <?php $type=C('PRODUCT_TYPE');?>
+                                <label>类型<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <select class="form-control m-b" name="type">
+                                    {volist name="type" id="to"}
+                                    <option value="{$key}"
+                                    <?php if($info['type']==$key || I('type')==$key){ echo "selected='selected'"; } ?>>{$to}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                            <div class="col-sm-6">
+                                <label>分类<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <select class="form-control m-b" name="cate_id">
+                                    {volist name="cates" id="to"}
+                                    <option value="{$to.id}"
+                                    <?php if($info['cate_id']==$to['id']){ echo "selected='selected'"; } ?>>{$to.cate}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-3">
+                                <label>基础价<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <input type="text" class="form-control" name="price" value="{$info.price}">
+                            </div>
+                            <div class="col-sm-3">
+                                <label>封顶价<span style="margin-left: 8px;color: #aaa;">店铺最高可设置的售价，0代表不限制</span></label>
+                                <input type="text" class="form-control" name="max_price" value="{$info.max_price}">
+                            </div>
+                            <div class="col-sm-6">
+                                <?php $isps=C('ISP_TEXT');?>
+                                <label>运营商<span style="margin-left: 8px;color: #aaa;">话费/流量有效</span></label><br/>
+                                {volist name="isps" id="vo"}
+                                <input type="checkbox" name="isp[]" value="{$key}" <?php echo strstr($info['isp'],$key.'')?'checked':''; ?> />{$vo}
+                                {/volist}
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-sm-6">
+                                <label>套餐右上角<span style="margin-left: 8px;color: #aaa;">如：8.8折</span></label>
+                                <input type="text" class="form-control" name="ys_tag" value="{$info.ys_tag}">
+                            </div>
+                            <div class="col-sm-6">
+                                <label>备注<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <input type="text" class="form-control" name="remark" value="{$info.remark}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-6">
+                                <label>凭证充值金额/面值<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <input type="text" class="form-control" name="voucher_name" value="{$info.voucher_name}">
+                            </div>
+                            <div class="col-sm-6">
+                                <label>凭证支付金额/价格<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <input type="text" class="form-control" name="voucher_price" value="{$info.voucher_price}">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-sm-6">
+                                <label>状态<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <select class="form-control m-b" name="added">
+                                    <option value="1"
+                                    <?php if($info['added']==1){ echo "selected='selected'"; } ?>>上架</option>
+                                    <option value="0"
+                                    <?php if($info['added']==0){ echo "selected='selected'"; } ?>>下架</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-6">
+                                <label>排序<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <input type="text" class="form-control" name="sort" value="{$info.sort}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>接口充值<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <select class="form-control m-b" name="api_open">
+                                    <option value="1"
+                                    <?php if($info['api_open']==1){ echo "selected='selected'"; } ?>>开启</option>
+                                    <option value="0"
+                                    <?php if($info['api_open']==0){ echo "selected='selected'"; } ?>>关闭</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <button type="submit" class="btn btn-primary ajax-post" target-form="form-horizontal">
+                                    确定
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>

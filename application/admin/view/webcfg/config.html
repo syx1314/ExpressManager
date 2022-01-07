@@ -1,0 +1,130 @@
+{include file="public/header" /}
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>配置管理-非开发人员勿动此栏目内容</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups">
+                        <div class="col-md-2 form-inline text-left">
+                            <div class="form-group">
+                                <a class="btn btn-primary open-window btn-sm" title="新增配置"
+                                   href="{:U('add',array('pid'=>I('get.pid',0)))}"><i class="fa fa-plus"></i> 新增</a>
+                            </div>
+                            <div class="form-group">
+                                <a class="btn btn-outline btn-warning btn-sm" href="{:U('sort')}"><i
+                                        class="fa fa-sort-alpha-asc"></i> 排序</a>
+                            </div>
+                            <div class="form-group">
+                                <a class="btn btn-white open-reload btn-sm"><i
+                                        class="glyphicon glyphicon-repeat"></i></a>
+                            </div>
+                        </div>
+                        <div class="col-md-10 m-b-xs form-inline text-right">
+                            <div class="form-group">
+                                <label class="control-label">分组:</label>
+                                <select id="group_type" class="input-sm form-control input-s-sm inline serach_selects"
+                                        name="group_type">
+                                    <option value="-1">请选择分组</option>
+                                    <option value="0"
+                                    <?php if(0==I('group_type')&&I('group_type')!=null){ echo "selected='selected'"; } ?>
+                                    >未分组</option>
+                                    {volist name="group" id="group"}
+                                    <option value="{$key}"
+                                    <?php if($key==I('group_type')){ echo "selected='selected'"; } ?>
+                                    >{$group}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="text" placeholder="请输入关键词" class="input-sm form-control search-input" name="key"
+                                           value="{:I('key')}"> <span class="input-group-btn">
+                                        <button type="submit" class="btn btn-sm btn-primary" id="search"
+                                                url="{:U('config')}"> 搜索</button> </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>标题</th>
+                                <th>名称</th>
+                                <th>分组</th>
+                                <th>类型</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {notempty name="list"}
+                            {volist name="list" id="config"}
+                            <tr>
+                                <td>{$config.title}</td>
+                                <td>
+                                    {in name="config['sys']" value="0"}
+                                    <a href="{:U('add?id='.$config['id'])}">{$config.name}</a>
+                                    {else /}
+                                    <a>{$config.name}</a>
+                                    {/in}
+                                </td>
+                                <td>
+                                    {in name="config['group']" value="0"}
+                                    {else /}
+                                    {:C('CONFIG_GROUP_LIST')[$config.group]}
+                                    {/in}
+                                </td>
+                                <td>{:C('CONFIG_TYPE_LIST')[$config.type]}</td>
+                                <td>{$config.status==1?'显示':'隐藏'}</td>
+                                <td>
+                                    {eq name="config.status" value="1"}
+                                    <a class="text-warning ajax-get"
+                                       href="{:U('set_status?id='.$config.id.'&status=0')}" title="禁用">隐藏</a>
+                                    {else/}
+                                    <a class="text-info ajax-get"
+                                       href="{:U('set_status?id='.$config.id.'&status=1')}"
+                                       title="启用">显示</a>
+                                    {/eq}
+
+                                    <a class="open-window" title="编辑"
+                                       href="{:U('add',array('id'=>$config['id']))}"><span
+                                            class="text-navy">编辑</span></a>
+                                    {in name="config['sys']" value="0"}
+                                    <a class="ajax-get confirm"
+                                       href="{:U('del',array('id'=>$config['id']))}"><span
+                                            style="color: #b31a2f">删除</span></a>
+                                    {/in}
+                                </td>
+                            </tr>
+                            {/volist}
+                            {else /}
+                            <td colspan="12" style="text-align:center">aOh! 暂时还没有内容!</td>
+                            {/notempty}
+                            </tbody>
+                        </table>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green',
+        });
+    });
+</script>
+</body>
+</html>

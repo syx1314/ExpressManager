@@ -1,0 +1,125 @@
+{include file="public/header" /}
+
+<body class="gray-bg">
+<div id="page">
+    <div class="wrapper wrapper-content animated fadeIn">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>操作日志</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="row input-groups">
+                            <div class="col-md-2 form-inline text-left">
+                                <a class="btn btn-white open-reload"><i class="glyphicon glyphicon-repeat"></i></a>
+                            </div>
+                            <div class="col-md-10 m-b-xs form-inline text-right">
+                                <div class="form-group">
+                                    <label class="control-label">请求:</label>
+                                    <select class="input-sm form-control input-s-sm inline serach_selects"
+                                            name="method"
+                                            style="width: auto;">
+                                        <option value="">请选择</option>
+                                        {volist name="methods" id="vo"}
+                                        <option value="{$vo.method}"
+                                        <?php if(I('method')==$vo['method']){ echo "selected='selected'"; } ?>
+                                        >{$vo.method}</option>
+                                        {/volist}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label">管理员:</label>
+                                    <select class="input-sm form-control input-s-sm inline serach_selects"
+                                            name="member_id"
+                                            style="width: auto;">
+                                        <option value="">请选择</option>
+                                        {volist name="member" id="vo"}
+                                        <option value="{$vo.id}"
+                                        <?php if(I('member_id')==$vo['id']){ echo "selected='selected'"; } ?>
+                                        >{$vo.nickname}</option>
+                                        {/volist}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <input type="text" name="key" placeholder="请输入关键词搜索"
+                                               value="{:I('key')}"
+                                               class="input-sm form-control">
+                                        <span class="input-group-btn"><button type="button" id="search"
+                                                                              class="btn btn-sm btn-primary"
+                                                                              url="{:U('log')}"> 搜索</button></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                <tr>
+                                    <th>操作</th>
+                                    <th>地址</th>
+                                    <th>数据</th>
+                                    <th>用户</th>
+                                    <th>ip</th>
+                                    <th>时间</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {volist name='list' id='vo'}
+                                <tr>
+                                    <td>{$vo.title}</td>
+                                    <td>
+                                        <div style="max-width: 400px;overflow-y: scroll;overflow-y: hidden;">
+                                            [{$vo.method}]&nbsp;{$vo.url}
+                                        </div>
+                                    </td>
+                                    <td class="kecopy" datastr='{$vo.param}'
+                                        data-title="{$vo.title}-{$vo.method}({$vo.url})-{$vo.ip}-{$vo.name}">详情
+                                    </td>
+                                    <td>{$vo.name}</td>
+                                    <td>{$vo.ip}</td>
+                                    <td>{$vo.create_time|time_format}</td>
+                                </tr>
+                                {/volist}
+                                </tbody>
+                            </table>
+                        </div>
+                        {$list->render()}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(".kecopy").click(function () {
+        var str = $(this).attr("datastr");
+        var title = $(this).data('title');
+        var json = JSON.parse(str);//将json字符串格式化为json对象
+        str = JSON.stringify(json, null, "\t");
+        layer.open({
+            type: 1,
+            skin: '', //加上边框
+            title: title,
+            area: ['520px', '440px'], //宽高
+            content: '<textarea style="width: 100%;height: 100%;">' + str + '</textarea>'
+        });
+    });
+    //    function reconvert(str) {
+    //        str = str.replace(/(\\u)(\w{1,4})/gi, function ($0) {
+    //            return (String.fromCharCode(parseInt((escape($0).replace(/(%5Cu)(\w{1,4})/g, "$2")), 16)));
+    //        });
+    //        str = str.replace(/(&#x)(\w{1,4});/gi, function ($0) {
+    //            return String.fromCharCode(parseInt(escape($0).replace(/(%26%23x)(\w{1,4})(%3B)/g, "$2"), 16));
+    //        });
+    //        str = str.replace(/(&#)(\d{1,6});/gi, function ($0) {
+    //            return String.fromCharCode(parseInt(escape($0).replace(/(%26%23)(\d{1,6})(%3B)/g, "$2")));
+    //        });
+    //        return str;
+    //    }
+</script>
+</body>
+</html>

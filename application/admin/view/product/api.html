@@ -1,0 +1,78 @@
+{include file="public/header" /}
+<style>
+    .table-bordered > tbody > tr:hover {
+        background-color: #f5f5f5
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>套餐API</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups">
+                        <div class="col-md-2 form-inline text-left">
+                            <a class="btn btn-sm btn-primary open-window"
+                               href="{:U('edit_api',['product_id'=>I('id')])}" title="新增提交接口"><i
+                                    class="fa fa-plus"></i> 新增</a>
+                            <a class="btn btn-sm btn-white open-reload"><i
+                                    class="glyphicon glyphicon-repeat"></i></a>
+                        </div>
+
+                        <div class="col-md-10 m-b-xs form-inline text-right"></div>
+                    </div>
+                    <div class="row input-groups">
+                        <div class="col-md-12">
+                            <h4>可以添加多个接口API，如果接口回调“充值失败”会按照顺序依次提交接口，如果所有的接口都使用了还未充值成功则“充值失败”，其中一个接口“充值成功”将停止往下执行。</h4>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>渠道</th>
+                                <th>套餐</th>
+                                <th>提交次数</th>
+                                <th>运营商</th>
+                                <th>排序</th>
+                                <th>接口状态</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="_list" id="vo"}
+                            <tr>
+                                <td>{$vo.reapi_id|getReapiName}</td>
+                                <td>{$vo.param_id|getReapiParamName}</td>
+                                <td>{$vo.num}</td>
+                                <td>{$vo.isp|getISPText}</td>
+                                <td>{$vo.sort}</td>
+                                <td>{$vo.status?'打开':'关闭'}</td>
+                                <td>
+                                    {eq name="vo.status" value="1"}
+                                    <a class="text-warning ajax-get"
+                                       href="{:U('api_status_cg?id='.$vo.id.'&status=0')}" title="关闭">关闭</a>
+                                    {else/}
+                                    <a class="text-info ajax-get" href="{:U('api_status_cg?id='.$vo.id.'&status=1')}"
+                                       title="打开">打开</a>
+                                    {/eq}
+                                    <a class="open-window" href="{:U('edit_api',['id'=>$vo.id,'product_id'=>I('id')])}"
+                                       title="编辑">编辑</a>
+                                    <a class="text-danger ajax-get confirm" href="{:U('api_del?id='.$vo.id)}"
+                                       title="删除">删除</a>
+                                </td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,188 @@
+{include file="public/header" /}
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>订阅消息配置</h5>
+                    &nbsp;请先登录小程序，开通订阅消息功能，基本设置里面添加类目:生活服务/生活缴费
+                </div>
+                <div class="ibox-content">
+                    <form method="post" class="form-horizontal" action="{:U('')}">
+                        <input type="hidden" name="id" value="{$info.id|default=''}"/>
+                        <input type="hidden" name="weixin_appid" value="{$info.weixin_appid|default=''}"/>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>余额变动下发_模板ID<span
+                                        style="margin-left: 8px;color: #aaa;">生活服务/生活缴费-余额下发成功通知-18259</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="balancexf_template_id"
+                                           value="{$info.balancexf_template_id|default=''}" autocomplete="off"/> <span
+                                        class="input-group-btn"> <button
+                                        type="button" class="btn btn-white add_template" data-tid="18259"
+                                        data-kids="2,4,5" data-name="余额下发成功通知">添加模板
+                                        </button> </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>余额扣款_模板ID<span
+                                        style="margin-left: 8px;color: #aaa;">生活服务/生活缴费-扣款通知-6750</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="balancekk_template_id"
+                                           value="{$info.balancekk_template_id|default=''}" autocomplete="off"/> <span
+                                        class="input-group-btn"> <button
+                                        type="button" class="btn btn-white add_template" data-tid="6750"
+                                        data-kids="1,2,3" data-name="扣款通知">添加模板
+                                        </button> </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>积分变动通知_模板ID<span
+                                        style="margin-left: 8px;color: #aaa;">生活服务/生活缴费-积分变动通知-10322</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="integralcg_template_id"
+                                           value="{$info.integralcg_template_id|default=''}" autocomplete="off"/> <span
+                                        class="input-group-btn"> <button
+                                        type="button" class="btn btn-white add_template" data-tid="10322"
+                                        data-kids="1,8,7,5" data-name="积分变动通知">添加模板
+                                        </button> </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>提现审核_模板ID<span style="margin-left: 8px;color: #aaa;">生活服务/生活缴费-业务办理进度通知-OPENTM412319702</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="tixiansh_template_id"
+                                           value="{$info.tixiansh_template_id|default=''}" autocomplete="off"/> <span
+                                        class="input-group-btn"> <button
+                                        type="button" class="btn btn-white add_template" data-tid="13337" data-kids="4,5,6,3"
+                                        data-name="提现审核">添加模板
+                                        </button> </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>邀请新用户_模板ID<span style="margin-left: 8px;color: #aaa;">生活服务/生活缴费-业务办理进度通知-13337</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="newuser_template_id"
+                                           value="{$info.newuser_template_id|default=''}" autocomplete="off"/> <span
+                                        class="input-group-btn"> <button
+                                        type="button" class="btn btn-white add_template" data-tid="13337" data-kids="3,5"
+                                        data-name="邀请成功">添加模板
+                                        </button> </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>下单成功通知_模板ID<span
+                                        style="margin-left: 8px;color: #aaa;">生活服务/生活缴费-下单成功通知-12006</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="ordersus_template_id"
+                                           value="{$info.ordersus_template_id|default=''}" autocomplete="off"/> <span
+                                        class="input-group-btn"> <button
+                                        type="button" class="btn btn-white add_template" data-tid="12006"
+                                        data-kids="3,6,4,5" data-name="下单成功通知">添加模板
+                                        </button> </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>充值成功_模板ID<span
+                                        style="margin-left: 8px;color: #aaa;">I生活服务/生活缴费-充值成功通知-3783</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="chargesus_template_id"
+                                           value="{$info.chargesus_template_id|default=''}" autocomplete="off"/> <span
+                                        class="input-group-btn"> <button
+                                        type="button" class="btn btn-white add_template" data-tid="3783"
+                                        data-kids="6,8,5,7"
+                                        data-name="充值成功通知">添加模板
+                                        </button> </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>充值失败_模板ID<span style="margin-left: 8px;color: #aaa;">生活服务/生活缴费-充值失败通知-4984</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="chargefail_template_id"
+                                           value="{$info.chargefail_template_id|default=''}" autocomplete="off"/> <span
+                                        class="input-group-btn"> <button
+                                        type="button" class="btn btn-white add_template" data-tid="4984"
+                                        data-kids="4,9,1,5"
+                                        data-name="充值失败通知">添加模板
+                                        </button> </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>退款结果通知_模板ID<span
+                                        style="margin-left: 8px;color: #aaa;">生活服务/生活缴费-退款结果通知-5344</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="refund_template_id"
+                                           value="{$info.refund_template_id|default=''}" autocomplete="off"/> <span
+                                        class="input-group-btn"> <button
+                                        type="button" class="btn btn-white add_template" data-tid="5344"
+                                        data-kids="7,1,5,2,4" data-name="退款结果通知">添加模板
+                                        </button> </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>升级成功通知_模板ID<span
+                                        style="margin-left: 8px;color: #aaa;">生活服务/生活缴费-业务办理进度通知-13337</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="upsus_template_id"
+                                           value="{$info.upsus_template_id|default=''}" autocomplete="off"/> <span
+                                        class="input-group-btn"> <button
+                                        type="button" class="btn btn-white add_template" data-tid="13337"
+                                        data-kids="4,6,3"
+                                        data-name="升级成功通知">添加模板
+                                        </button> </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <button type="submit" class="btn btn-primary ajax-post" target-form="form-horizontal">保存
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    $(".add_template").click(function () {
+        var obj = $(this).parent().parent().children("input");
+        $.post("{:U('add_api_template')}", {
+            tid: $(this).data('tid'),
+            kids: $(this).data('kids'),
+            name: $(this).data('name')
+        }, function (ret) {
+            if (ret.errno == 0) {
+                layer.msg(ret.errmsg);
+                obj.val(ret.data);
+            } else {
+                layer.msg(ret.errmsg);
+            }
+        });
+    });
+</script>
+</html>

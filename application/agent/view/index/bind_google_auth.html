@@ -1,0 +1,89 @@
+{include file="public/header" /}
+<body>
+<div class="row  border-bottom white-bg dashboard-header">
+    <div class="col-sm-12">
+        <blockquote class="text-warning" style="font-size:14px">
+            <h4 class="text-danger">为保证您的账号安全，请先绑定谷歌验证码！特别重要，一定要操作</h4>
+            <h4 class="text-primary">为保证您的账号安全，请先绑定谷歌验证码！特别重要，一定要操作</h4>
+            <h4 class="text-warning">为保证您的账号安全，请先绑定谷歌验证码！特别重要，一定要操作</h4>
+            <h4 class="text-success">为保证您的账号安全，请先绑定谷歌验证码！特别重要，一定要操作</h4>
+            <h4 class="text-danger">为保证您的账号安全，请先绑定谷歌验证码！特别重要，一定要操作</h4>
+        </blockquote>
+
+        <hr>
+    </div>
+    <div class="col-sm-3">
+        <h2>绑定操作<small>（选一种）</small></h2>
+        <small>1.请使用谷歌验证器app扫描以下二维码：</small>
+        <br>
+        <br>
+        <img src="{$qrcode_url}" width="100%" style="max-width:200px;">
+        <br>
+        <br>
+        <small>2.如果二维码无法使用，可以手动输入下方秘钥：</small>
+        <br>
+        <p>秘钥：<b>{$secret}</b><a class="js-copy" data-clipboard-text="{$secret}">&nbsp;复制</a></p>
+    </div>
+    <div class="col-sm-9">
+        <h2>
+            操作说明
+        </h2>
+        <p>
+            第二步，在手机上安装谷歌身份验证器Google Authenticator
+        </p>
+        <p>
+            iPhone手机： 在App Store中搜索 “谷歌身份验证器” 或 “Google Authenticator”； <br>
+            android手机：在应用市场中搜索“谷歌身份验证器”，或 “Google
+            Authenticator”。（手机自带品牌应用商店（如小米应用商店）或者其它知名第三方应用商店（如腾讯的应用宝、360手机助手等）下载，安全性较高。涉及加密资产账号安全的工具切勿在来路不明的地方下载使用。）
+            <br>
+            <br>
+            苹果备用下载链接：<a target="_blank" href="https://apps.apple.com/cn/app/google-authenticator/id388497605">https://apps.apple.com/cn/app/google-authenticator/id388497605</a>
+            <br>
+            安卓备用下载链接：<a target="_blank" href="https://app.dayuanren.net/index.php/index/app/app/key/1632972696815.html">https://app.dayuanren.net/index.php/index/app/app/key/1632972696815.html</a>
+            <br>
+            <br>
+            第二步，添加该平台提供的谷歌身份验证密钥。打开谷歌身份验证器 App，安卓手机点击“添加新账户”，苹果手机点击“+”，扫描二维码添加；如果无法扫描二维码，可以手动输入密钥。
+            <br>
+            <br>
+            第三步，备份！这一步很多人都会忽略，但是特别重要。上图显示的这个二维码和密钥，功能是一样的，只要有其中的任何一个，都可以知道你的谷歌验证码。所以，要像重视加密货币的钱包私钥一样，重视你的谷歌验证器私钥，最好是备份到离线的设备。（以后APP重装或者换手机以后都会用到）
+            <br>
+            <br>
+            第四步，当系统要求填写谷歌谷歌身份验证码的时候，打开APP,输入对应应用的验证码进行验证。
+        </p>
+        <p>
+            <a class="btn btn-success btn-outline" onclick="confirmgo(this)"
+               data-url="{:U('index/save_google_auth',['secret'=>$secret])}"
+               target="_self">
+                我已完成绑定操作,进入系统
+            </a>
+        </p>
+    </div>
+
+</div>
+</body>
+<script>
+    var btn = document.getElementsByClassName("js-copy");
+    var clipboard = new Clipboard(btn);//实例化
+    //复制成功执行的回调，可选
+    clipboard.on('success', function (e) {
+        layer.msg('复制成功！');
+    });
+
+    //复制失败执行的回调，可选
+    clipboard.on('error', function (e) {
+        layer.msg('复制失败！');
+    });
+
+    function confirmgo(obj) {
+        var url = $(obj).data('url');
+        layer.confirm('是否已经完成所有操作，如果未绑定会导致下次您不能登录系统？', {
+            title: '警告',
+            btn: ['我已经完成绑定', '还未绑定'] //按钮
+        }, function () {
+            window.location.href = url;
+        }, function () {
+
+        });
+    }
+</script>
+</html>

@@ -1,0 +1,219 @@
+{include file="public/header" /}
+<style>
+    .zifu {
+        width:500px;
+    }
+
+    .shuzi {
+        width: 180px;
+    }
+
+    .wenben {
+        width: 500px;
+        height: 120px !important;
+        resize: none
+    }
+
+    .shuzu {
+        width: 500px;
+        height: 120px !important;
+        resize: none
+    }
+
+    .meiju {
+        width: auto;
+        max-width: 200px;
+    }
+
+    .btns {
+        width: 120px;
+        height: 40px;
+        margin-right: 10px;
+    }
+
+    .dzimg {
+        height: 100px;
+        max-width: 80%;
+        background-position: left top;
+        background-size: 100px auto;
+    }
+</style>
+
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="tabs-container">
+                <ul class="nav nav-tabs">
+                    {volist name="typelist" id="tvo" key="k"}
+                    <li class="{$k == 1? 'active' : ''}"><a data-toggle="tab" href="#tab-{$k}" aria-expanded="false">
+                        {$tvo.type}配置</a></li>
+                    {/volist}
+                </ul>
+                <div class="tab-content">
+                    {volist name="typelist" id="tvo" key="k"}
+                    <div id="tab-{$k}" class="tab-pane {$k == 1? 'active' : ''}">
+                        <div class="col-sm-12 b-r panel-body">
+                            <form action="{:U('webcfg/edit')}" method="post" class="peizhiModal">
+                                <!--<input type="hidden" name="group" value="{$key}">-->
+                                {volist name="tvo.item" id="gvo"}
+                                {if condition="$gvo.type eq 0"}
+                                <div class="form-group">
+                                    <label class="js-copy" data-clipboard-text="{$gvo.name}">{$gvo.title}</label>&nbsp;&nbsp;&nbsp;&nbsp;（{$gvo.remark}）
+                                    <input type="number" onmousewheel="return false;" name="{$gvo.name}" class="form-control shuzi"
+                                           value="{$gvo.value}">
+                                </div>
+                                {elseif condition="$gvo.type eq 1"}
+                                <div class="form-group">
+                                    <label class="js-copy" data-clipboard-text="{$gvo.name}">{$gvo.title}</label>&nbsp;&nbsp;&nbsp;&nbsp;（{$gvo.remark}）
+                                    <input type="text" name="{$gvo.name}" class="form-control zifu"
+                                           value="{$gvo.value}">
+                                </div>
+                                {elseif condition="$gvo.type eq 2"}
+                                <div class="form-group">
+                                    <label class="js-copy" data-clipboard-text="{$gvo.name}">{$gvo.title}</label>&nbsp;&nbsp;&nbsp;&nbsp;（{$gvo.remark}）
+                                    <textarea type="text" name="{$gvo.name}"
+                                              class="form-control wenben">{$gvo.value}</textarea>
+                                </div>
+                                {elseif condition="$gvo.type eq 3"}
+                                <div class="form-group">
+                                    <label class="js-copy" data-clipboard-text="{$gvo.name}">{$gvo.title}</label>&nbsp;&nbsp;&nbsp;&nbsp;（{$gvo.remark}）
+                                    <textarea type="text" name="{$gvo.name}"
+                                              onkeyup="this.value = this.value.replace(/[：]+$/,'')"
+                                              class="form-control shuzu">{$gvo.value}</textarea>
+                                </div>
+                                {elseif condition="$gvo.type eq 4"}
+                                <div class="form-group">
+                                    <label class="js-copy" data-clipboard-text="{$gvo.name}">{$gvo.title}</label>&nbsp;&nbsp;&nbsp;&nbsp;（{$gvo.remark}）
+                                    <select class="form-control m-b meiju" name="{$gvo.name}">
+                                        {volist name=":parse_config_attr($gvo['extra'])" id="evo"}
+                                        {if condition="$key eq $gvo.value"}
+                                        <option value="{$key}" selected="selected">{$evo}</option>
+                                        {else}
+                                        <option value="{$key}">{$evo}</option>
+                                        {/if}
+                                        {/volist}
+                                    </select>
+                                </div>
+                                {elseif condition="$gvo.type eq 5"}
+                                <div class="form-group">
+                                    <label class="js-copy" data-clipboard-text="{$gvo.name}">{$gvo.title}</label>&nbsp;&nbsp;&nbsp;&nbsp;（{$gvo.remark}）
+                                    <!--<input type="text" name="{$gvo.name}" data-type="file" id="gvo_id{$gvo.id}"-->
+                                           <!--class="form-control zifu"-->
+                                           <!--value="{$gvo.value}" readonly="readonly">-->
+                                    <!--<button class="btn btn-info btn-block" type="button" data-gid="gvo_id{$gvo.id}"-->
+                                            <!--onclick="choose_file($(this))" style="width: 100px;margin-top: 10px;"><i-->
+                                            <!--class="fa fa-upload"></i>&nbsp;&nbsp;<span-->
+                                            <!--class="bold">上传文件</span></button>-->
+                                    <div class="input-group zifu">
+                                        <input type="text" class="form-control zifu" name="{$gvo.name}" data-type="file" id="gvo_id{$gvo.id}" value="{$gvo.value}" readonly="readonly">
+                                        <span class="input-group-btn">
+                                            <button data-gid="gvo_id{$gvo.id}" onclick="choose_file($(this))" type="button" class="btn btn-primary">
+                                                <i class="fa fa-upload"></i>&nbsp;<span
+                                                    class="bold">上传文件</span></button>
+                                        </span>
+                                    </div>
+                                </div>
+                                {elseif condition="$gvo.type eq 6"}
+                                <div class="form-group">
+                                    <label class="js-copy" data-clipboard-text="{$gvo.name}">{$gvo.title}</label>&nbsp;&nbsp;&nbsp;&nbsp;（{$gvo.remark}）
+                                    <input type="hidden" name="{$gvo.name}" data-type="img"
+                                           value="{$gvo.value}">
+                                    <div>
+                                        {empty name="gvo.value"}
+                                        <img class="dzimg show-big-img" src="__IMG__/webuploader.png" id="{$gvo.name}"
+                                             data-url="{$gvo.value}" data-title="{$gvo.title}"/>
+                                        {else/}
+                                        <img class="dzimg show-big-img" src="{$gvo.value}" id="{$gvo.name}"
+                                             data-url="{$gvo.value}" data-title="{$gvo.title}"/>
+                                        {/empty}
+                                    </div>
+                                    <button class="btn btn-info btn-block open-img-window" data-title="选择图片"
+                                            data-url="{:U('widget/images')}" data-max="1" data-name="{$gvo.name}" type="button" style="width: 100px;margin-top: 10px;"><i
+                                            class="fa fa-upload"></i>&nbsp;&nbsp;<span
+                                            class="bold">上传图片</span></button>
+                                </div>
+                                {/if}
+                                {/volist}
+                                <div class="form-group">
+                                        <button class="btn btn-primary btns ajax-post" type="submit"
+                                                target-form="peizhiModal">保存
+                                        </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {/volist}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<input type="file" name="file" id="fileid" onchange="fileUpload()" style="display: none"/>
+
+<script src="__JS__/ajaxfileupload.js" type="text/javascript"></script>
+<script>
+    var btn = document.getElementsByClassName("js-copy");
+    var clipboard = new Clipboard(btn);//实例化
+    //复制成功执行的回调，可选
+    clipboard.on('success', function (e) {
+        toastr.info('配置关键词复制成功');
+    });
+
+    //复制失败执行的回调，可选
+    clipboard.on('error', function (e) {
+        toastr.warning('复制失败!请切换重试！');
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green',
+        });
+    });
+    window.changeIMG = function (name, res) {
+        $("#" + name).attr("src", res);
+        $("[name=" + name + "]").val(res);
+    }
+
+    var gid;
+    function choose_file(obj) {
+        gid = obj.data("gid");
+        $("#fileid").trigger("click");
+    }
+
+    function fileUpload() {
+        var index = layer.load(1, {
+            shade: [0.1, '#fff'] //0.1透明度的白色背景
+        });
+        //上传图片
+        $.ajaxFileUpload({
+            url: "{:U('File/upload')}", //文件上传到哪个地址，告诉ajaxFileUpload
+            secureuri: false, //一般设置为false
+            fileElementId: 'fileid', //文件上传控件的Id  <input type="file" id="fileUpload" name="file" />
+            dataType: 'json', //返回值类型 一般设置为json
+            success: function (ret, status)  //服务器成功响应处理函数
+            {
+                layer.closeAll();
+                console.log(ret);
+                if (ret.errno == 0) {
+                    $("#" + gid).val(ret.data);
+                    if ($("#" + gid).data('type') == 'img') {
+                        $("#" + gid + "img").attr('src', ret.data);
+                        $("#" + gid + "img").data('url', ret.data);
+                    }
+                    toastr.success(ret.errmsg);
+                } else {
+                    toastr.error(ret.errmsg);
+                }
+            }
+        })
+    }
+</script>
+
+
+</body>
+
+</html>

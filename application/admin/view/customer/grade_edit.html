@@ -1,0 +1,144 @@
+{include file="public/header" /}
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>编辑等级</h5>
+                </div>
+                <div class="ibox-content">
+                    <form method="post" class="form-horizontal" action="{:U('')}">
+                        <input type="hidden" name="id" value="{$info.id|default=''}">
+                        {empty name="info"}
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <?php $types=C('CUS_TYPE');?>
+                                <label>等级类型<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <select class="form-control m-b" name="grade_type">
+                                    {volist name="types" id="to"}
+                                    <option value="{$key}"
+                                    <?php if($info &&  $info['grade_type']==$key){ echo "selected='selected'"; } ?>
+                                    >{$to}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                        </div>
+                        {else/}
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <?php $types=C('CUS_TYPE');?>
+                                <label>等级类型<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <select class="form-control m-b" name="grade_type" disabled>
+                                    {volist name="types" id="to"}
+                                    <option value="{$key}"
+                                    <?php if($info && $info['grade_type']==$key){ echo "selected='selected'"; } ?>
+                                    >{$to}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                        </div>
+                        {/empty}
+                        <div class="form-group">
+                            <div class="col-sm-6">
+                                <label>名称<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <input type="text" class="form-control" name="grade_name"
+                                       value="{$info.grade_name|default=''}">
+                            </div>
+                            <div class="col-sm-6">
+                                <label>排序<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <input type="number" class="form-control" name="sort" value="{$info.sort|default=''}"
+                                       autocomplete="off">
+                            </div>
+                        </div>
+                        {eq name="info.id" value="2"}
+                        <div class="form-group">
+                            <div class="col-sm-4">
+                                <label>升级费用<span style="margin-left: 8px;color: #aaa;">用户升级时应付费用</span></label>
+                                <input type="text" class="form-control" name="up_price"
+                                       value="{$info.up_price|default=''}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label>升级奖励<span style="margin-left: 8px;color: #aaa;">用户升级奖励给升级者</span></label>
+                                <input type="text" class="form-control" name="up_rewards"
+                                       value="{$info.up_rewards|default=''}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label>返利金额<span style="margin-left: 8px;color: #aaa;">用户升级奖励给邀请人</span></label>
+                                <input type="text" class="form-control" name="rebate_price"
+                                       value="{$info.rebate_price|default=''}">
+                            </div>
+                        </div>
+                        {/eq}
+                        {in name="info.id" value="2,4"}
+                        <div class="form-group">
+                            <div class="col-sm-6">
+                                <label>自定义价格<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <select class="form-control m-b" name="is_zdy_price">
+                                    <option value="0"
+                                    <?php if($info && $info['is_zdy_price']==0){ echo "selected='selected'"; } ?>
+                                    >否</option>
+                                    <option value="1"
+                                    <?php if($info && $info['is_zdy_price']==1){ echo "selected='selected'"; } ?>
+                                    >是</option>
+                                </select>
+                            </div>
+                        </div>
+                        {/in}
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>备注<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <input type="text" class="form-control" name="remark" value="{$info.remark|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <button type="submit" class="btn btn-primary ajax-post" target-form="form-horizontal">
+                                    确定
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="__JS__/ajaxfileupload.js" type="text/javascript"></script>
+<script>
+    function historys() {
+        window.location.href = "{:U('Customer/index')}";
+    }
+
+    $("#btnUpload").click(function () {
+        $("#fileid").trigger("click");
+    });
+
+    function fileUpload() {
+        var index = layer.load(1, {
+            shade: [0.1, '#fff'] //0.1透明度的白色背景
+        });
+        //上传图片
+        $.ajaxFileUpload({
+            url: "{:U('qiniu/uploadOne')}", //文件上传到哪个地址，告诉ajaxFileUpload
+            secureuri: false, //一般设置为false
+            fileElementId: 'fileid', //文件上传控件的Id  <input type="file" id="fileUpload" name="file" />
+            dataType: 'json', //返回值类型 一般设置为json
+            success: function (ret, status)  //服务器成功响应处理函数
+            {
+                layer.closeAll();
+                if (ret.errno == 0) {
+                    toastr.success(ret.errmsg);
+                    $("[name=headimg]").val(ret.data.url);
+                    $("#img").attr("src", ret.data.url);
+                } else {
+                    toastr.error(ret.errmsg);
+                }
+            }
+        })
+    }
+</script>
+</body>
+
+</html>

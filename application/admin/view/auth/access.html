@@ -1,0 +1,85 @@
+{include file="public/header" /}
+<style>
+    .btns {
+        margin: 0 10px 0 50px;
+        width: 130px;
+        height: 40px;
+    }
+
+    .backa {
+        margin-left: 20px;
+        padding: 5px 10px;
+        border-radius: 5px;
+    }
+</style>
+
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>{$group.title}——访问授权</h5>
+                </div>
+                <div class="ibox-content">
+                    后台： 以下这几个权限请务必勾选上，{主界面、主页、首页、用户资料、修改密码}
+                    <div class="panel-body">
+                        <div class="panel-group" id="accordion">
+                            {$access_html}
+                        </div>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <form action="{:U('Auth/edit_access')}" method="post" class="accessModal">
+                        <input type="hidden" name="gid" value="{:I('group_id')}"/>
+                        <textarea name="ids" id="ids" style="display: none"></textarea>
+                        <button class="btn btns btn-sm btn-primary ajax-post" type="submit" target-form="accessModal">
+                            <strong>确
+                                定</strong></button>
+                        <!--<button class="btn btns btn-sm btn-white" onclick="javascript:history.back(-1);return false;">-->
+                        <!--<strong>返 回</strong></button>-->
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        idsRefresh();
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green'
+        });
+        $("input[type='checkbox']").on('ifChanged', function (event) {
+            if ($(this).is(":checked")) {
+                $("input[data-pid =" + $(this).val() + " ]").iCheck('check');
+            } else {
+                $("input[data-pid =" + $(this).val() + " ]").iCheck('uncheck');
+            }
+            idsRefresh();
+        });
+
+        function idsRefresh() {
+            var ids = '';
+            $("input[type='checkbox']").each(function () {
+                if ($(this).is(":checked")) {
+                    if (ids == '') {
+                        ids = $(this).val();
+                    } else {
+                        ids = ids + ',' + $(this).val();
+                    }
+                }
+            });
+            $("#ids").val(ids);
+        }
+    });
+</script>
+
+</body>
+
+</html>

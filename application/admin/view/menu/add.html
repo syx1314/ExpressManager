@@ -1,0 +1,150 @@
+{include file="public/header" /}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    .main {
+        background: #fff;
+        padding: 20px;
+        color: #404040;
+    }
+
+    h2 {
+        display: block;
+        font-size: 1.5em;
+        -webkit-margin-before: 0.83em;
+        -webkit-margin-after: 0.83em;
+        -webkit-margin-start: 0px;
+        -webkit-margin-end: 0px;
+        font-weight: bold;
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content" id="page">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>{:isset($info['id'])?'编辑':'新增'}菜单</h5>
+                </div>
+                <div class="ibox-content">
+                    <form role="form" action="{:U()}" method="post" class="menu_form form-horizontal">
+                        <div class="form-group">
+                            <?php $module=C('MENU_MODULE');?>
+                            <div class="col-sm-12">
+                                <label>模块<span style="margin-left: 8px;color: #aaa;">该地址所属模块</span></label>
+                                <select class="form-control m-b" name="module">
+                                    {volist name="module" id="to"}
+                                    <option value="{$to}"
+                                    <?php if($info['module']==$to){ echo "selected='selected'"; } ?>>{$to}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>标题<span style="margin-left: 8px;color: #aaa;">（用于后台显示的配置标题）</span></label>
+                                <input type="text" placeholder="请输入菜单标题" class="form-control" name="title"
+                                       value="{$info.title|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>排序<span style="margin-left: 8px;color: #aaa;">（用于分组显示的顺序）</span></label>
+                                <input type="text" placeholder="" class="form-control" name="sort"
+                                       value="{$info.sort|default=0}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>链接<span style="margin-left: 8px;color: #aaa;">（U函数解析的URL或者外链）</span></label>
+                                <input type="text" placeholder="" class="form-control" name="url"
+                                       value="{$info.url|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>上级菜单<span style="margin-left: 8px;color: #aaa;">（所属的上级菜单）</span></label>
+                                <select class="js-example-basic-single select form-control m-b" name="pid">
+                                    {volist name="Menus" id="menu"}
+                                    <option value="{$menu.id}"
+                                    <?php if($info['pid']==$menu['id'] || $menu['id']==I('pid')){ echo "selected='selected'"; } ?>
+                                    >{$menu.title_show}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>图标<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <input type="text" placeholder="" class="form-control" name="icon"
+                                       value="{$info.icon|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>类型<span style="margin-left: 8px;color: #aaa;">菜单地址：后台会自动显示到菜单栏，最多显示三级；URL地址：普通地址，不显示到菜单栏；开放性地址：不会检查权限，所以不会出现到授权管理中</span></label>
+                                <select class="form-control m-b" name="type">
+                                    <option value="0"
+                                    <?php if($info['type']==0){ echo "selected='selected'"; } ?>>菜单地址</option>
+                                    <option value="1"
+                                    <?php if($info['type']==1){ echo "selected='selected'"; } ?>>URL地址</option>
+                                    <option value="2"
+                                    <?php if($info['type']==2){ echo "selected='selected'"; } ?>>开放性地址</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>是否隐藏</label>
+                                <div>
+                                    <input type="radio" name="hide"
+                                           value="0" <?php if($info['hide']==0 || $info['hide'] == null){ echo "checked"; } ?>
+                                    > <i></i> 否</label>
+                                    <input type="radio" name="hide"
+                                           value="1" <?php if($info['hide']==1 && $info['hide'] != null){ echo "checked"; } ?>
+                                    > <i></i> 是</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>仅开发者模式可见</label>
+                                <div>
+                                    <input type="radio" name="is_dev"
+                                           value="0" <?php if($info['is_dev']==0 || $info['is_dev'] == null){ echo "checked"; } ?>
+                                    > <i></i> 否</label>
+                                    <input type="radio" name="is_dev"
+                                           value="1" <?php if($info['is_dev']==1 && $info['is_dev'] != null){ echo "checked"; } ?>
+                                    > <i></i> 是</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>说明<span style="margin-left: 8px;color: #aaa;">（菜单详细说明）</span></label>
+                                <input type="text" placeholder="" class="form-control" name="tip"
+                                       value="{$info.tip|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <input type="hidden" name="id" value="{$info.id|default=''}">
+                                <button class="btn btn-primary ajax-post" type="submit" target-form="menu_form">
+                                    <strong>确 定</strong></button>
+                                <button class="btn btn-white" style="margin-left: 10px;"
+                                        onclick="javascript:history.back(-1);return false;"><strong>返 回</strong>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

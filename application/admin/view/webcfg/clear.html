@@ -1,0 +1,57 @@
+{include file="public/header" /}
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>清楚指定时间以前的订单数据（谨慎操作，不可恢复）（清除前务必先进行数据备份）</h5>
+                    <div class="ibox-tools">
+
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <form method="post" class="form-horizontal" action="{:U('clear')}">
+                        <input type="hidden" name="id" value="{$info.id|default=''}">
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>指定时间点以前的数据<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <input type="text" name="time" id="time"
+                                       class="form-control" autocomplete="off" placeholder="时间点"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>谷歌身份验证码<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <input type="text" class="form-control" name="verifycode" autocomplete="off" placeholder="输入谷歌身份验证码">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <button type="submit" class="btn btn-primary ajax-post" target-form="form-horizontal">
+                                    确定
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="__JS__/laydate/laydate.js"></script>
+<script>
+    //执行一个laydate实例
+    laydate.render({
+        elem: '#time',
+        type: 'datetime',
+        done: function (value, date, endDate) {
+            $('#time').val(value);
+        }
+    });
+</script>
+</body>
+
+</html>

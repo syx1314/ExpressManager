@@ -1,0 +1,136 @@
+{include file="public/header" /}
+<style>
+    .yixuanapi {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .yixuanapi .item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .yixuanapi .item .delbtn {
+        background-color: #8a1f11;
+        color: #fff;
+        padding-left: 10px;
+        padding-right: 10px;
+        height: 20px;
+        line-height: 20px;
+        border-radius: 10px;
+        margin-right: 20px;
+        font-size: 12px;
+    }
+
+    .yixuanapi .item span {
+        font-size: 18px;
+        font-weight: 600;
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>提交充值</h5>
+                    <div class="ibox-tools">
+
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <form method="post" class="form-horizontal" action="{:U('batch_api')}">
+                        <div class="form-group ">
+                            <div class="col-sm-12">
+                                当前选中订单<span class="text-danger" style="font-size: 20px">{$_total}</span>条，在下方添加批量提交的api。(批量提交接口会覆盖原有的提交配置，尽量只操作未提交api的订单，以免给您带来损失)
+                                <input type="hidden" value="{$_ids}" name="ids"/>
+                            </div>
+                        </div>
+                        <div class="form-group ">
+                            <div class="col-sm-3">
+                                <label>渠道<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <select class="form-control m-b" id="reapi">
+                                    <option value="0">请选择</option>
+                                    {volist name="reapi" id="to"}
+                                    <option value="{$to.id}">{$to.name}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                            <div class="col-sm-3">
+                                <label>套餐<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <select class="form-control m-b" id="reapi_param">
+                                    <option value="0">请选择</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-2">
+                                <label>*</label>
+                                <button type="button" class="btn btn-primary form-control" onclick="addItem()">
+                                    添加
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group ">
+                            <div class="col-sm-12">
+                                <label>已经选择的接口<span style="margin-left: 8px;color: #aaa;"></span></label>
+                            </div>
+                            <div class="col-sm-12 yixuanapi">
+
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <button type="submit" class="btn btn-primary ajax-post" target-form="form-horizontal">
+                                    立马推送
+                                </button>
+                                <a type="button" class="btn btn-white" href="javascript:history.go(-1);">返回</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="__JS__/ajaxfileupload.js" type="text/javascript"></script>
+<script>
+    window.changeIMG = function (name, res) {
+        $("#" + name).attr("src", res);
+        $("[name=" + name + "]").val(res);
+    }
+    $("#reapi").change(function () {
+        var type = $(this).children('option:selected').val();
+        $.post("{:U('reapi/get_reapi_param')}", {reapi_id: type}, function (result) {
+            $("#reapi_param").empty();
+            $("#reapi_param").append("<option  value='0' >请选择</option>");
+            for (var i = 0; i < result.data.length; i++) {
+                var item = result.data[i];
+                $("#reapi_param").append("<option  value=" + item.id + ">" + item.desc + "</option>");
+            }
+        });
+    });
+
+    function addItem() {
+        var reapi_param_id = $("#reapi_param").children('option:selected').val();
+        var reapi_name = $("#reapi").children('option:selected').text();
+        var reapi_param_name = $("#reapi_param").children('option:selected').text();
+        if (reapi_param_id == 0) {
+            alert('请选择渠道和套餐');
+            return false;
+        }
+        $(".yixuanapi").append('<div class="item">' +
+            '<div class="delbtn" onclick="delItem(this)">删除</div>' +
+            '<span class="bt">' + reapi_name + '-' + reapi_param_name + '</span>' +
+            '<input type="hidden" name="reapi_param_id[]" value="' + reapi_param_id + '"/>' +
+            '</div>');
+    }
+
+    function delItem(obj) {
+        $(obj).parent().remove();
+    }
+</script>
+</body>
+
+</html>

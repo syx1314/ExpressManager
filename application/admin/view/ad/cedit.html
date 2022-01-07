@@ -1,0 +1,94 @@
+{include file="public/header" /}
+<body class="gray-bg">
+<div class="wrapper wrapper-content" id="page">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>{:I('id')?'编辑':'新增'}广告图</h5>
+                    <div class="ibox-tools">
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <form role="form" action="{:U('cedit')}" method="post" class="cedit_form form-horizontal">
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>链接</label>
+                                <input type="text" placeholder="请输入链接" class="form-control" name="url"
+                                       value="{$info.url|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>标题</label>
+                                <input type="text" placeholder="请输入标题" class="form-control" name="title"
+                                       value="{$info.title|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>描述</label>
+                                <input type="text" placeholder="请输入描述" class="form-control" name="words"
+                                       value="{$info.words|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>备选字段1</label>
+                                <input type="text" placeholder="请输入备选字段1" class="form-control" name="bft1"
+                                       value="{$info.bft1|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>备选字段2</label>
+                                <input type="text" placeholder="请输入备选字段2" class="form-control" name="bft2"
+                                       value="{$info.bft2|default=''}">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>排序</label>
+                                <input type="text" class="form-control" name="sort"
+                                       value="{$info.sort|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>图片</label>
+                                <input type="hidden" id="imgval" class="form-control" name="path"
+                                       value="{$info.path|default=''}">
+                                <div class="img">
+                                    <img id="path"
+                                         style="display: block;width:300px;height: auto;margin-bottom: 10px"
+                                         src="{$info.path|default=''}">
+                                </div>
+                                <button class="btn btn-sm btn-primary open-img-window" data-title="选择图片"
+                                        data-url="{:U('widget/images')}" data-max="1" data-name="path" type="button"
+                                        style="display: block;"><strong>上传图片</strong></button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <input type="hidden" name="id" value="{$info.id|default=''}">
+                                <input type="hidden" name="ad_id" value="{:I('ad_id')}">
+                                <button class="btn btns btn-sm btn-primary pull-left ajax-post" type="submit"
+                                        target-form="cedit_form"><strong>确 定</strong></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+<script>
+    window.changeIMG = function (name, res) {
+        $("#" + name).attr("src", res);
+        $("[name=" + name + "]").val(res);
+    }
+</script>
+</html>

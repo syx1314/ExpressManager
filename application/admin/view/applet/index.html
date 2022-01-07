@@ -1,0 +1,82 @@
+{include file="public/header" /}
+<style>
+    .td {
+        max-width: 100px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>小程序管理</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups">
+                        <div class="col-md-2 form-inline text-left">
+<!--                            <div class="form-group">-->
+<!--                                <a href="{:U('editw')}" class="btn btn-sm btn-primary open-window" title="新增"-->
+<!--                                   style="padding: 4px 12px;" type="button"><i-->
+<!--                                        class="fa fa-plus"></i> 新增</a>-->
+<!--                            </div>-->
+                            <div class="form-group">
+                                <a class="btn btn-sm btn-white open-reload"><i
+                                        class="glyphicon glyphicon-repeat"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>名称</th>
+                                <th>appid</th>
+                                <th>appsecret</th>
+                                <th>token</th>
+                                <th>encodingaeskey</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name='list' id='vo'}
+                            <tr>
+                                <td>{$vo.name}</td>
+                                <td class="js-copy" data-clipboard-text="{$vo.appid}">{$vo.appid}</td>
+                                <td class="td js-copy" data-clipboard-text="{$vo.appsecret}">{$vo.appsecret}</td>
+                                <td class="td js-copy" data-clipboard-text="{$vo.token}">{$vo.token}</td>
+                                <td class="td js-copy" data-clipboard-text="{$vo.encodingaeskey}">{$vo.encodingaeskey}</td>
+                                <td>
+                                    <a class="open-window text-info open-window" title="编辑"
+                                       href="{:U('editw?appid='.$vo.appid)}">编辑</a>
+                                    <a class="open-window text-info open-window no-refresh" title="订阅消息配置"
+                                       href="{:U('templetmsg?appid='.$vo.appid)}"> 订阅消息配置</a>
+                                </td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var btn = document.getElementsByClassName("js-copy");
+    var clipboard = new Clipboard(btn);//实例化
+    //复制成功执行的回调，可选
+    clipboard.on('success', function (e) {
+        layer.msg('复制成功！');
+    });
+
+    //复制失败执行的回调，可选
+    clipboard.on('error', function (e) {
+        layer.msg('复制失败！');
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+{include file="public/header" /}
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>模板消息配置</h5>
+                    &nbsp;<a href="{:U('all_template')}" class="open-window text-info open-window no-refresh"
+                             title="查看已添加模板">查看已添加模板</a>
+                    &nbsp;
+                    请先登录公众号，开通模板消息功能，模板库页面上方添加所在行业：IT科技/互联网/电子商务
+                </div>
+                <div class="ibox-content">
+                    <form method="post" class="form-horizontal" action="{:U('')}">
+                        <input type="hidden" name="id" value="{$info.id|default=''}"/>
+                        <input type="hidden" name="weixin_appid" value="{$info.weixin_appid|default=''}"/>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>余额变动_模板ID<span style="margin-left: 8px;color: #aaa;">IT科技-互联网|电子商务-余额变动提示-OPENTM401833445</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="balancecg_template_id"
+                                           value="{$info.balancecg_template_id|default=''}" autocomplete="off"/> <span
+                                        class="input-group-btn"> <button
+                                        type="button" class="btn btn-white add_template" data-shortid="OPENTM401833445">添加模板
+                                        </button> </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>提现审核_模板ID<span style="margin-left: 8px;color: #aaa;">IT科技-互联网|电子商务-提现审核提醒-OPENTM412319702</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="tixiansh_template_id"
+                                           value="{$info.tixiansh_template_id|default=''}" autocomplete="off"/> <span
+                                        class="input-group-btn"> <button
+                                        type="button" class="btn btn-white add_template" data-shortid="OPENTM412319702">添加模板
+                                        </button> </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>邀请新用户_模板ID<span style="margin-left: 8px;color: #aaa;">IT科技-互联网|电子商务-邀请注册成功通知-OPENTM401095581</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="newuser_template_id"
+                                           value="{$info.newuser_template_id|default=''}" autocomplete="off"/> <span
+                                        class="input-group-btn"> <button
+                                        type="button" class="btn btn-white add_template" data-shortid="OPENTM401095581">添加模板
+                                        </button> </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>支付成功_模板ID<span style="margin-left: 8px;color: #aaa;">IT科技-互联网|电子商务-下单成功提醒-OPENTM415557602</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="paysus_template_id"
+                                           value="{$info.paysus_template_id|default=''}" autocomplete="off"/> <span
+                                        class="input-group-btn"> <button
+                                        type="button" class="btn btn-white add_template" data-shortid="OPENTM415557602">添加模板
+                                        </button> </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>充值成功_模板ID<span style="margin-left: 8px;color: #aaa;">IT科技-互联网|电子商务-充值成功提醒-OPENTM417049252</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="chargesus_template_id"
+                                           value="{$info.chargesus_template_id|default=''}" autocomplete="off"/> <span
+                                        class="input-group-btn"> <button
+                                        type="button" class="btn btn-white add_template" data-shortid="OPENTM417049252">添加模板
+                                        </button> </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>充值失败_模板ID<span style="margin-left: 8px;color: #aaa;">IT科技-互联网|电子商务-充值失败通知-OPENTM411628258</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="chargefail_template_id"
+                                           value="{$info.chargefail_template_id|default=''}" autocomplete="off"/> <span
+                                        class="input-group-btn"> <button
+                                        type="button" class="btn btn-white add_template" data-shortid="OPENTM411628258">添加模板
+                                        </button> </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>退款通知_模板ID<span style="margin-left: 8px;color: #aaa;">IT科技-互联网|电子商务-退款成功提醒-OPENTM416378254</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="refund_template_id"
+                                           value="{$info.refund_template_id|default=''}" autocomplete="off"/> <span
+                                        class="input-group-btn"> <button
+                                        type="button" class="btn btn-white add_template" data-shortid="OPENTM416378254">添加模板
+                                        </button> </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>升级成功通知_模板ID<span style="margin-left: 8px;color: #aaa;">IT科技-互联网|电子商务-代理升级通过通知-OPENTM204527850</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="upsus_template_id"
+                                           value="{$info.upsus_template_id|default=''}" autocomplete="off"/> <span
+                                        class="input-group-btn"> <button
+                                        type="button" class="btn btn-white add_template" data-shortid="OPENTM204527850">添加模板
+                                        </button> </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <button type="submit" class="btn btn-primary ajax-post" target-form="form-horizontal">保存
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    $(".add_template").click(function () {
+        var obj = $(this).parent().parent().children("input");
+        $.post("{:U('add_api_template')}", {
+            short_id: $(this).data('shortid')
+        }, function (ret) {
+            if (ret.errno == 0) {
+                layer.msg(ret.errmsg);
+                obj.val(ret.data);
+            } else {
+                layer.msg(ret.errmsg);
+            }
+        });
+    });
+</script>
+</html>

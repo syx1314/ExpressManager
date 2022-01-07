@@ -1,0 +1,169 @@
+{include file="public/header" /}
+<style>
+    .table-bordered > tbody > tr:hover {
+        background-color: #f5f5f5
+    }
+
+    .text-navys {
+        color: #b31a2f;
+    }
+</style>
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="tabs-container">
+                <ul class="nav nav-tabs">
+                    <li class="active"><a data-toggle="tab" href="#tab-1" aria-expanded="true"> 设置基本信息</a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div id="tab-1" class="tab-pane active">
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="ibox float-e-margins">
+                                        <div class="ibox-title">
+                                            <h5>内容表列[{$info.addtable}]</h5>
+                                        </div>
+                                        <div class="ibox-content">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                <tr>
+                                                    <th>列</th>
+                                                    <th>名称</th>
+                                                    <th>列类型</th>
+                                                    <th>输入控件</th>
+                                                    <th>允许空</th>
+                                                    <th>操作</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {volist name="addtable" id="vo"}
+                                                <tr>
+                                                    <td>{$vo.column_name}</td>
+                                                    <td>{$vo.column_comment}</td>
+                                                    <td>{$vo.column_type}</td>
+                                                    <td>{gt name="key" value="1"}{$columninput[$fieldset[$vo['column_name']]]}{/gt}</td>
+                                                    <td>{$vo.is_nullable}</td>
+                                                    <td><a class="text-danger ajax-get confirm"
+                                                           href="{:U('deladdoncloumn')}?id={:I('id')}&column_name={$vo.column_name}">删除</a>
+                                                    </td>
+                                                </tr>
+                                                {/volist}
+                                                <tr>
+                                                    <td><input type="text" name="column_name" placeholder="列名（必填）"/>
+                                                    </td>
+                                                    <td><input type="text" name="column_comment" placeholder="标题（必填）"/>
+                                                    </td>
+                                                    <td>
+                                                        <select name="column_type">
+                                                            {volist name="columntype" id="vo"}
+                                                            <option value="{$vo}">{$vo}</option>
+                                                            {/volist}
+                                                        </select>
+
+                                                    </td>
+                                                    <td>
+                                                        <select name="columninput">
+                                                            {volist name="columninput" id="vo"}
+                                                            <option value="{$key}">{$vo}</option>
+                                                            {/volist}
+                                                        </select>
+                                                    </td>
+                                                    <td>
+                                                        <select name="is_nullable">
+                                                            <option value="1">允许</option>
+                                                            <option value="0">不允许</option>
+                                                        </select>
+                                                    </td>
+                                                    <td>
+                                                        <button class="btn btn-primary btn-xs" onclick="submitcol()">
+                                                            保存
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <div class="ibox float-e-margins">
+                                        <div class="ibox-title">
+                                            <h5>主表列[{$info.maintable}]</h5>
+                                        </div>
+                                        <div class="ibox-content">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                <tr>
+                                                    <th>列</th>
+                                                    <th>名称</th>
+                                                    <th>数据类型</th>
+                                                    <th>列类型</th>
+                                                    <th>允许空</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {volist name="maintable" id="vo"}
+                                                <tr>
+                                                    <td>{$vo.column_name}</td>
+                                                    <td>{$vo.column_comment}</td>
+                                                    <td>{$vo.data_type}</td>
+                                                    <td>{$vo.column_type}</td>
+                                                    <td>{$vo.is_nullable}</td>
+                                                </tr>
+                                                {/volist}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 全局js -->
+<script>
+    $(document).ready(function () {
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green'
+        });
+    });
+    //提交列
+    function submitcol() {
+        var index = layer.load(1, {
+            shade: [0.1, '#fff'] //0.1透明度的白色背景
+        });
+        var column_name = $("[name=column_name]").val();
+        var column_comment = $("[name=column_comment]").val();
+        var column_type = $("[name=column_type]").val();
+        var is_nullable = $("[name=is_nullable]").val();
+        var columninput = $("[name=columninput]").val();
+        $.post("{:U('addaddoncloumn')}", {
+            'id': "{:I('id')}",
+            'column_name': column_name,
+            'column_comment': column_comment,
+            'column_type': column_type,
+            'is_nullable': is_nullable,
+            'columninput': columninput
+        }, function (result) {
+            layer.close(index);
+            if (result.errno == 0) {
+                window.location.reload();
+            } else {
+                layer.msg(result.errmsg);
+            }
+        });
+    }
+</script>
+</body>
+</html>

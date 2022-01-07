@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title> {:C('WEB_SITE_TITLE')}</title>
+    <!--<link rel="shortcut icon" href="favicon.ico">-->
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.css?v=4.4.0" rel="stylesheet">
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+    <link href="__CSS__/plugins/treeview/bootstrap-treeview.css" rel="stylesheet">
+    <link href="__CSS__/plugins/toastr/toastr.min.css" rel="stylesheet">
+</head>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    .main {
+        background: #fff;
+        padding: 20px;
+        color: #404040;
+    }
+
+    h2 {
+        display: block;
+        font-size: 1.5em;
+        -webkit-margin-before: 0.83em;
+        -webkit-margin-after: 0.83em;
+        -webkit-margin-start: 0px;
+        -webkit-margin-end: 0px;
+        font-weight: bold;
+    }
+    .selects{
+        width: 100%;
+        position: relative;
+    }
+    .selects .selects_left{
+        width: 80px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        line-height:34px;
+        padding-left: 10px;
+    }
+    .selects .selects_right{
+        width: 100%;
+        position: relative;
+        padding-left: 80px;
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content" id="page">
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>{$info['id']?'编辑':'新增'}字段</h5>
+                </div>
+                <div class="ibox-content">
+                    <form role="form" action="{:U()}" method="post" class="config_form  form-horizontal">
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>字段名（只能英文）</label>
+                                <input type="text" placeholder="请输入字段名" class="form-control" name="field"
+                                       value="{$info.field|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>字段注释</label>
+                                <input type="text" placeholder="请输入字段注释" class="form-control" name="remark"
+                                       value="{$info.remark|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>字段默认值（默认值与字段类型想匹配，如字段类型为int默认值就不能为文字）</label>
+                                <input type="text" placeholder="请输入字段默认值" class="form-control" name="default"
+                                       value="{$info.default|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>是否可编辑内容</label>
+                                <select class="form-control m-b" name="is_edit">
+                                    <option value="1" <?php  if($info && $info['is_edit'] == 1){ echo "selected='selected'"; } ?>>是</option>
+                                    <option value="0" <?php  if($info && $info['is_edit'] == 0){ echo "selected='selected'"; } ?>>否</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!--<div class="form-group">-->
+                            <!--<div class="col-sm-12">-->
+                                <!--<label>是否显示（列表页显示的字段，暂时无效果）</label>-->
+                                <!--<select class="form-control m-b" name="is_show">-->
+                                    <!--<option value="1" <?php  if($info && $info['is_show'] == 1){ echo "selected='selected'"; } ?>>是</option>-->
+                                    <!--<option value="0" <?php  if($info && $info['is_show'] == 0){ echo "selected='selected'"; } ?>>否</option>-->
+                                <!--</select>-->
+                            <!--</div>-->
+                        <!--</div>-->
+                        <input type="hidden" name="is_show" value="1">
+                        {empty name="info"}
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>是否为空</label>
+                                <select class="form-control m-b" name="is_null">
+                                    <option value="0">是</option>
+                                    <option value="1">否</option>
+                                </select>
+                            </div>
+                        </div>
+                        {else /}
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>是否为空</label>
+                                <select class="form-control m-b" name="is_null">
+                                    <option value="1" <?php  if($info && $info['is_null'] == 1){ echo "selected='selected'"; } ?>>否</option>
+                                    <option value="0" <?php  if($info && $info['is_null'] == 0){ echo "selected='selected'"; } ?>>是</option>
+                                </select>
+                            </div>
+                        </div>
+                        {/empty}
+                        {empty name="info"}
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>是否为系统字段（系统字段新增后不可修改）</label>
+                                <select class="form-control m-b" name="is_system">
+                                    <option value="1">是</option>
+                                    <option value="0">否</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>字段类型</label>
+                                <!--单行文本(varchar)，多行文本(text)，HTML文本(text)，短整数(tinyint)，整数(int)，小数类型(double)，-->
+                                <!--时间类型(int)，字符(string)，金额(decimal)，单图片(varchar)，多图片(text)，文件(text)，枚举(下拉框)(varchar)，数组(varchar)，-->
+                                <select class="form-control m-b" name="type" id="alltype">
+                                    {volist name="field_type" id="fvo" key="k"}
+                                    <option value="{$k}">{$fvo}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="display: none">
+                            <div class="col-sm-12">
+                                <label>枚举类型</label>
+                                <select class="form-control m-b" name="mj_type" id="mjtype">
+                                    <option value="1">数据库表</option>
+                                    <option value="2">后台系统配置</option>
+                                    <option value="3">自定义</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="display: none">
+                            <div class="col-sm-12" style="height: 170px;">
+                                <label>数据库表与字段（包括关联字段和显示字段）</label>
+                                <div class="selects">
+                                    <div class="selects_left">表&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;名：</div>
+                                    <div class="selects_right">
+                                        <select class="form-control m-b" name="mj_table" id="sjktable"></select>
+                                    </div>
+                                </div>
+                                <div class="selects">
+                                    <div class="selects_left">关联字段：</div>
+                                    <div class="selects_right">
+                                        <select class="form-control m-b" name="mj_field_id" id="sjkfield1" style="display: none"></select>
+                                    </div>
+                                </div>
+                                <div class="selects">
+                                    <div class="selects_left">显示字段：</div>
+                                    <div class="selects_right">
+                                        <select class="form-control m-b" name="mj_field_name" id="sjkfield2" style="display: none"></select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group"  style="display: none" id="cname">
+                            <div class="col-sm-12">
+                                <label>后台系统配置标识</label>
+                                <input type="text" placeholder="请输入标识" class="form-control" name="mj_c_name" />
+                            </div>
+                        </div>
+
+                        <div class="form-group"  style="display: none" id="zval">
+                            <div class="col-sm-12">
+                                <label>自定义（例1:是（回车）2:否）</label>
+                                <textarea type="text" placeholder="请输入内容" name="mj_z_data" class="form-control" style="height: 150px;"></textarea>
+                            </div>
+                        </div>
+
+                        {/empty}
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                {empty name="info"}
+                                <input type="hidden" name="table" value="{:I('table')}">
+                                {else /}
+                                <input type="hidden" name="id" value="{$info.id}">
+                                <input type="hidden" name="table" value="{$info.table}">
+                                <input type="hidden" name="old_field" value="{$info.field}">
+                                <input type="hidden" name="type" value="{$info.type}">
+                                {/empty}
+                                <button class="btn btn-primary ajax-post" type="submit" target-form="config_form">
+                                    <strong>确定</strong></button>
+                                <a class="btn btn-white" href="{:U('Field/field_index',array('table'=>I('table')))}"><strong>返 回</strong></a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<!-- 全局js -->
+<script src="__JS__/jquery.min.js?v=2.1.4"></script>
+<script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+<!-- 自定义js -->
+<script src="__JS__/content.js?v=1.0.0"></script>
+<script src="__JS__/dayuanren.js?v=2.0.0"></script>
+<!-- Bootstrap-Treeview plugin javascript -->
+<script src="__JS__/plugins/treeview/bootstrap-treeview.js"></script>
+<script src="__JS__/plugins/toastr/toastr.min.js"></script>
+<!-- layer javascript -->
+<script src="__JS__/plugins/layer/layer.min.js"></script>
+<script src="__JS__/demo/layer-demo.js"></script>
+<script>
+    $(document).ready(function(){
+        $('#alltype').change(function(){
+            console.log($(this).children('option:selected').val());
+            if($(this).children('option:selected').val() == 13){
+                $("#mjtype").parents(".form-group").css("display","block");
+                $("#sjktable").parents(".form-group").css("display","block");
+                get_table();
+            }else{
+                $("#mjtype").parents(".form-group").css("display","none");
+                $("#sjktable").parents(".form-group").css("display","none");
+            }
+        });
+        $('#mjtype').change(function(){
+            console.log($(this).children('option:selected').val());
+            if($(this).children('option:selected').val() == 1){
+                $("#sjktable").parents(".form-group").css("display","block");
+                $("#sjkfield1").css("display","block");
+                $("#sjkfield2").css("display","block");
+                $("#cname").css("display","none");
+                $("#zval").css("display","none");
+            }else if($(this).children('option:selected').val() == 2){
+                $("#sjktable").parents(".form-group").css("display","none");
+                $("#sjkfield1").css("display","none");
+                $("#sjkfield2").css("display","none");
+                $("#cname").css("display","block");
+                $("#zval").css("display","none");
+            }else if($(this).children('option:selected').val() == 3){
+                $("#sjktable").parents(".form-group").css("display","none");
+                $("#sjkfield1").css("display","none");
+                $("#sjkfield2").css("display","none");
+                $("#cname").css("display","none");
+                $("#zval").css("display","block");
+            }
+
+        });
+        $('#sjktable').change(function(){
+            console.log($(this).children('option:selected').val());
+            get_field($(this).children('option:selected').val());
+        });
+    });
+
+    function get_table(){
+        var index = layer.load(1, {
+            shade: [0.1, '#fff'] //0.1透明度的白色背景
+        });
+        $.post("{:U('Field/get_table')}",{table:''}, function (ret) {
+//            console.log(ret);
+            layer.closeAll();
+            if(ret.errno == 0){
+                var html = '';
+                for(var i = 0;i<ret.data.length;i++){
+                    html = html+"<option value='"+ret.data[i].name+"'>"+ret.data[i].name+"</option>";
+                }
+                $("#sjktable").html(html);
+                get_field(ret.data[0].name);
+            }
+        });
+    }
+    function get_field(table){
+        var index = layer.load(1, {
+            shade: [0.1, '#fff'] //0.1透明度的白色背景
+        });
+        $.post("{:U('Field/get_field')}",{table:table}, function (ret) {
+            console.log(ret);
+            layer.closeAll();
+            if(ret.errno == 0){
+                var html = '';
+                for(var i = 0;i<ret.data.length;i++){
+                    html = html+"<option value='"+ret.data[i].Field+"'>"+ret.data[i].Field+"</option>";
+                }
+                $("#sjkfield1").html(html);
+                $("#sjkfield2").html(html);
+                $("#sjkfield1").css("display","block");
+                $("#sjkfield2").css("display","block");
+            }
+        });
+    }
+</script>
+
+</html>
+

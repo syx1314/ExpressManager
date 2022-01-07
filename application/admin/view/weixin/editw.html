@@ -1,0 +1,110 @@
+{include file="public/header" /}
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>公众号资料编辑</h5>
+                </div>
+                <div class="ibox-content">
+                    <form method="post" class="form-horizontal" action="{:U('editw')}">
+                        <input type="hidden" name="id" value="{$info?$info['id']:''}"/>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>名称</label>
+                                <input type="text" class="form-control" name="name" value="{$info?$info.name:''}"
+                                       autocomplete="off">
+                            </div>
+                        </div>
+                        {empty name="$info"}
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>appid</label>
+                                <input type="text" class="form-control" name="appid" autocomplete="off">
+                            </div>
+                        </div>
+                        {else/}
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>appid</label>
+                                <input type="text" class="form-control" name="appid" readonly value="{$info?$info.appid:''}"
+                                       autocomplete="off">
+                            </div>
+                        </div>
+                        {/empty}
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>appsecret</label>
+                                <input type="text" class="form-control" name="appsecret" value="{$info?$info.appsecret:''}"
+                                       autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>token</label>
+                                <input type="text" class="form-control" name="token" value="{$info?$info.token:''}"
+                                       autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>encodingaeskey</label>
+                                <input type="text" class="form-control" name="encodingaeskey"
+                                       value="{$info?$info.encodingaeskey:''}" autocomplete="off">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <button type="submit" class="btn btn-primary ajax-post" target-form="form-horizontal">确定
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<input type="file" name="file" id="fileid" onchange="fileUpload()" style="display: none"/>
+</body>
+<script src="__JS__/ajaxfileupload.js" type="text/javascript"></script>
+<script>
+    var gid;
+    function choose_file(obj) {
+        gid = obj.data("gid");
+        $("#fileid").trigger("click");
+    }
+
+    function fileUpload() {
+        var index = layer.load(1, {
+            shade: [0.1, '#fff'] //0.1透明度的白色背景
+        });
+        //上传图片
+        $.ajaxFileUpload({
+            url: "{:U('File/upload')}", //文件上传到哪个地址，告诉ajaxFileUpload
+            secureuri: false, //一般设置为false
+            fileElementId: 'fileid', //文件上传控件的Id  <input type="file" id="fileUpload" name="file" />
+            dataType: 'json', //返回值类型 一般设置为json
+            success: function (ret, status)  //服务器成功响应处理函数
+            {
+                layer.closeAll();
+                console.log(ret);
+                if (ret.errno == 0) {
+                    $("#" + gid).val(ret.data);
+                    if ($("#" + gid).data('type') == 'img') {
+                        $("#" + gid + "img").attr('src', ret.data);
+                        $("#" + gid + "img").data('url', ret.data);
+                    }
+                    toastr.success(ret.errmsg);
+                } else {
+                    toastr.error(ret.errmsg);
+                }
+            }
+        })
+    }
+</script>
+</html>

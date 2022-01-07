@@ -1,0 +1,63 @@
+{include file="public/header" /}
+<body class="gray-bg">
+<div class="wrapper wrapper-content" id="page">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>{:I('id')?'编辑':'新增'}归属地</h5>
+                    <div class="ibox-tools">
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <form role="form" action="{:U()}" method="post" class="menu_form  form-horizontal">
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>号段</label>
+                                <input type="text" placeholder="请输入号段" class="form-control" name="prefix"
+                                       value="{$info.prefix|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>号码</label>
+                                <input type="text" placeholder="请输入首字母" class="form-control" name="phone"
+                                       value="{$info.phone|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>省</label>
+                                <input type="text" placeholder="省" class="form-control" name="province"
+                                       value="{$info.province|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>市</label>
+                                <input type="text" placeholder="市" class="form-control" name="city"
+                                       value="{$info.city|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>运营商</label>
+                                <input type="text" placeholder="请输入排序" class="form-control" name="isp"
+                                       value="{$info.isp|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <button class="btn btns btn-sm btn-primary pull-left ajax-post" type="submit"
+                                        target-form="menu_form"><strong>确 定</strong></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

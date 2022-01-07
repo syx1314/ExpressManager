@@ -1,0 +1,186 @@
+{include file="public/header" /}
+<style>
+    .table-bordered > tbody > tr:hover {
+        background-color: #f5f5f5
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>店铺自定义销售配置表</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups">
+                        <input type="hidden" name="customer_id" value="{:I('customer_id')}"
+                               class="input-sm form-control">
+                        <input type="hidden" name="product_id" value="{:I('product_id')}"
+                               class="input-sm form-control">
+                        <div class="col-md-4 m-b-xs form-inline text-left">
+                            <a class="btn btn-white open-reload"><i class="glyphicon glyphicon-repeat"></i></a>
+                        </div>
+                        <div class="col-md-8 m-b-xs form-inline text-right">
+                            <div class="form-group">
+                                <label class="control-label">查询条件:</label>
+                                <select class="input-sm form-control input-s-sm inline" name="query_name"
+                                        style="width: auto;">
+                                    <option value="">模糊</option>
+                                    <option value="p.name"
+                                    <?php if(I('query_name')=='p.name'){ echo "selected='selected'"; } ?>>套餐</option>
+                                    <option value="p.desc"
+                                    <?php if(I('query_name')=='p.desc'){ echo "selected='selected'"; } ?>>描述</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+
+                                    <input type="text" name="key" placeholder="请输入套餐/描述" value="{:I('key')}"
+                                           class="input-sm form-control">
+                                    <span class="input-group-btn"><button type="button" id="search"
+                                                                          class="btn btn-sm btn-primary"
+                                                                          url="{:U('hz_price')}"> 搜索</button></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>产品</th>
+                                <th>套餐</th>
+                                <th>描述</th>
+                                <th>运营商</th>
+                                <th>成本价</th>
+                                <th>建议零售价</th>
+                                <th>封顶价</th>
+                                <th>浮动价(利润)</th>
+                                <th>TAG</th>
+                                <th>实际销售价格</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="_list" id="cate"}
+                            <tr>
+                                <td colspan="9">{$cate.cate}</td>
+                            </tr>
+                            {volist name="cate.products" id="vo"}
+                            <tr>
+                                <td></td>
+                                <td>{$vo.name}</td>
+                                <td>{$vo.desc}</td>
+                                <td>{$vo.isp|getISPText}</td>
+                                <td>{$vo.price}</td>
+                                <td>{$vo.y_price}</td>
+                                <td>{$vo.max_price}</td>
+                                <td>{$vo.ranges}&nbsp;<a class="ranges" data-id="{$vo.rangesid}"
+                                                         data-ranges="{$vo.ranges}"
+                                                         data-name="{$vo.name}">设置</a></td>
+                                <td>{$vo.ys_tag}&nbsp;<a class="ystag" data-id="{$vo.rangesid}"
+                                                         data-ystag="{$vo.ys_tag}"
+                                                         data-name="{$vo.name}">设置</a>
+                                </td>
+                                <td>{$vo.price+$vo.ranges}</td>
+                            </tr>
+                            {/volist}
+                            {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal inmodal" id="rangesModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <form method="post" action="{:U('hz_price_edit')}" class="rangesModal">
+        <div class="modal-dialog">
+            <div class="modal-content animated fadeIn">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="rangesid">
+                    <p><strong id="rangesname">浮动价格</strong></p>
+                    <div class="form-group">
+                        <input type="number" placeholder="请输入浮动金额（即利润）" value=""
+                               class="form-control" name="ranges">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-dismiss="modal" onclick="closeRangesModal()">关闭
+                    </button>
+                    <button type="submit" class="btn btn-primary ajax-post no-close" target-form="rangesModal">保存
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="modal inmodal" id="ystagModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <form method="post" action="{:U('hz_price_ystag_edit')}" class="ystagModal">
+        <div class="modal-dialog">
+            <div class="modal-content animated fadeIn">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="ysrangesid">
+                    <p><strong id="rangestagname">TAG</strong></p>
+                    <div class="form-group">
+                        <input type="text" placeholder="请输入右上角tag" value=""
+                               class="form-control" name="ys_tag">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-dismiss="modal" onclick="closeysRangesModal()">关闭
+                    </button>
+                    <button type="submit" class="btn btn-primary ajax-post no-close" target-form="ystagModal">保存
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+    $(document).ready(function () {
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green'
+        });
+    });
+    $(".ranges").click(function () {
+        $("#rangesname").text($(this).data("name") + "-利润");
+        $("#rangesid").val($(this).data("id"));
+        $("[name=ranges]").val($(this).data("ranges"));
+        $("#rangesModal").show();
+    });
+
+    function closeRangesModal() {
+        $("#rangesModal").hide();
+    }
+
+    $(".ystag").click(function () {
+        $("#rangestagname").text($(this).data("name") + "-TAG");
+        $("#ysrangesid").val($(this).data("id"));
+        $("[name=ys_tag]").val($(this).data("ystag"));
+        $("#ystagModal").show();
+    });
+
+    function closeysRangesModal() {
+        $("#ystagModal").hide();
+    }
+
+    $('.advance').on('change', function () {
+        var id = $(this).data("id");
+        var advance = $(this).val();
+        $.post("{:U('hz_price_advance_edit')}", {id: id, advance: advance}, function (ret) {
+            if (ret.errno == 0) {
+                window.location.reload();
+                layer.msg(ret.errmsg);
+            } else {
+                layer.msg(ret.errmsg);
+            }
+        });
+    })
+
+</script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+{include file="public/header" /}
+<style>
+    .table-bordered > tbody > tr:hover {
+        background-color: #f5f5f5
+    }
+
+    .td {
+        max-width: 100px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>接口管理</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups" style="margin-bottom: 10px">
+                        <div class="col-md-2 form-inline text-left">
+                            <div class="form-group">
+                                <a class="btn btn-sm btn-white open-reload"><i class="glyphicon glyphicon-repeat"></i></a>
+<!--                                <a class="btn btn-sm btn-primary open-window" title="新增-非开发人员请勿新增接口" href="{:U('edit')}"><i-->
+<!--                                        class="fa fa-plus"></i> 新增</a>-->
+                            </div>
+                        </div>
+                        <div class="col-md-10 m-b-xs form-inline text-right">
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>平台名称</th>
+                                <th>配置1</th>
+                                <th>配置2</th>
+                                <th>配置3</th>
+                                <th>配置4</th>
+                                <th>配置5</th>
+                                <th>说明</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="_list" id="vo"}
+                            <tr>
+                                <td width="100">{$vo.name}</td>
+                                <td class="tiptext td" data-text='{$vo.param1}'>{$vo.param1}</td>
+                                <td class="tiptext td" data-text='{$vo.param2}'>{$vo.param2}</td>
+                                <td class="tiptext td" data-text='{$vo.param3}'>{$vo.param3}</td>
+                                <td class="tiptext td" data-text='{$vo.param4}'>{$vo.param4}</td>
+                                <td class="tiptext td" data-text='{$vo.param5}'>{$vo.param5}</td>
+                                <td class="tiptext td" data-text='{$vo.remark}'>{$vo.remark}</td>
+                                <td>
+                                    <a class="open-window" href="{:U('edit?id='.$vo.id)}" title="{$vo.name}">编辑</a>
+                                    <a class="open-window text-info" href="{:U('param?id='.$vo.id)}" title="{$vo.name}">套餐</a>
+                                    <a class="ajax-get confirm text-danger" title="删除"
+                                       href="{:U('deletes?id='.$vo.id)}">删除</a>
+                                </td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(".tiptext").click(function () {
+        var text = $(this).data('text');
+        layer.alert(text, {
+            skin: 'layui-layer-molv' //样式类名
+            , closeBtn: 0
+        }, function () {
+            layer.closeAll();
+        });
+    });
+</script>
+</body>
+</html>

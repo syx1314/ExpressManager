@@ -1,0 +1,153 @@
+{include file="public/header" /}
+<style>
+    .table-bordered > tbody > tr:hover {
+        background-color: #f5f5f5
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>提现列表</h5>&nbsp;&nbsp;共{$_count}条&nbsp;&nbsp;&nbsp;总金额：￥{$total_money}
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups">
+                        <div class="col-md-4 form-inline text-left">
+                            <div class="form-group">
+                                <a class="btn btn-sm btn-white open-reload"><i
+                                        class="glyphicon glyphicon-repeat"></i></a>
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-sm btn-info ajax-post" target-form="i-checks"
+                                        href="{:U('shenhe',['status'=>2,'style'=>1])}">
+                                    微信处理
+                                </button>
+                                <button class="btn btn-sm btn-info ajax-post" target-form="i-checks"
+                                        href="{:U('shenhe',['status'=>2,'style'=>3])}">
+                                    手动成功
+                                </button>
+                                <button class="btn btn-sm btn-danger prompt ajax-post" target-form="i-checks"
+                                        href="{:U('shenhe',['status'=>3])}">
+                                    批量驳回
+                                </button>
+                            </div>
+                            <div class="form-group">
+                                <button type="button" id="excel"
+                                        class="btn btn-sm btn-primary"
+                                        url="{:U('out_excel')}"> 导出
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-8 m-b-xs form-inline text-right">
+                            <div class="form-group">
+                                <span class="control-label">日期:</span>
+                                <input type="text" name="begin_time" id="begin_time" value="{:I('begin_time')}"
+                                       class="input-sm input-s-sm form-control" autocomplete="off" placeholder="开始时间"/>
+                                <span class="control-label">-</span>
+                                <input type="text" name="end_time" id="end_time" value="{:I('end_time')}"
+                                       class="input-sm input-s-sm form-control" autocomplete="off" placeholder="结束时间"/>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">状态:</label>
+                                <select class="input-sm form-control input-s-sm inline serach_selects" name="status"
+                                        style="width: auto;">
+                                    <option value="0">请选择</option>
+                                    <option value="1"
+                                    <?php if(I('status')==1){ echo "selected='selected'"; } ?>>待审核</option>
+                                    <option value="2"
+                                    <?php if(I('status')==2){ echo "selected='selected'"; } ?>>提现成功</option>
+                                    <option value="3"
+                                    <?php if(I('status')==3){ echo "selected='selected'"; } ?>>审核不通过</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="text" name="key" placeholder="请输入备注昵称会员ID" value="{:I('key')}"
+                                           class="input-sm form-control">
+                                    <span class="input-group-btn"><button type="button" id="search"
+                                                                          class="btn btn-sm btn-primary"
+                                                                          url="{:U('index')}"> 搜索</button></span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th><input type="checkbox" class="i-checks check-all"></th>
+                                <th>申请人</th>
+                                <th>账号</th>
+                                <th>方式</th>
+                                <th>金额</th>
+                                <th>备注</th>
+                                <th>提交时间</th>
+                                <th>状态</th>
+                                <th>处理时间</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="_list" id="vo"}
+                            <tr>
+                                <td style="width: 70px;">
+                                    {eq name="vo.status" value="1"}
+                                    <input type="checkbox" class="i-checks ids" name="id[]" value="{$vo.id}">
+                                    {/eq}
+                                </td>
+                                <td>[{$vo.customer_id}]{$vo.username}</td>
+                                <td>姓名：{$vo.name}<br/>账号：{$vo.acount}</td>
+                                <td>{:C('TIXIAN_STYLE')[$vo.style]}</td>
+                                <td>{$vo.money}</td>
+                                <td>{$vo.remark}</td>
+                                <td>{$vo.create_time|time_format}</td>
+                                <td>{:C('TIXIAN_STATUS')[$vo['status']]}</td>
+                                <td>{$vo.deal_time|time_format}</td>
+                                <td>
+                                    <a class="open-window text-info no-refresh"
+                                       href="{:U('customer/balance_log',['id'=>$vo.customer_id])}" title="余额日志">余额日志</a>
+                                </td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="page">
+                        {$_list->render()}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green'
+        });
+    });
+</script>
+<script src="__JS__/laydate/laydate.js"></script>
+<script>
+    //执行一个laydate实例
+    laydate.render({
+        elem: '#begin_time',
+        type: 'datetime',
+        done: function (value, date, endDate) {
+            $('#begin_time').val(value);
+        }
+    });
+    laydate.render({
+        elem: '#end_time',
+        type: 'datetime',
+        done: function (value, date, endDate) {
+            $('#end_time').val(value);
+        }
+    });
+</script>
+</body>
+</html>

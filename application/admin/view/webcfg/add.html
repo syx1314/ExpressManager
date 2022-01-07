@@ -1,0 +1,117 @@
+{include file="public/header" /}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    .main {
+        background: #fff;
+        padding: 20px;
+        color: #404040;
+    }
+
+    h2 {
+        display: block;
+        font-size: 1.5em;
+        -webkit-margin-before: 0.83em;
+        -webkit-margin-after: 0.83em;
+        -webkit-margin-start: 0px;
+        -webkit-margin-end: 0px;
+        font-weight: bold;
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content" id="page">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>{$info['id']?'编辑':'新增'}配置</h5>
+                </div>
+                <div class="ibox-content">
+                    <form role="form" action="{:U()}" method="post" class="config_form  form-horizontal">
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>配置标识<span
+                                        style="margin-left: 8px;color: #aaa;">（用于C函数调用，只能使用英文且不能重复；系统会自动转为大写字母）</span></label>
+                                <input type="text" placeholder="请输入配置标识" class="form-control" name="name"
+                                       value="{$info.name|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>配置标题<span style="margin-left: 8px;color: #aaa;">（用于后台显示的配置标题）</span></label>
+                                <input type="text" placeholder="请输入配置标题" class="form-control" name="title"
+                                       value="{$info.title|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>排序<span style="margin-left: 8px;color: #aaa;">（用于分组显示的顺序）</span></label>
+                                <input type="text" placeholder="" class="form-control" name="sort"
+                                       value="{$info.sort|default=0}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>配置类型<span style="margin-left: 8px;color: #aaa;">（系统会根据不同类型解析配置值）</span></label>
+                                <select class="form-control m-b" name="type">
+                                    {volist name="type_list" id="type"}
+                                    <option value="{$key}"
+                                    <?php if($info['type']==$key){ echo "selected='selected'"; } ?>>{$type}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>配置分组<span
+                                        style="margin-left: 8px;color: #aaa;">（配置分组 用于批量设置 不分组则不会显示在系统设置中）</span></label>
+                                <select class="form-control m-b" name="group">
+                                    <option value="0">不分组</option>
+                                    {volist name="group_list" id="group"}
+                                    <option value="{$key}"
+                                    <?php if($info['group']==$key){ echo "selected='selected'"; } ?>>{$group}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>配置值<span style="margin-left: 8px;color: #aaa;">（配置值）</span></label>
+                                <textarea class="form-control diff-textarea" name="value"
+                                          rows="6">{$info.value|default=''}</textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>配置项<span style="margin-left: 8px;color: #aaa;">（如果是枚举型 需要配置该项）</span></label>
+                                <textarea class="form-control diff-textarea" name="extra"
+                                          rows="6">{$info.extra|default=''}</textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>说明<span style="margin-left: 8px;color: #aaa;">（配置详细说明）</span></label>
+                                <textarea class="form-control diff-textarea" name="remark" rows="6">{$info.remark|default=''}</textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <input type="hidden" name="id" value="{$info.id|default=''}">
+                                <button class="btn btn-primary ajax-post" type="submit" target-form="config_form">
+                                    确定
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>
+

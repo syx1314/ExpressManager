@@ -1,0 +1,84 @@
+{include file="public/header" /}
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5> 编辑管理员</h5>
+                </div>
+                <div class="ibox-content">
+                    <form method="post" class="form-horizontal" action="{:U('Member/edit')}">
+                        <input type="hidden" name="id" value="{$info.id}">
+
+                        <div class="form-group ">
+                            <div class="col-sm-12">
+                                <label>登录名</label>
+                                <input type="text" class="form-control" name="nickname" value="{$info.nickname}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>性别</label>
+                            </div>
+                            <div class="col-sm-12">
+
+                                <input type="radio" name="sex" value="1" <?php if($info['sex']==1){ echo "checked"; } ?>
+                                > <i></i> 男</label>
+                                <input type="radio" name="sex" value="0" <?php if($info['sex']==0){ echo "checked"; } ?>
+                                > <i></i> 女</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>禁用&启用</label>
+                            </div>
+                            <div class="col-sm-12">
+                                <input type="radio" name="status"
+                                       value="0" <?php if($info['status']==0){ echo "checked"; } ?>> <i></i> 禁用</label>
+                                <input type="radio" name="status"
+                                       value="1" <?php if($info['status']==1){ echo "checked"; } ?>> <i></i> 启用</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>管理员头像</label>
+                                <img id="headimg" src="{$info.headimg}"
+                                     style="display: block;margin-bottom: 10px; border-radius:50%;width: 100px;height: auto;">
+                                <button class="btn btn-success open-img-window" style="width:100px;"
+                                        data-url="{:U('widget/images')}" type="button" data-max="1" data-name="headimg">
+                                    <i class="fa fa-upload"></i>&nbsp;&nbsp;<span class="bold">上传</span></button>
+                                <input type="hidden" name="headimg" value="{$info.headimg}"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>谷歌身份验证码<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <input type="text" class="form-control" name="verifycode" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="hr-line-dashed"></div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <button type="submit" class="btn btn-primary ajax-post" target-form="form-horizontal">确定
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    window.changeIMG = function (name, res) {
+        $("#" + name).attr("src", res);
+        $("[name=" + name + "]").val(res);
+    }
+</script>
+
+</body>
+
+</html>

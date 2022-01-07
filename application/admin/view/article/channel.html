@@ -1,0 +1,106 @@
+{include file="public/header" /}
+<style>
+    .table-bordered > tbody > tr:hover {
+        background-color: #f5f5f5
+    }
+
+    .text-navys {
+        color: #b31a2f;
+    }
+</style>
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>模型列表</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups">
+                        <div class="col-sm-5 m-b-xs">
+                            <a href="{:U('addchannel')}" class="btn btn-primary open-window" title="新增模型"
+                               style="padding: 4px 12px;"
+                               type="button"><i class="fa fa-plus"></i> 新增</a>
+                            <a class="btn btn-white open-reload"><i class="glyphicon glyphicon-repeat"></i></a>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>标识</th>
+                                <th>名称</th>
+                                <th>内容表</th>
+                                <th>文档</th>
+                                <th>显示</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="_list" id="vo"}
+                            <tr>
+                                <td>{$vo.id}</td>
+                                <td>{$vo.nid}</td>
+                                <td>{$vo.typename}</td>
+                                <td>{$vo.addtable}</td>
+                                <td><a class="open-window text-info no-refresh" title="{$vo.typename}"
+                                       href="{:U('conlist?channel='.$vo.id)}">{$vo.doccount}</a></td>
+                                <td>{$vo['isshow']==1?"显示":"不显示"}</td>
+                                <td>
+                                    <a href="{:U('editchannel?id='.$vo.id)}" class="open-window text-info" title="编辑">编辑基本资料</a>
+                                    <a href="{:U('addchannelclo?id='.$vo.id)}"
+                                       class="open-window text-success no-refresh" title="列">编辑数据列</a>
+                                    {eq name="vo.issystem" value="0"}
+                                    <a class="text-danger ajax-get confirm"
+                                       href="{:U('delchannel?&id='.$vo.id)}" title="删除">删除</a>
+                                    {/eq}
+                                </td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 全局js -->
+<script>
+
+    $("#search").click(function () {
+        var url = $(this).attr('url');
+        var query = $('.input-groups').find('input').serialize();
+        var select = $('.input-groups').find('select').serialize();
+        query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+        query = query.replace(/^&/g, '');
+        if (url.indexOf('?') > 0) {
+            url += '&' + query;
+        } else {
+            url += '?' + query;
+        }
+        if (url.indexOf('?') > 0) {
+            url += '&' + select;
+        } else {
+            url += '?' + select;
+        }
+        window.location.href = url;
+    });
+    //回车搜索
+    $(".input-sm").keyup(function (e) {
+        if (e.keyCode === 13) {
+            $("#search").click();
+            return false;
+        }
+    });
+    $(".serach_selects").change(function () {
+        $("#search").click();
+        return false;
+    });
+</script>
+</body>
+</html>

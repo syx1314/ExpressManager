@@ -1,0 +1,252 @@
+{include file="public/header" /}
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="tabs-container">
+                <ul class="nav nav-tabs">
+                    <li class="active"><a data-toggle="tab" href="#tab-1" aria-expanded="true"> 基本内容</a>
+                    </li>
+                    <li class=""><a data-toggle="tab" href="#tab-2" aria-expanded="false">扩展内容</a>
+                    </li>
+
+                </ul>
+                <form method="post" class="form-horizontal" action="{:U('conedit')}"
+                      style="text-align: center;background-color: #fff;box-shadow: 0px 0px 1px 0px #cfcfcf;">
+                    <div class="tab-content" style="text-align: left;">
+                        <div id="tab-1" class="tab-pane active">
+                            <div class="panel-body">
+                                <input type="hidden" name="id" value="{$info.id}"/>
+                                <input type="hidden" name="channel" value="{$channel}"/>
+                                <input type="hidden" name="typeid" value="{$typeid}"/>
+                                <input type="hidden" name="typeid2" value="{$typeid2}"/>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>标题<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                        <input type="text" class="form-control" name="title" value="{$info.title}">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>缩略图<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                        <img id="litpic"
+                                             src="{$info['litpic']?$info['litpic']:'__IMG__/webuploader.png'}"
+                                             style="display: block;margin-bottom: 10px;" height="100px">
+                                        <button class="btn btn-success open-img-window" data-title="选择图片"
+                                                data-url="{:U('widget/images')}" data-max="1" data-name="litpic" style="width:100px;" type="button"><i
+                                                class="fa fa-upload"></i>&nbsp;&nbsp;<span class="bold">上传</span>
+                                        </button>
+                                        <a class="clear-img" data-name="litpic">清除</a>
+                                        <input type="hidden" name="litpic" value="{$info.litpic|default=''}"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>来源<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                        <input type="text" class="form-control" name="source" value="{$info.source}">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>作者<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                        <input type="text" class="form-control" name="writer" value="{$info.writer}">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>描述<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                        <textarea type="text" class="form-control"
+                                                  name="description">{$info.description}</textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>关键词<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                        <input type="text" class="form-control" name="keywords" value="{$info.keywords}">
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div id="tab-2" class="tab-pane">
+                            <input type="hidden" name="aid" value="{$infoz.aid}">
+                            <div class="panel-body">
+                                {volist name="addtable" id="clo"}
+                                {gt name="key" value="1"}
+                                <?php $inputs = $fieldset[$clo['column_name']];?>
+                                {switch name="inputs" }
+                                {case value="input"}
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>{$clo.column_comment}<span
+                                                style="margin-left: 8px;color: #aaa;"></span></label>
+                                        <input type="text" class="form-control" name="{$clo.column_name}"
+                                               value="{$infoz[$clo['column_name']]}">
+                                    </div>
+                                </div>
+                                {/case}
+                                {case value="text"}
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>{$clo.column_comment}<span
+                                                style="margin-left: 8px;color: #aaa;"></span></label>
+                                        <textarea type="text" class="form-control"
+                                                  name="{$clo.column_name}">{$infoz[$clo['column_name']]}</textarea>
+                                    </div>
+                                </div>
+                                {/case}
+                                {case value="file"}
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>{$clo.column_comment}<span
+                                                style="margin-left: 8px;color: #aaa;"></span></label>
+                                        <div class="input-group">
+                                            <input type="file" name="file" id="file_{$clo.column_name}"
+                                                   data-output="value_{$clo.column_name}" onchange="fileUpload(this)"
+                                                   style="display: none"/>
+                                            <input type="text" class="form-control" name="{$clo.column_name}" id="value_{$clo.column_name}" value="{$infoz[$clo['column_name']]}"
+                                                   readonly>
+                                            <span class="input-group-btn">
+                                        <button type="button" class="btn btn-primary uploadbtn"
+                                                data-upinput="#file_{$clo.column_name}">上传</button> </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {/case}
+                                {case value="html"}
+                                <div class="hr-line-dashed"></div>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>文章内容<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                        <script id="editor{$clo.column_name}" type="text/plain"
+                                                name="{$clo.column_name}">{$infoz[$clo['column_name']]}</script>
+                                        <div class="clearfix"></div>
+                                    </div>
+                                </div>
+                                <div class="hr-line-dashed" style="clear: both;"></div>
+                                <script>
+                                    $(document).ready(function () {
+                                        UE.getEditor('editor{$clo.column_name}');
+                                    });
+                                </script>
+                                {/case}
+                                {case value="number"}
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>{$clo.column_comment}<span
+                                                style="margin-left: 8px;color: #aaa;"></span></label>
+                                        <input type="number" class="form-control" name="{$clo.column_name}"
+                                               value="{$infoz[$clo['column_name']]}">
+                                    </div>
+                                </div>
+                                {/case}
+                                {case value="img"}
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <label>{$clo.column_comment}<span
+                                                style="margin-left: 8px;color: #aaa;"></span></label>
+                                        <img id="img_{$clo.column_name}"
+                                             src="{$infoz[$clo['column_name']]?$infoz[$clo['column_name']]:'__IMG__/webuploader.png'}"
+                                             style="display: block;margin-bottom: 10px;"
+                                             height="100px">
+                                        <button class="btn btn-success uploadbtn" style="width:100px;" type="button"
+                                                data-upinput="#file_{$clo.column_name}"><i
+                                                class="fa fa-upload"></i>&nbsp;&nbsp;<span class="bold">上传</span>
+                                        </button>
+                                        <input type="file" name="file" id="file_{$clo.column_name}"
+                                               data-output="out_{$clo.column_name}"
+                                               data-imgput="img_{$clo.column_name}" onchange="fileimgUpload(this)"
+                                               style="display: none"/>
+                                        <input type="hidden" id="out_{$clo.column_name}" name="{$clo.column_name}"
+                                               value="{$infoz[$clo['column_name']]}"/>
+                                    </div>
+                                </div>
+                                {/case}
+                                {default /}
+                                输入类型配置错误
+                                {/switch}
+                                {/gt}
+                                {/volist}
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" target-form="form-horizontal"
+                            style="margin: auto;margin-top: 10px;margin-bottom: 10px;"
+                            class="btn btn-primary ajax-post">
+                        提 交
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="__JS__/ajaxfileupload.js" type="text/javascript"></script>
+<script type="text/javascript" charset="utf-8" src="__JS__/ueditor/ueditor.config.js?v=1"></script>
+<script type="text/javascript" charset="utf-8" src="__JS__/ueditor/ueditor.all.min.js?v=1222"></script>
+<script type="text/javascript" charset="utf-8" src="__JS__/ueditor/lang/zh-cn/zh-cn.js"></script>
+<script>
+    window.changeIMG = function (name, res) {
+        $("#" + name).attr("src", res);
+        $("[name=" + name + "]").val(res);
+    }
+</script>
+<script>
+
+    $(".uploadbtn").click(function () {
+        $($(this).data('upinput')).trigger("click");
+    });
+
+    function fileUpload(obj) {
+        var outputid = $(obj).data('output');
+        var inputid = $(obj).attr('id');
+        var index = layer.load(1, {
+            shade: [0.1, '#fff'] //0.1透明度的白色背景
+        });
+        //上传图片
+        $.ajaxFileUpload({
+            url: "{:U('qiniu/uploadOne')}", //文件上传到哪个地址，告诉ajaxFileUpload
+            secureuri: false, //一般设置为false
+            fileElementId: inputid, //文件上传控件的Id  <input type="file" id="fileUpload" name="file" />
+            dataType: 'json', //返回值类型 一般设置为json
+            success: function (ret, status)  //服务器成功响应处理函数
+            {
+                layer.close(index);
+                if (ret.errno == 0) {
+                    toastr.success(ret.errmsg);
+                    $("#" + outputid).val(ret.data.url);
+                } else {
+                    toastr.error(ret.errmsg);
+                }
+            }
+        })
+    }
+    function fileimgUpload(obj) {
+        var outputid = $(obj).data('output');
+        var imgputid = $(obj).data('imgput');
+        var inputid = $(obj).attr('id');
+        var index = layer.load(1, {
+            shade: [0.1, '#fff'] //0.1透明度的白色背景
+        });
+        //上传图片
+        $.ajaxFileUpload({
+            url: "{:U('qiniu/uploadOne')}", //文件上传到哪个地址，告诉ajaxFileUpload
+            secureuri: false, //一般设置为false
+            fileElementId: inputid, //文件上传控件的Id  <input type="file" id="fileUpload" name="file" />
+            dataType: 'json', //返回值类型 一般设置为json
+            success: function (ret, status)  //服务器成功响应处理函数
+            {
+                layer.closeAll();
+                if (ret.errno == 0) {
+                    toastr.success(ret.errmsg);
+                    $("#" + outputid).val(ret.data.url);
+                    $("#" + imgputid).attr("src", ret.data.url);
+                } else {
+                    toastr.error(ret.errmsg);
+                }
+            }
+        })
+    }
+</script>
+</body>
+
+</html>

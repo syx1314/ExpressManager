@@ -1,0 +1,303 @@
+{include file="public/header" /}
+<style>
+    .m-box {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        font-size: 40px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .m-box .mobile {
+        height: 80px;
+        width: 100%;
+        font-size: 28px;
+        line-height: 80px;
+        max-width: 400px;
+        margin-bottom: 5px;
+    }
+
+    .m-box .mobile::placeholder {
+        font-size: 28px;
+        line-height: 80px;
+    }
+
+    .m-box .area {
+        height: 40px;
+        width: 100%;
+        font-size: 20px;
+        line-height: 40px;
+        max-width: 400px;
+        margin-bottom: 5px;
+    }
+
+    .m-box .gs {
+        color: #888;
+        font-size: 16px;
+        margin-left: 20px;
+        width: 400px;
+    }
+
+    ::-webkit-input-placeholder { /* WebKit browsers */
+        font-size: 40px;
+        line-height: 80px;
+    }
+
+    ::-moz-placeholder { /* Mozilla Firefox 19+ */
+        font-size: 40px;
+        line-height: 80px;
+    }
+
+    :-ms-input-placeholder { /* Internet Explorer 10+ */
+        font-size: 40px;
+        line-height: 80px;
+    }
+
+    .content-box {
+        padding: 0 10px 20px 10px;
+        background-color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .content-box .tit {
+        font-size: 30px;
+        color: #000;
+        text-align: center;
+        font-weight: 700;
+        margin-top: 30px;
+    }
+
+    .content-box .cate {
+        border: 1px solid #ccc;
+        padding: 0 10px 20px 10px;
+        margin-top: 20px;
+        width: 100%;
+    }
+
+    .content-box .cate .c {
+        margin-top: 10px;
+    }
+
+    .content-box .list {
+        background-color: #fff;
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+
+    }
+
+    .active {
+    }
+
+    .active .li {
+        border: 1px solid #3F92ED !important;
+    }
+
+    .active .li > div {
+        color: #3F92ED !important;
+    }
+
+    .content-box .li {
+        width: 130px;
+        height: 80px;
+        margin: 30px 0 0 30px;
+        border: 1px solid #CCCCCC;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    .content-box .li > div {
+        text-align: center;
+        color: #ccc;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .content-box .li > div:nth-child(1) {
+        font-size: 20px;
+        line-height: 25px;
+    }
+
+    .content-box .li > div:nth-child(2) {
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .content-box .li > div:nth-child(3) {
+        font-size: 18px;
+        line-height: 20px;
+        color: #f00 !important;
+    }
+
+    .clearfloat:after {
+        display: block;
+        clear: both;
+        content: "";
+        visibility: hidden;
+        height: 0
+    }
+
+    .clearfloat {
+        zoom: 1
+    }
+
+    [v-cloak] {
+        display: none;
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn" id="page" v-cloak>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>下单</h5>
+                </div>
+
+                <div class="ibox-content">
+                    <div class="m-box">
+                        <input class="mobile form-control" type="text" placeholder="请输入充值号码" v-model="mobile"/>
+                        <select class="area" v-model="area">
+                            <option value="">电费地区</option>
+                            {volist name="areas" id="vo"}
+                            <option value="{$vo.city_name}">{$vo.city_name}</option>
+                            {/volist}
+                        </select>
+                        <div class="gs" v-if="guishu">
+                            {{guishu.prov}}{{guishu.city}}{{guishu.ispstr}}
+                        </div>
+                    </div>
+                    <div class="tabs-container">
+                        <ul class="nav nav-tabs">
+                            <li :class="['typetab',ti==tabindex?'active':'']" data-typeid="1"
+                                v-for="(type,ti) in product"
+                                :key="ti">
+                                <a data-toggle="tab" aria-expanded="false" @click="clickTab(ti)">{{type.name}}</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <div :class="['tab-pane',tabindex==ti?'active':'']" v-for="(type,ti) in product" :key="ti">
+                                <div class="panel-body content-box">
+                                    <div class="cate" v-for="(cate,ci) in type.lists">
+                                        <div class="c">{{cate.cate}}</div>
+                                        <div class="list" v-if="type.lists.length>0">
+                                            <div class="li" @click="queOrder(item.id,item.name)"
+                                                 v-for="(item,index) in cate.products">
+                                                <div>{{item.name}}</div>
+                                                <div>{{item.desc}}</div>
+                                                <div>￥{{item.price}}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-if="type.lists.length==0">暂无产品</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    var vue = new Vue({
+        el: '#page',
+        data: {
+            mobile: '',
+            area: '',
+            product: [],
+            guishu: {},
+            tabindex: 0
+        },
+        created: function () {
+            this.initTaocan();
+        },
+        watch: {
+            mobile: function (newValue, oldValue) {
+                var value = newValue.replace(/\D/g, '').substring(0, 11);
+                if (value.length == 11) {
+                    this.getGuishu();
+                } else {
+                    this.guishu = {};
+                }
+            }
+        },
+        methods: {
+            clickTab: function (index) {
+                this.tabindex = index;
+            },
+            initTaocan: function () {
+                $.post("{:U('get_product')}", {mobile: this.mobile}, function (result) {
+                    if (result.errno == 0) {
+                        vue.product = result.data.product;
+                    } else {
+                        vue.product = [];
+                        layer.alert(result.errmsg, {
+                            icon: 5,
+                            skin: 'layer-ext-moon'
+                        })
+                    }
+                });
+            },
+            getGuishu: function () {
+                $.post("{:U('get_guishu')}", {mobile: this.mobile}, function (result) {
+                    if (result.errno == 0) {
+                        vue.guishu = result.data;
+                    }
+                });
+            },
+            queOrder: function (id, name) {
+                var mobile = this.mobile;
+                var area = this.area;
+                if (mobile == "") {
+                    layer.alert("请输入充值账号", {
+                        icon: 5,
+                        skin: 'layer-ext-moon'
+                    })
+                    return;
+                }
+                layer.confirm('为号码[' + mobile + "]下单充值产品【" + name + "】?", {
+                    btn: ['确定', '取消'] //按钮
+                }, function () {
+                    vue.subOrder(id, mobile, area);
+                }, function () {
+
+                });
+            },
+            subOrder: function (id, mobile, area) {
+                var index = layer.load(1, {
+                    shade: [0.1, '#fff'] //0.1透明度的白色背景
+                });
+                $.post("{:U('create_order')}", {
+                    product_id: id,
+                    mobile: mobile,
+                    area: area
+                }, function (result) {
+                    layer.closeAll();
+                    if (result.errno == 0) {
+                        layer.alert(result.errmsg, {
+                            icon: 1,
+                            skin: 'layer-ext-moon'
+                        });
+                        vue.mobile = '';
+                    } else {
+                        layer.alert(result.errmsg, {
+                            icon: 5,
+                            skin: 'layer-ext-moon'
+                        })
+                    }
+                });
+            }
+        }
+    })
+</script>
+</html>

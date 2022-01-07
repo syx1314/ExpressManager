@@ -1,0 +1,52 @@
+{include file="public/header" /}
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>编辑分类</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <form method="post" class="form-horizontal" action="{:U('cate_edit_save')}">
+                        <input type="hidden" name="id" value="{$info.id|default=''}">
+                        <input type="hidden" name="type" value="{$info?$info['type']:I('type')}">
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>名称<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <input type="text" class="form-control" name="cate" value="{$info.cate|default=''}"
+                                       autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>排序<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <input type="text" class="form-control" name="sort" value="{$info.sort|default=''}"
+                                       autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <button type="submit" class="btn btn-primary ajax-post" target-form="form-horizontal">
+                                    确定
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

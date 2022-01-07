@@ -1,0 +1,63 @@
+{include file="public/header" /}
+<style>
+    .table-bordered > tbody > tr:hover {
+        background-color: #f5f5f5
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>表格导入</h5>
+                    &nbsp;<a href="{:C('PORDER_EXCEL_IN_DOC')}" target="_blank">下载导入模板</a>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups">
+                        <div class="col-md-6 form-inline text-left">
+                            <div class="form-group">
+                                <input type="file" class="form-control" name="excel" id="excelid" style="display: none">
+                                <button class="btn btn-sm btn-primary file-upload" for="#excelid" type="button"
+                                        style="display: block;"><strong>上传提单表格</strong></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $("#excelid").unbind("change").bind("change", function () {
+        var index = layer.load(1, {
+            shade: [0.1, '#fff'] //0.1透明度的白色背景
+        });
+        //上传图片
+        $.ajaxFileUpload({
+            url: "{:U('in_excel')}", //文件上传到哪个地址，告诉ajaxFileUpload
+            secureuri: false, //一般设置为false
+            fileElementId: 'excelid', //文件上传控件的Id
+            dataType: 'json', //返回值类型 一般设置为json
+            success: function (ret, status)  //服务器成功响应处理函数
+            {
+                layer.closeAll();
+                if (ret.errno == 0) {
+                    layer.confirm(ret.errmsg, {
+                        btn: ['好的'] //按钮
+                    }, function () {
+                        window.location.href = ret.data.url;
+                    });
+                } else {
+                    layer.confirm(ret.errmsg, {
+                        btn: ['知道了'] //按钮
+                    }, function () {
+                        window.location.reload();
+                    });
+                }
+            }
+        })
+    });
+</script>
+</body>
+</html>

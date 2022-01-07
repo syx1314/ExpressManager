@@ -1,0 +1,72 @@
+{include file="public/header" /}
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>广告位管理</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups">
+                        <div class="col-md-2 form-inline text-left">
+                            <div class="form-group">
+                                <a class="btn btn-sm btn-primary open-window btn-sm" title="新增广告位"
+                                   href="{:U('Ad/pedit')}"><i class="fa fa-plus"></i><strong> 新增</strong></a>
+                                <a class="btn btn-white open-reload btn-sm"><i
+                                        class="glyphicon glyphicon-repeat"></i></a>
+                            </div>
+                        </div>
+                        <div class="col-md-10 m-b-xs form-inline text-right">
+
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>名称</th>
+                                <th>关键值</th>
+                                <th>描述</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {notempty name="list"}
+                            {volist name="list" id="vo"}
+                            <tr>
+                                <td>{$key+1}</td>
+                                <td>{$vo.name}</td>
+                                <td>{$vo.key}</td>
+                                <td>{$vo.desc}</td>
+                                <td>
+                                    <a class="text-navy open-window" title="编辑"
+                                       href="{:U('Ad/pedit',array('id'=>$vo['id']))}">编辑
+                                    </a>
+                                    <a class="text-info open-window" title="管理内容"
+                                       href="{:U('Ad/cindex',array('ad_id'=>$vo['id']))}">管理内容
+                                    </a>
+                                    <a class="text-danger ajax-get confirm"
+                                       href="{:U('Ad/pdel',array('id'=>$vo['id']))}">删除
+                                    </a>
+                                </td>
+                            </tr>
+                            {/volist}
+                            {else}
+                            <tr>
+                                <td colspan="5" class="no-records-found">没有找到匹配的记录</td>
+                            </tr>
+                            {/notempty}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+
+</html>

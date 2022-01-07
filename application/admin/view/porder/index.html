@@ -1,0 +1,452 @@
+{include file="public/header" /}
+<style>
+    .table-bordered > tbody > tr:hover {
+        background-color: #f5f5f5
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>订单列表（{$_total}）&nbsp;&nbsp;总金额：￥{$total_price}&nbsp;&nbsp;利润：￥{$total_price-$cost}</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups">
+                        <div class="col-md-12 m-b-xs form-inline text-left">
+                            <div class="form-group">
+                                <label class="control-label">时间:</label>
+                                <select class="input-sm form-control input-s-sm inline" name="time_style"
+                                        style="width: auto;">
+                                    <option value="create_time"
+                                    <?php if(I('time_style')=='create_time'){ echo "selected='selected'"; } ?>
+                                    >下单时间</option>
+                                    <option value="apifail_time"
+                                    <?php if(I('time_style')=='apifail_time'){ echo "selected='selected'"; } ?>
+                                    >失败时间</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <span class="control-label">日期:</span>
+                                <input type="text" name="begin_time" id="begin_time" value="{:I('begin_time')}"
+                                       class="input-sm input-s-sm form-control" autocomplete="off" placeholder="开始时间"/>
+                                <span class="control-label">-</span>
+                                <input type="text" name="end_time" id="end_time" value="{:I('end_time')}"
+                                       class="input-sm input-s-sm form-control" autocomplete="off" placeholder="结束时间"/>
+                            </div>
+                            <div class="form-group">
+                                <?php $client=C('CLIENT_TYPE'); ?>
+                                <label class="control-label">渠道:</label>
+                                <select class="input-sm form-control input-s-sm inline serach_selects"
+                                        name="client"
+                                        style="width: auto;">
+                                    <option value="0">请选择</option>
+                                    {volist name="client" id="vo"}
+                                    <option value="{$key}"
+                                    <?php if(I('client')==$key){ echo "selected='selected'"; } ?>>{$vo}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <?php $type=C('PRODUCT_TYPE'); ?>
+                                <label class="control-label">类型:</label>
+                                <select class="input-sm form-control input-s-sm inline serach_selects" name="type"
+                                        style="width: auto;">
+                                    <option value="0">请选择</option>
+                                    {volist name="type" id="vo"}
+                                    <option value="{$key}"
+                                    <?php if(I('type')==$key){ echo "selected='selected'"; } ?>>{$vo}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">分类:</label>
+                                <select class="input-sm form-control input-s-sm inline serach_selects" name="cate"
+                                        style="width: auto;">
+                                    <option value="0">请选择</option>
+                                    {notempty name="cates"}
+                                    {volist name="cates" id="vo"}
+                                    <option value="{$vo['id']}"
+                                    <?php if(I('cate')==$vo['id']){ echo "selected='selected'"; } ?>>{$vo.cate}</option>
+                                    {/volist}
+                                    {/notempty}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">套餐:</label>
+                                <select class="input-sm form-control input-s-sm inline serach_selects" name="product_id"
+                                        style="width: auto;">
+                                    <option value="0">请选择</option>
+                                    {notempty name="products"}
+                                    {volist name="products" id="vo"}
+                                    <option value="{$vo['id']}"
+                                    <?php if(I('product_id')==$vo['id']){ echo "selected='selected'"; } ?>
+                                    >{$vo.name}</option>
+                                    {/volist}
+                                    {/notempty}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <?php $isps=C('ISP_TEXT');?>
+                                <label class="control-label">运营商:</label>
+                                <select class="input-sm form-control input-s-sm inline serach_selects" name="isp"
+                                        style="width: auto;">
+                                    <option value="0">请选择</option>
+                                    {volist name="isps" id="vo"}
+                                    <option value="{$key}"
+                                    <?php if(I('isp')==$key){ echo "selected='selected'"; } ?>>{$vo}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <?php $payway=C('PAYWAY'); ?>
+                                <label class="control-label">支付:</label>
+                                <select class="input-sm form-control input-s-sm inline serach_selects"
+                                        name="pay_way"
+                                        style="width: auto;">
+                                    <option value="0">请选择</option>
+                                    {volist name="payway" id="vo"}
+                                    <option value="{$key}"
+                                    <?php if(I('pay_way')==$key){ echo "selected='selected'"; } ?>>{$vo}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <?php $statusarr=C('PORDER_STATUS');?>
+                                <label class="control-label">状态:</label>
+                                <select class="input-sm form-control input-s-sm inline serach_selects" name="status"
+                                        style="width: auto;">
+                                    <option value="0">请选择</option>
+                                    {volist name="statusarr" id="vo"}
+                                    <option value="{$key}"
+                                    <?php if(I('status')==$key){ echo "selected='selected'"; } ?>>{$vo}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">接口:</label>
+                                <select class="input-sm form-control input-s-sm inline serach_selects"
+                                        name="reapi_id"
+                                        style="width: auto;">
+                                    <option value="0">请选择</option>
+                                    {volist name="reapi" id="vo"}
+                                    <option value="{$vo['id']}"
+                                    <?php if(I('reapi_id')==$vo['id']){ echo "selected='selected'"; } ?>
+                                    >{$vo.name}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">排序:</label>
+                                <select class="input-sm form-control input-s-sm inline serach_selects" name="sort"
+                                        style="width: auto;">
+                                    <option value="">默认</option>
+                                    <option value="create_time desc"
+                                    <?php if(I('sort')=='create_time desc'){ echo "selected='selected'"; } ?>
+                                    >下单时间</option>
+                                    <option value="finish_time desc"
+                                    <?php if(I('sort')=='finish_time desc'){ echo "selected='selected'"; } ?>
+                                    >完成时间</option>
+                                    <option value="refund_time desc"
+                                    <?php if(I('sort')=='refund_time desc'){ echo "selected='selected'"; } ?>
+                                    >退款时间</option>
+                                    <option value="notification_time desc"
+                                    <?php if(I('sort')=='notification_time desc'){ echo "selected='selected'"; } ?>
+                                    >回调时间</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">批量手机:</label>
+                                <textarea name="batch_mobile" class="form-control"
+                                          placeholder="批量手机查询，多个回车分割">{:I('batch_mobile')}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">查询条件:</label>
+                                <select class="input-sm form-control input-s-sm inline" name="query_name"
+                                        style="width: auto;">
+                                    <option value="">模糊</option>
+                                    <option value="customer_id"
+                                    <?php if(I('query_name')=='customer_id'){ echo "selected='selected'"; } ?>
+                                    >用户ID</option>
+                                    <option value="order_number"
+                                    <?php if(I('query_name')=='order_number'){ echo "selected='selected'"; } ?>
+                                    >订单号</option>
+                                    <option value="mobile"
+                                    <?php if(I('query_name')=='mobile'){ echo "selected='selected'"; } ?>>手机号</option>
+                                    <option value="rebate_id"
+                                    <?php if(I('query_name')=='rebate_id'){ echo "selected='selected'"; } ?>
+                                    >返利ID</option>
+                                    <option value="customer.wx_openid.customer_id"
+                                    <?php if(I('query_name')=='customer.wx_openid.customer_id'){ echo "selected='selected'"; } ?>
+                                    >openid</option>
+                                    <option value="customer.weixin_appid.customer_id"
+                                    <?php if(I('query_name')=='customer.weixin_appid.customer_id'){ echo "selected='selected'"; } ?>
+                                    >appid</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="hidden" name="customer_id" value="{:I('customer_id')}">
+                                    <input type="text" name="key" placeholder="请输入套餐/单号/手机号" value="{:I('key')}"
+                                           class="input-sm form-control">
+                                    <span class="input-group-btn"><button type="button" id="search"
+                                                                          class="btn btn-sm btn-primary"
+                                                                          url="{:U('index')}"> 搜索</button></span>
+                                </div>
+                            </div>
+
+
+                        </div>
+                        <div class="col-md-12 form-inline text-left">
+                            <div class="form-group">
+                                <a class="btn btn-sm btn-white open-reload"><i
+                                        class="glyphicon glyphicon-repeat"></i></a>
+                            </div>
+                            <div class="form-group">
+                                <a class="btn btn-sm btn-primary open-window" href="{:U('porder_excel')}" title="手动提单">导入提单</a>
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-sm btn-warning ajax-post" target-form="i-checks"
+                                        href="{:U('set_czing')}" title="多选框选中的订单">
+                                    批量充值中
+                                </button>
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-sm btn-info ajax-post" target-form="i-checks"
+                                        href="{:U('set_chenggong')}" title="多选框选中的订单">
+                                    批量成功
+                                </button>
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-sm btn-warning ajax-post" target-form="i-checks"
+                                        href="{:U('set_shibai')}" title="多选框选中的订单">
+                                    批量失败
+                                </button>
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-sm btn-danger ajax-post" target-form="i-checks"
+                                        href="{:U('refund')}" title="多选框选中的订单">
+                                    批量退款
+                                </button>
+                            </div>
+                            <div class="form-group">
+                                <button type="button" id="excel"
+                                        class="btn btn-sm btn-primary"
+                                        url="{:U('out_excel')}" title="筛选条件中的所有订单"> 导出
+                                </button>
+                            </div>
+                            <div class="form-group">
+                                <button type="button"
+                                        class="btn btn-sm btn-primary batchsub"
+                                        url="{:U('batch_api')}" title="筛选条件中的所有订单"> 批量提交接口
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th><input type="checkbox" class="i-checks check-all">全选</th>
+                                <th>单号</th>
+                                <th>客户</th>
+                                <th>类型</th>
+                                <th>套餐</th>
+                                <th>充值号码</th>
+                                <th>渠道/支付</th>
+                                <td>状态</td>
+                                <th>支付金额</th>
+                                <th>时间</th>
+                                <th>返利</th>
+                                <th style="min-width: 150px">接口充值</th>
+                                <th>回调/次数</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="_list" id="vo"}
+                            <tr>
+                                <td style="width: 70px;">
+                                    <input type="checkbox" class="i-checks ids" name="id[]" value="{$vo.id}">
+                                </td>
+                                <td style="font-size: 12px;">
+                                    {$vo.order_number}<br/>
+                                    {notempty name="vo.out_trade_num"}
+                                    api：{$vo.out_trade_num}
+                                    {/notempty}
+                                </td>
+                                <td>
+                                    <div style="max-width: 100px;overflow-x: scroll;font-size: 12px;white-space:nowrap;">
+                                        [ID:{$vo.customer_id}]&nbsp;{$vo.username}
+                                    </div>
+                                </td>
+                                <td>{:C('PRODUCT_TYPE')[$vo['type']]}</td>
+                                <td>{$vo.product_name}</td>
+                                <td>
+                                    {$vo.mobile}<br/>
+                                    {$vo.guishu}{$vo.isp}
+                                </td>
+                                <td>
+                                    渠道：{:C('CLIENT_TYPE')[$vo.client]}<br/>
+                                    支付：{:C('PAYWAY')[$vo.pay_way]}<br/>
+                                </td>
+                                <td>
+                                    {switch name="vo.status"}
+                                    {case value="1"}
+                                    <span class="label label-default">
+                                    {:C('PORDER_STATUS')[$vo['status']]}
+                                    </span>
+                                    {/case}
+                                    {case value="2"}
+                                    <span class="label label-success">
+                                    {:C('PORDER_STATUS')[$vo['status']]}
+                                    </span>
+                                    {/case}
+                                    {case value="3"}
+                                    <span class="label label-warning">
+                                    {:C('PORDER_STATUS')[$vo['status']]}
+                                    </span>
+                                    {/case}
+                                    {case value="4"}
+                                    <span class="label label-primary">
+                                    {:C('PORDER_STATUS')[$vo['status']]}
+                                    </span>
+                                    {/case}
+                                    {case value="5"}
+                                    <span class="label label-danger">
+                                    {:C('PORDER_STATUS')[$vo['status']]}
+                                    </span>
+                                    {/case}
+                                    {case value="6"}
+                                    <span class="label label-default">
+                                    {:C('PORDER_STATUS')[$vo['status']]}
+                                    </span>
+                                    {/case}
+                                    {default /}
+                                    <span class="label label-default">
+                                    {:C('PORDER_STATUS')[$vo['status']]}
+                                    </span>
+                                    {/switch}
+                                </td>
+                                <td>{$vo.total_price}</td>
+                                <td>
+                                    <div style="max-height: 100px;overflow-y: scroll;font-size: 12px;">
+                                        下单：{$vo.create_time|time_format}<br/>
+                                        支付：{$vo.pay_time|time_format}<br/>
+                                        api失败：{$vo.apifail_time|time_format}<br/>
+                                        完成：{$vo.finish_time|time_format}<br/>
+                                        退款：{$vo.refund_time|time_format}<br/>
+                                        回调：{$vo.notification_time|time_format}
+                                    </div>
+                                </td>
+                                <td style="font-size: 12px;">
+                                    {gt name="vo.rebate_id" value="0"}
+                                    代理：{$vo.rebate_id|get_name}<br/>金额：{$vo.rebate_price}<br/>状态：{$vo.is_rebate?'已返利':'未返利'}
+                                    {/gt}
+                                </td>
+                                <td>
+                                    <div style="max-height: 100px;overflow-y: scroll;font-size: 12px;">
+                                        {eq name="vo.api_open" value="1"}
+                                        <?php $apiarr = json_decode($vo['api_arr'],true);?>
+                                        {volist name="apiarr" id="ap" key="key"}
+                                        {$key}.
+                                        {$vo['api_cur_index']==$key-1?'[当前]':''}{$ap.reapi_id|getReapiName}-{$ap.param_id|getReapiParamName}<br/>
+                                        {/volist}
+                                        {notempty name="apireq_time"}
+                                        提交时间：{$vo.apireq_time|time_format}
+                                        {/notempty}
+                                        {else/}
+                                        {$vo.api_open?'打开':'关闭'}
+                                        {/eq}
+                                    </div>
+                                </td>
+                                <td>{eq name="vo.client" value="4"}
+                                    {$vo.is_notification?'已回调':'未回调'}/{$vo.notification_num}<br/>
+                                    <span class="tiptext text-success" data-text='{$vo.notify_url}'>回调地址</span><br/>
+                                    <a class="text-danger ajax-get confirm" href="{:U('notification?id='.$vo.id)}"
+                                       title="手动回调">手动回调</a>
+                                    {else/}
+                                    非API
+                                    {/eq}
+                                </td>
+                                <td>
+                                    <a class="open-window no-refresh" href="{:U('log?id='.$vo.id)}"
+                                       title="详情">详情日志</a>
+                                    {switch name="vo.status"}
+                                    {case value="1"}
+                                    <a class="text-danger ajax-get confirm" href="{:U('deletes?id='.$vo.id)}"
+                                       title="删除">删除</a>
+                                    {/case}
+                                    {case value="2" break="0"}
+                                    <a class="text-warning ajax-get confirm" href="{:U('set_czing?id='.$vo.id)}"
+                                       title="将订单设置为充值中，一般手工单才这样做">设为充值中</a>
+                                    {/case}
+                                    {case value="3"}
+                                    <a class="ajax-get confirm" href="{:U('set_chenggong?id='.$vo.id)}"
+                                       title="将订单设置为充值成功">充值成功</a>
+                                    <a class="text-danger ajax-get confirm" href="{:U('set_shibai?id='.$vo.id)}"
+                                       title="将订单设置为充值失败，谨慎操作">充值失败</a>
+                                    {/case}
+                                    {case value="4"}
+                                    <a class="text-warning open-window no-refresh"
+                                       href="{:C('WEB_URL')}yrapi.php/open/voucher/id/{$vo.id}.html"
+                                       title="凭证">凭证</a>
+                                    {/case}
+                                    {case value="5"}
+                                    <a class="text-danger ajax-get confirm" href="{:U('refund?id='.$vo.id)}"
+                                       title="操作退款">操作退款</a>
+                                    {/case}
+                                    {default /}
+                                    {/switch}
+                                </td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="page">
+                        {$_list->render()}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="__JS__/laydate/laydate.js"></script>
+<script>
+    //执行一个laydate实例
+    laydate.render({
+        elem: '#begin_time',
+        type: 'datetime',
+        done: function (value, date, endDate) {
+            $('#begin_time').val(value);
+        }
+    });
+    laydate.render({
+        elem: '#end_time',
+        type: 'datetime',
+        done: function (value, date, endDate) {
+            $('#end_time').val(value);
+        }
+    });
+    $(".tiptext").click(function () {
+        var text = $(this).data('text');
+        layer.alert(text, {
+            skin: 'layui-layer-molv' //样式类名
+            , closeBtn: 0
+        }, function () {
+            layer.closeAll();
+        });
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green'
+        });
+    });
+</script>
+</body>
+</html>

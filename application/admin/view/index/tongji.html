@@ -1,0 +1,87 @@
+{include file="public/header" /}
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div id="mains" style="width:100%;height:400px;"></div>
+    </div>
+</div>
+</body>
+<script src="__JS__/jquery.min.js?v=2.1.4"></script>
+<script src="__JS__/echarts.min.js"></script>
+<script>
+    $.post("{:U('index/statistics')}", {}, function (result) {
+        console.log(result);
+        if (result.errno == 0) {
+            var date = [];
+            var data = [];
+            for (var i = 0; i < result.data.length; i++) {
+                date.push(result.data[i].time);
+                data.push(parseInt(result.data[i].counts));
+            }
+            show_charts(date, data);
+        } else {
+            console.log('未查询到数据');
+        }
+    });
+
+    function show_charts(date, data) {
+        var myChart = echarts.init(document.getElementById('mains'));
+        myChart.setOption({
+            color: ['#ff9c00'],
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {            // 坐标轴指示器，坐标轴触发有效
+                    type: 'line'        // 默认为直线，可选为：'line' | 'shadow'
+                }
+            },
+            title: {
+                left: 'center',
+                text: '会员注册统计',
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    data: date,
+                    axisTick: {
+                        alignWithLabel: true
+                    }
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value'
+                }
+            ],
+            series: [
+                {
+                    name: '注册人数',
+                    itemStyle: {
+                        color: 'rgb(255, 70, 131)'
+                    },
+                    smooth: true,
+                    symbol: 'none',
+                    sampling: 'average',
+                    type: 'line',
+                    barWidth: '60%',
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                            offset: 0,
+                            color: 'rgb(255, 158, 68)'
+                        }, {
+                            offset: 1,
+                            color: 'rgb(255, 70, 131)'
+                        }])
+                    },
+                    data: data
+                }
+            ]
+        });
+    }
+</script>
+</html>

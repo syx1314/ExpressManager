@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{:C('WEB_SITE_TITLE')}</title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.css?v=4.4.0" rel="stylesheet">
+    <link href="__CSS__/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+    <link href="__CSS__/plugins/toastr/toastr.min.css" rel="stylesheet">
+
+</head>
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5><a href="{:U('index')}"><i class="fa fa-arrow-left">&nbsp;</i></a>{:I('name')}({:I('comment')})
+                    </h5>
+                    <div class="ibox-tools">
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-sm-9">
+                        </div>
+                    </div>
+                    <div class="table-responsive tooltip-demo">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                {volist name="column" id="vo"}
+                                <th class="datacol">{$vo.column_name}<br/>
+                                    <span style="font-size: 12px;">{$vo.column_comment}</span>
+                                </th>
+                                {/volist}
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="_list" id="vo" key="key"}
+                            <tr>
+                                {volist name="column" id="voc"}
+                                <td>{$vo[$voc.column_name]}</td>
+                                {/volist}
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="page">
+                        {$_list->render()}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 全局js -->
+<script src="__JS__/jquery.min.js?v=2.1.4"></script>
+<script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+<!-- Peity -->
+<script src="__JS__/plugins/peity/jquery.peity.min.js"></script>
+<!-- 自定义js -->
+<script src="__JS__/content.js?v=1.0.0"></script>
+<script src="__JS__/dayuanren.js?v=3"></script>
+<script src="__JS__/plugins/layer/layer.min.js"></script>
+</body>
+
+</html>

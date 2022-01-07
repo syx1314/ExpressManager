@@ -1,0 +1,79 @@
+{include file="public/header" /}
+<style>
+    .table-bordered > tbody > tr:hover {
+        background-color: #f5f5f5
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>凭证模板</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups">
+                        <div class="col-md-2 form-inline text-left">
+                            <div class="form-group">
+                                <a class="btn btn-sm btn-primary open-window" href="{:U('edit')}" title="新增"><i
+                                        class="fa fa-plus"></i> 新增</a>
+                            </div>
+                            <div class="form-group">
+                                <a class="btn btn-white btn-sm open-reload"><i
+                                        class="glyphicon glyphicon-repeat"></i></a>
+                            </div>
+                        </div>
+                        <div class="col-md-10 m-b-xs form-inline text-right">
+
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>运营商</th>
+                                <th>模板图</th>
+                                <th>单号文字</th>
+                                <th>手机文字</th>
+                                <th>时间文字</th>
+                                <th>价格文字</th>
+                                <th>套餐文字</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="_list" id="vo"}
+                            <tr>
+                                <td>{$vo.isp|getISPText}</td>
+                                <td><img src="{$_prefix}{$vo.path}" style="height: 100px;"/></td>
+                                <td>{eq name="vo.is_no" value="1"}大小：{$vo.no_size}%<br/>左：{$vo.no_left}%<br/>顶：{$vo.no_top}%<br/>颜色：{$vo.no_color}{else/}否{/eq}
+                                </td>
+                                <td>{eq name="vo.is_mobile" value="1"}大小：{$vo.mobile_size}像素<br/>左：{$vo.mobile_left}%<br/>顶：{$vo.mobile_top}%<br/>颜色：{$vo.mobile_color}{else/}否{/eq}
+                                </td>
+                                <td>{eq name="vo.is_date" value="1"}大小：{$vo.date_size}像素<br/>左：{$vo.date_left}%<br/>顶：{$vo.date_top}%<br/>颜色：{$vo.date_color}{else/}否{/eq}
+                                </td>
+                                <td>{eq name="vo.is_price" value="1"}大小：{$vo.price_size}像素<br/>左：{$vo.price_left}%<br/>顶：{$vo.price_top}%<br/>颜色：{$vo.price_color}{else/}否{/eq}
+                                </td>
+                                <td>{eq name="vo.is_product" value="1"}大小：{$vo.product_size}像素<br/>左：{$vo.product_left}%<br/>顶：{$vo.product_top}%<br/>颜色：{$vo.product_color}{else/}否{/eq}
+                                </td>
+                                <td>{$vo.status==1?"上架":"下架"}</td>
+                                <td>
+                                    <a class="open-window" href="{:U('edit?id='.$vo.id)}" title="编辑">编辑</a>
+<!--                                    <a class="text-danger ajax-get confirm" href="{:U('deletes?id='.$vo.id)}"-->
+<!--                                       title="删除">删除</a>-->
+                                </td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

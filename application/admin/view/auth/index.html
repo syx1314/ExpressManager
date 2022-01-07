@@ -1,0 +1,97 @@
+{include file="public/header" /}
+<style>
+    .table-bordered > tbody > tr:hover {
+        background-color: #f5f5f5
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>权限组列表</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups">
+                        <div class="col-md-2 form-inline text-left">
+                            <div class="form-group">
+                                <a class="btn btn-primary btn-sm open-window" href="{:U('edit')}"><i
+                                        class="fa fa-plus"></i> 新增</a>
+                            </div>
+                            <div class="form-group">
+                                <a class="btn btn-white btn-sm open-reload"><i
+                                        class="glyphicon glyphicon-repeat"></i></a>
+                            </div>
+                        </div>
+
+                    </div>
+                    <ul class="nav nav-tabs">
+                        <?php $modules=C('MENU_MODULE');?>
+                        {volist name="modules" id="tvo" key="k"}
+                        <li class="{$tvo==$module? 'active' : ''}">
+                            <a href="{:U('index',['module'=>$tvo])}">{$tvo}</a></li>
+                        {/volist}
+                    </ul>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>组</th>
+                                <th>描述</th>
+                                <th>权限数</th>
+                                <th>成员</th>
+                                <th>超级组</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="list" id="vo"}
+                            <tr>
+                                <td>{$vo.title}</td>
+                                <td>{$vo.description}</td>
+                                <td>{$vo.access_num}/{$vo.menu_num}</td>
+                                <td>{$vo.mem_count}名</td>
+                                <td>{$vo.is_admin==1?'是':'否'}</td>
+                                <td>{eq name="vo.status" value="0"}<span
+                                        class="text-danger">禁用</span>{else/}<span
+                                        class="text-info">启用</span>{/eq}
+                                </td>
+                                <td>
+                                    {eq name="vo.status" value="1"}
+                                    <a class="text-warning ajax-get" href="{:U('change_status?id='.$vo.id.'&value=0')}"
+                                       title="禁用">禁用</a>
+                                    {else/}
+                                    <a class="text-info ajax-get" href="{:U('change_status?id='.$vo.id.'&value=1')}"
+                                       title="启用">启用</a>
+                                    {/eq}
+                                    <a class="text-info open-window" title="访问授权"
+                                       href="{:U('access',array('group_id'=>$vo['id'],'module'=>$module))}">访问授权</a>
+                                    <a class="text-success open-window" title="成员管理"
+                                       href="{:U('Auth/user',array('group_id'=>$vo['id'],'module'=>$module))}">成员管理</a>
+                                    <a class="open-window" href="{:U('edit?id='.$vo.id)}" title="编辑">编辑</a>
+                                    <a class="text-danger ajax-get confirm" href="{:U('deleteauth?id='.$vo.id)}"
+                                       title="删除">删除</a>
+                                </td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green'
+        });
+    });
+
+</script>
+</body>
+</html>

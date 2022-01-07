@@ -1,0 +1,342 @@
+{include file="public/header" /}
+<style>
+    .m-box {
+        /*display: flex;*/
+        /*flex-direction: row;*/
+        /*flex-wrap: nowrap;*/
+        /*font-size: 14px;*/
+        /*align-items: flex-end;*/
+        /*justify-content: flex-start;*/
+    }
+
+    .m-box textarea {
+        min-height: 200px;
+        max-width: 100%;
+    }
+
+    .m-box .taocan {
+        display: flex;
+        flex-direction: column;
+        width: 130px;
+        height: 80px;
+        margin-left: 30px;
+        border: 1px solid #CCCCCC;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .m-box .taocan > div:nth-child(1) {
+        font-size: 20px;
+        line-height: 25px;
+    }
+
+    .m-box .taocan > div:nth-child(2) {
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .m-box .taocan > div:nth-child(3) {
+        font-size: 16px;
+        line-height: 20px;
+        color: #f00 !important;
+    }
+
+
+    .m-box .feiyong {
+        display: flex;
+        flex-direction: column;
+        width: 130px;
+        height: 80px;
+        margin-left: 30px;
+        border: 1px solid #CCCCCC;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .m-box .btns {
+        margin-left: 30px;
+    }
+
+    ::-webkit-input-placeholder { /* WebKit browsers */
+        font-size: 14px;
+    }
+
+    ::-moz-placeholder { /* Mozilla Firefox 19+ */
+        font-size: 14px;
+    }
+
+    :-ms-input-placeholder { /* Internet Explorer 10+ */
+        font-size: 14px;
+    }
+
+    .content-box {
+        padding: 0 10px 20px 10px;
+        background-color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .content-box .tit {
+        font-size: 30px;
+        color: #000;
+        text-align: center;
+        font-weight: 700;
+        margin-top: 30px;
+    }
+
+    .content-box .cate {
+        border: 1px solid #ccc;
+        padding: 0 10px 20px 10px;
+        margin-top: 20px;
+        width: 100%;
+    }
+
+    .content-box .cate .c {
+        margin-top: 10px;
+    }
+
+    .content-box .list {
+        background-color: #fff;
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+
+    }
+
+    .active {
+    }
+
+    .active .li {
+        border: 1px solid #3F92ED !important;
+    }
+
+    .active .li > div {
+        color: #3F92ED !important;
+    }
+
+    .content-box .li {
+        width: 130px;
+        height: 80px;
+        margin: 30px 0 0 30px;
+        border: 1px solid #CCCCCC;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    .content-box .li:hover {
+        background-color: #f1f1f1;
+    }
+
+    .content-box .li > div {
+        text-align: center;
+        color: #ccc;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .content-box .li > div:nth-child(1) {
+        font-size: 20px;
+        line-height: 25px;
+    }
+
+    .content-box .li > div:nth-child(2) {
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .content-box .li > div:nth-child(3) {
+        font-size: 18px;
+        line-height: 20px;
+        color: #f00 !important;
+    }
+
+    .clearfloat:after {
+        display: block;
+        clear: both;
+        content: "";
+        visibility: hidden;
+        height: 0
+    }
+
+    .clearfloat {
+        zoom: 1
+    }
+
+    [v-cloak] {
+        display: none;
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn" id="page" v-cloak>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>下单</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups">
+                        <div class="col-md-12 form-inline text-left">
+                            <div class="form-group m-box">
+                                <textarea class="form-control" v-model="mobiles" placeholder="充值订单回车分割，电费地区和号码一个空格分割。&#10;话费示例：&#10;11122223333&#10;111133332222&#10;电费示例：&#10;1234567890 广东省&#10;1234567890 四川省"></textarea>
+                            </div>
+                            <div class="form-group m-box">
+                                <div class="taocan" v-if="taocan.name">
+                                    <div> {{taocan.name}}</div>
+                                    <div> ￥{{taocan.price}}/单</div>
+                                </div>
+                                <div class="taocan" v-else>
+                                    请选择下方的套餐
+                                </div>
+                            </div>
+                            <div class="form-group m-box">
+                                <div class="feiyong">
+                                    <div>{{mb_num}}个号码</div>
+                                    <div v-if="taocan.name">总费用:<span
+                                            style="color: red;">￥{{taocan.price*mb_num}}</span>
+                                    </div>
+                                    <div v-else>请选择套餐</div>
+                                </div>
+                            </div>
+                            <div class="form-group m-box">
+                                <div class="btns">
+                                    <div class="btn btn-success" @click="subOrder">确认创建</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ibox float-e-margins">
+                <div class="tabs-container">
+                    <ul class="nav nav-tabs">
+                        <li :class="['typetab',ti==tabindex?'active':'']" data-typeid="1" v-for="(type,ti) in product"
+                            :key="ti">
+                            <a data-toggle="tab" aria-expanded="false" @click="clickTab(ti)">{{type.name}}</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div :class="['tab-pane',tabindex==ti?'active':'']" v-for="(type,ti) in product" :key="ti">
+                            <div class="panel-body content-box">
+                                <div class="cate" v-for="(cate,ci) in type.lists">
+                                    <div class="c">{{cate.cate}}</div>
+                                    <div class="list" v-if="type.lists.length>0">
+                                        <div class="li" @click="queOrder(item)"
+                                             v-for="(item,index) in cate.products">
+                                            <div>{{item.name}}</div>
+                                            <div>{{item.desc}}</div>
+                                            <div>￥{{item.price}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-if="type.lists.length==0">暂无产品</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+<script>
+    var vue = new Vue({
+        el: '#page',
+        data: {
+            mobiles: '',
+            product: [],
+            taocan: {},
+            tabindex: 0
+        },
+        created: function () {
+            this.initTaocan();
+        },
+        computed: {
+            mb_num: function () {
+                var mbarr = this.getMbArr();
+                return mbarr.length;
+            }
+        },
+        watch: {},
+        methods: {
+            clickTab: function (index) {
+                this.tabindex = index;
+            },
+            initTaocan: function () {
+                $.post("{:U('get_product')}", {}, function (result) {
+                    if (result.errno == 0) {
+                        vue.product = result.data.product;
+                    } else {
+                        vue.product = [];
+                        layer.alert(result.errmsg, {
+                            icon: 5,
+                            skin: 'layer-ext-moon'
+                        })
+                    }
+                });
+            },
+            getMbArr: function () {
+                var mbarr = this.mobiles.split(/[\n]/);
+                mbarr = mbarr.filter(function (s) {
+                    return s && s.trim();
+                });
+                var data = [];
+                for (i = 0; i < mbarr.length; i++) {
+                    var ss = mbarr[i].split(/[\s]/);
+                    var hang = [];
+                    if (typeof ss[1] !== "undefined" && ss[1] != '') {
+                        hang[1] = ss[1];
+                        hang[0] = ss[0];
+                    } else {
+                        hang[1] = "";
+                        hang[0] = ss[0];
+                    }
+                    data[i] = hang;
+                }
+                return data;
+            },
+            queOrder: function (item) {
+                this.taocan = item;
+            },
+            subOrder: function () {
+                var mbarr = this.getMbArr();
+                if (mbarr.length == 0) {
+                    return;
+                }
+                var index = layer.load(1, {
+                    shade: [0.1, '#fff'] //0.1透明度的白色背景
+                });
+                $.post("{:U('batch_in')}", {
+                    product_id: this.taocan.id,
+                    mobiles: mbarr
+                }, function (result) {
+                    layer.closeAll();
+                    if (result.errno == 0) {
+                        layer.alert(result.errmsg, {
+                            icon: 1,
+                            skin: 'layer-ext-moon'
+                        }, function () {
+                            window.location.href = result.data.url;
+                        });
+                        vue.mobiles = '';
+                    } else {
+                        layer.alert(result.errmsg, {
+                            icon: 5,
+                            skin: 'layer-ext-moon'
+                        })
+                    }
+                });
+            }
+        }
+    })
+</script>
+</html>

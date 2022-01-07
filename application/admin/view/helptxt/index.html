@@ -1,0 +1,101 @@
+{include file="public/header" /}
+<style>
+    .table-bordered > tbody > tr:hover {
+        background-color: #f5f5f5
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>帮助中心</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups">
+                        <div class="col-sm-4 m-b-xs">
+                           <a class="btn btn-white open-reload"><i class="glyphicon glyphicon-repeat"></i></a>
+                            <a class="btn btn-primary open-window" href="{:U('edit')}" title="新增帮助"><i
+                                    class="fa fa-plus"></i> 新增</a>
+                        </div>
+
+                        <div class="col-sm-3" style="float: right;">
+                            <div class="input-group">
+
+                                <span class="input-group-btn"><button type="button" id="search"
+                                                                      class="btn btn-sm btn-primary"
+                                                                      url="{:U('index')}"> 搜索</button></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>标题</th>
+                                <th>内容</th>
+                                <th>排序</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="_list" id="vo"}
+                            <tr>
+                                <td>{$vo.title}</td>
+                                <td>{$vo.content}</td>
+                                <td>{$vo.sort}</td>
+                                <td>
+                                    <a class="open-window" href="{:U('edit?id='.$vo.id)}" title="编辑">编辑</a>
+                                    <a class="text-danger ajax-get confirm" href="{:U('deletes?id='.$vo.id)}"
+                                       title="删除">删除</a>
+                                </td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green'
+        });
+    });
+    $("#search,#excel").click(function () {
+        var url = $(this).attr('url');
+        var query = $('.input-groups').find('input').serialize();
+        var select = $('.input-groups').find('select').serialize();
+        query = query.replace(/(&|^)(\w*?\d*?\-*?_*?)*?=?((?=&)|(?=$))/g, '');
+        query = query.replace(/^&/g, '');
+        if (url.indexOf('?') > 0) {
+            url += '&' + query;
+        } else {
+            url += '?' + query;
+        }
+        if (url.indexOf('?') > 0) {
+            url += '&' + select;
+        } else {
+            url += '?' + select;
+        }
+        window.location.href = url;
+    });
+    //回车搜索
+    $(".input-sm").keyup(function (e) {
+        if (e.keyCode === 13) {
+            $("#search").click();
+            return false;
+        }
+    });
+    $(".serach_selects").change(function () {
+        $("#search").click();
+        return false;
+    });
+</script>
+</body>
+</html>

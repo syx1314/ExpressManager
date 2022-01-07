@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{:C('WEB_SITE_TITLE')}</title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.css?v=4.4.0" rel="stylesheet">
+    <link href="__CSS__/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+    <link href="__CSS__/plugins/toastr/toastr.min.css" rel="stylesheet">
+</head>
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>自动回复设置</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-sm-9">
+                            <a class="btn btn-primary btn-sm" href="{:U('edit_reply')}"><i
+                                    class="fa fa-plus"></i> 新增规则</a>
+                            <a class="btn btn-danger ajax-post btn-sm" target-form="ids"
+                               url="{:U('reply_status',array('status'=>0))}"><i
+                                    class="fa fa-lock"></i> 禁用</a>
+                            <a class="btn btn-info ajax-post btn-sm" target-form="ids"
+                               url="{:U('reply_status',array('status'=>1))}"><i
+                                    class="fa fa-unlock"></i> 启用</a>
+                            <a class="btn btn-white open-reload btn-sm"><i class="glyphicon glyphicon-repeat"></i></a>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="input-group">
+                                <input type="text" placeholder="请输入关键词" class="input-sm form-control"> <span
+                                    class="input-group-btn">
+                                        <button type="button" class="btn btn-sm btn-primary"> 搜索</button> </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive tooltip-demo">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th><input type="checkbox" class="i-checks check-all">全选</th>
+                                <th>关键词/事件:key</th>
+                                <th>回复方式</th>
+                                <th>回复内容/标题</th>
+                                <th>状态</th>
+                                <th>日期</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="list" id="vo" key="key"}
+                            <tr>
+                                <td><input type="checkbox" class="i-checks ids" name="ids[]"
+                                           value="{$vo.id}">
+                                    {eq name="vo.type" value="1"}
+                                    关键词
+                                    {else/}
+                                    {:C('WEIXINEVENT')[$vo['event']]}
+                                    {/eq}
+                                </td>
+                                <td>{eq name="vo.type" value="1"}
+                                    {$vo.keywords}
+                                    {else/}
+                                    {neq name='vo.eventkey' value=''}
+                                    {$vo.eventkey}
+                                    {/neq}
+                                    {/eq}
+                                </td>
+                                <td>
+                                    {:C('WEIXINREPLYSTYLE')[$vo['reply_style']]}
+                                </td>
+                                <td>
+                                    {$vo.text} {$vo.title}
+                                </td>
+                                <td>{eq name='vo.status' value='1'}正常{else/}<span class="text-warning ">停用</span>{/eq}
+                                </td>
+                                <td>{:time_format($vo['create_time'])}</td>
+                                <td>
+                                    {eq name="vo.status" value="1"}
+                                    <a class="text-warning ajax-get"
+                                       href="{:U('reply_status',array('ids'=>$vo['id'],'status'=>0))}" title="停用">停用</a>
+                                    {else/}
+                                    <a class="text-info ajax-get"
+                                       href="{:U('reply_status',array('ids'=>$vo['id'],'status'=>1))}" title="启用">启用</a>
+                                    {/eq}
+                                    <a href="{:U('edit_reply?id='.$vo.id)}" title="编辑">编辑</a>
+                                    <a class="text-danger ajax-get confirm" href="{:U('reply_del?ids='.$vo.id)}"
+                                       title="删除">删除</a>
+                                </td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+
+                    </div>
+                    {$list->render()}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<!-- 全局js -->
+<script src="__JS__/jquery.min.js?v=2.1.4"></script>
+<script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+<!-- Peity -->
+<script src="__JS__/plugins/peity/jquery.peity.min.js"></script>
+<!-- 自定义js -->
+<script src="__JS__/content.js?v=1.0.0"></script>
+<script src="__JS__/dayuanren.js?v=1.0.0"></script>
+<!-- iCheck -->
+<script src="__JS__/plugins/iCheck/icheck.min.js"></script>
+<script src="__JS__/plugins/layer/layer.min.js"></script>
+<script type="text/javascript" src="__JS__/clipboard.min.js"></script>
+<script src="__JS__/plugins/toastr/toastr.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green',
+        });
+    });
+</script>
+
+
+</body>
+
+</html>

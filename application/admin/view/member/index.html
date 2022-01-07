@@ -1,0 +1,158 @@
+{include file="public/header" /}
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>管理员</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups">
+                        <div class="col-md-2 form-inline text-left">
+                            <div class="form-group">
+                                <a href="{:U('edit')}" class="btn btn-sm btn-primary open-window" title="新增"
+                                   style="padding: 4px 12px;" type="button"><i
+                                        class="fa fa-plus"></i> 新增</a>
+                            </div>
+                            <div class="form-group">
+                                <a class="btn btn-sm btn-white open-reload"><i
+                                        class="glyphicon glyphicon-repeat"></i></a>
+                            </div>
+                        </div>
+                        <div class="col-md-10 m-b-xs form-inline text-right">
+                            <div class="form-group">
+                                <select class="input-sm form-control input-s-sm inline serach_selects" name="status"
+                                        style="width: auto;">
+                                    <option value="0"
+                                    <?php if(I('status')== 0){ echo "selected='selected'"; } ?>>全部</option>
+                                    <option value="1"
+                                    <?php if(I('status')== 1){ echo "selected='selected'"; } ?>>禁用</option>
+                                    <option value="2"
+                                    <?php if(I('status')== 2){ echo "selected='selected'"; } ?>>启用</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="text" placeholder="请输入关键词(ID或昵称)"
+                                           class="input-sm form-control" name="key"
+                                           value="{:I('key')}">
+                                    <span class="input-group-btn">
+                                            <button type="button" id="search" url="{:U('index')}"
+                                                    class="btn btn-sm btn-primary">搜索</button> </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>头像</th>
+                                <th>登录名</th>
+                                <th>性别</th>
+                                <th>登录次数</th>
+                                <th>注册IP</th>
+                                <th>注册时间</th>
+                                <th>最后登录IP</th>
+                                <th>最后登录时间</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name='list' id='member'}
+                            <tr>
+                                <td>
+                                    {$member.id}
+                                </td>
+                                <td><img style="width: 30px;height:30px; border-radius: 50%;"
+                                         src="{$member.headimg}"></td>
+                                <td>{$member.nickname}</td>
+                                <td>{eq name="member.sex" value="1"}
+                                    <span>男</span>
+                                    {else/}
+                                    <span>女</span>
+                                    {/eq}
+                                </td>
+                                <td>{$member.login}</td>
+                                <td>{$member.reg_ip}</td>
+                                <td>{$member.reg_time|time_format}</td>
+                                <td>{$member.last_login_ip}</td>
+                                <td>{$member.last_login_time|time_format}</td>
+                                <td>{eq name="member.status" value="1"}
+                                    <span class="text-navy">已启用</span>
+                                    {else/}
+                                    <span class="text-danger">已禁用</span>
+                                    {/eq}
+                                </td>
+                                <!--<td><eq name="member.status" value="1">启用<else/>禁用</eq></td>-->
+                                <td>
+                                    {eq name="member.status" value="1"}
+                                    <a class="ajax-get text-warning" title="禁用"
+                                       href="{:U('Member/forbidden?id='.$member.id)}">
+                                        禁用</a>
+                                    {else/}
+                                    <a class="ajax-get text-info" title="启用"
+                                       href="{:U('Member/forbidden?id='.$member.id)}">启用</a>
+                                    {/eq}
+                                    <a class="open-window text-info open-window" title="编辑"
+                                       href="{:U('Member/edit?id='.$member.id)}">编辑</a>
+                                    <a class="text-warn resetpwd" title="重置密码" data-id="{$member.id}">重置密码</a>
+                                    <a class="ajax-get confirm text-danger" title="删除"
+                                       href="{:U('Member/deletes?id='.$member.id)}">删除</a>
+                                </td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+
+                    </div>
+                    {$list->render()}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal inmodal" id="uppwdModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <form method="post" action="{:U('uppassword')}" class="appidModal">
+        <div class="modal-dialog">
+            <div class="modal-content animated fadeIn">
+                <div class="modal-body">
+                    <p><strong>密码</strong></p>
+                    <div class="form-group">
+                        <input type="hidden" value="" name="id" id="uppwdid">
+                        <input type="text" placeholder="请输入新的密码" value=""
+                               class="form-control" name="password">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" placeholder="请输入谷歌身份验证码" value=""
+                               class="form-control" name="verifycode">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-dismiss="modal" onclick="closeuppwdModal()">关闭
+                    </button>
+                    <button type="submit" class="btn btn-primary ajax-post" target-form="appidModal">保存</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    $(".resetpwd").click(function () {
+        $("#uppwdid").val($(this).data("id"));
+        $("#uppwdModal").show();
+    });
+
+    function closeuppwdModal() {
+        $("#uppwdModal").hide();
+    }
+</script>
+</body>
+</html>

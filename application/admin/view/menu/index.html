@@ -1,0 +1,58 @@
+{include file="public/header" /}
+<style>
+    .list-group {
+        padding-left: 0;
+        margin-bottom: 0px;
+    }
+</style>
+
+<link href="__CSS__/plugins/treeview/bootstrap-treeview.css" rel="stylesheet">
+
+<body class="gray-bg">
+<div class="row wrapper wrapper-content animated fadeIn">
+    <div class="col-sm-12">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <div class="col-sm-7 m-b-xs">
+                    <a class="btn btn-primary open-window no-refresh btn-sm"
+                       href="{:U('add',array('pid'=>I('get.pid',0),'module'=>$module))}"><i
+                            class="fa fa-plus"></i> 新增</a>
+                    <a class="btn btn-white open-reload btn-sm"><i class="glyphicon glyphicon-repeat"></i></a>
+                </div>
+                <div class="ibox-content">
+                    <ul class="nav nav-tabs">
+                        <?php $modules=C('MENU_MODULE');?>
+                        {volist name="modules" id="tvo" key="k"}
+                        <li class="{$tvo==$module? 'active' : ''}">
+                            <a href="{:U('index',['module'=>$tvo])}">{$tvo}</a></li>
+                        {/volist}
+                    </ul>
+                    <div id="treeview1" class="test treeview">
+                        <ul class="list-group">
+                            {$menu}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="__JS__/plugins/treeview/bootstrap-treeview.js"></script>
+
+<script>
+    $(".click-collapse").each(function () {
+        $(this).click(function () {
+            if ($(this).hasClass("glyphicon-minus")) {
+                $(this).removeClass("glyphicon-minus").addClass("glyphicon-plus");
+                $(this).parent().parent().next().css("display", "none");
+            } else if ($(this).hasClass("glyphicon-plus")) {
+                $(this).removeClass("glyphicon-plus").addClass("glyphicon-minus");
+                $(this).parent().parent().next().css("display", "block");
+            }
+        })
+    })
+</script>
+</body>
+
+</html>

@@ -1,0 +1,50 @@
+{include file="public/header" /}
+<body class="gray-bg">
+<div class="wrapper wrapper-content" id="page">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>{:I('id')?'编辑':'新增'}归属地</h5>
+                    <div class="ibox-tools">
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <form role="form" action="{:U()}" method="post" class="menu_form  form-horizontal">
+                        <input name="id" value="{$info.id|default=''}" type="hidden"/>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>首字母</label>
+                                <input type="text" placeholder="请输入号段" class="form-control" name="initial"
+                                       value="{$info.initial|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>地区</label>
+                                <input type="text" placeholder="请输入首字母" class="form-control" name="city_name"
+                                       value="{$info.city_name|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label>排序</label>
+                                <input type="text" placeholder="请输入排序" class="form-control" name="sort"
+                                       value="{$info.sort|default=''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <button class="btn btns btn-sm btn-primary pull-left ajax-post" type="submit"
+                                        target-form="menu_form"><strong>确 定</strong></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

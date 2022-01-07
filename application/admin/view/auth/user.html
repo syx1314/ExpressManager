@@ -1,0 +1,86 @@
+{include file="public/header" /}
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="ibox float-e-margins">
+        <div class="ibox-title">
+            <h5>成员授权</h5>
+            <div class="ibox-tools">
+                <a class="collapse-link">
+                    <i class="fa fa-chevron-up"></i>
+                </a>
+            </div>
+        </div>
+        <div class="ibox-content">
+
+            <div class="row input-groups">
+                <div class="col-md-2 form-inline text-left">
+                    <div class="form-group">
+                        <a class="btn btn-white btn-sm open-reload"><i
+                                class="glyphicon glyphicon-repeat"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-10 m-b-xs form-inline text-right">
+                    <form action="{:U('add_user_auth')}" method="post" class="form-horizontal add-user"
+                          enctype="application/x-www-form-urlencoded">
+                        <div class="input-group">
+                            <input type="hidden" name="group_id" value="{:I('group_id')}">
+                            <input type="text" name="uid" class="input-sm form-control search-input" placeholder="输入id，多个用英文逗号分开"/>
+                            <span class="input-group-btn">
+                                <button type="submit" class="btn btn-sm btn-primary ajax-post no-close" target-form="add-user"> 添加</button>
+                            </span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="row row-lg">
+                <div class="col-sm-12">
+                    <div class="example">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>昵称</th>
+                                <th>最后登录时间</th>
+                                <th>最后登录IP</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="list" id="vo"}
+                            <tr>
+                                <td>{$vo.user_id}</td>
+                                <td>{$vo.nickname}</td>
+                                <td>{$vo.last_login_time|date='Y-m-d H:i',###}</td>
+                                <td>{$vo.last_login_ip}</td>
+                                <td>
+                                    <button type="button" class="btn btn-outline btn-danger btn-xs ajax-get confirm"
+                                            href="{:U('Auth/change_user_auth',array('id'=>$vo['id'],'group_id'=>$vo['group_id']))}">
+                                        解除权限
+                                    </button>
+                                </td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="page">
+                        {$list->render()}
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $("#group_select").change(function () {
+        window.location.href = $("#group_select").val();
+    })
+</script>
+
+</body>
+
+</html>

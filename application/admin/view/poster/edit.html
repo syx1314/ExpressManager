@@ -1,0 +1,225 @@
+{include file="public/header" /}
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>编辑海报配置</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <form method="post" class="form-horizontal" action="{:U('edit')}">
+                        <input type="hidden" name="id" value="{$info.id}">
+                        <div class="form-group">
+                            <div class="col-sm-4">
+                                <label>名称<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <input type="text" class="form-control" name="name" value="{$info.name|default=''}">
+                            </div>
+                            <div class="col-sm-8">
+                                <label>背景<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <div class="input-group zifu">
+                                    <input type="text" class="form-control" id="gvo_id_path" name="path"
+                                           data-type="file"
+                                           value="{$info.path}" readonly="readonly">
+                                    <span class="input-group-btn">
+                                            <button data-gid="gvo_id_path" onclick="choose_file($(this))" type="button"
+                                                    class="btn btn-primary">
+                                                <i class="fa fa-upload"></i>&nbsp;<span
+                                                    class="bold">上传文件</span></button>
+                                        </span>
+                                    <input type="file" name="file" id="fileid" onchange="fileUpload()"
+                                           style="display: none"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-4">
+                                <label>二维码大小<span style="margin-left: 8px;color: #aaa;">背景宽度的%</span></label>
+                                <input type="number" class="form-control" name="qr_width" value="{$info.qr_width}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label>二维码距离左边<span style="margin-left: 8px;color: #aaa;">背景宽度%</span></label>
+                                <input type="number" class="form-control" name="qr_left" value="{$info.qr_left}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label>二维码距离顶部<span style="margin-left: 8px;color: #aaa;">背景高度%</span></label>
+                                <input type="number" class="form-control" name="qr_top" value="{$info.qr_top}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-4">
+                                <label>头像大小<span style="margin-left: 8px;color: #aaa;">背景宽度的%</span></label>
+                                <input type="number" class="form-control" name="hd_width" value="{$info.hd_width}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label>头像距离左边<span style="margin-left: 8px;color: #aaa;">背景宽度%</span></label>
+                                <input type="number" class="form-control" name="hd_left" value="{$info.hd_left}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label>头像距离顶部<span style="margin-left: 8px;color: #aaa;">背景高度%</span></label>
+                                <input type="number" class="form-control" name="hd_top" value="{$info.hd_top}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label>是否显示头像<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <select class="form-control m-b" name="is_hd">
+                                    <option value="1"
+                                    <?php if($info['is_hd']==1){ echo "selected='selected'"; } ?>>是</option>
+                                    <option value="0"
+                                    <?php if($info['is_hd']==0){ echo "selected='selected'"; } ?>>否</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-4">
+                                <label>有效期大小<span style="margin-left: 8px;color: #aaa;">像素</span></label>
+                                <input type="number" class="form-control" name="date_size" value="{$info.date_size}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label>有效期距离左边<span style="margin-left: 8px;color: #aaa;">背景宽度%</span></label>
+                                <input type="number" class="form-control" name="date_left" value="{$info.date_left}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label>有效期距离顶部<span style="margin-left: 8px;color: #aaa;">背景高度%</span></label>
+                                <input type="number" class="form-control" name="date_top" value="{$info.date_top}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label>颜色<span style="margin-left: 8px;color: #aaa;">如：#000</span></label>
+                                <input type="text" class="form-control" name="date_color" value="{$info.date_color}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label>是否显示有效期<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <select class="form-control m-b" name="is_date">
+                                    <option value="1"
+                                    <?php if($info['is_date']==1){ echo "selected='selected'"; } ?>>是</option>
+                                    <option value="0"
+                                    <?php if($info['is_date']==0){ echo "selected='selected'"; } ?>>否</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-4">
+                                <label>ID大小<span style="margin-left: 8px;color: #aaa;">像素</span></label>
+                                <input type="number" class="form-control" name="id_size" value="{$info.id_size}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label>ID距离左边<span style="margin-left: 8px;color: #aaa;">背景宽度%</span></label>
+                                <input type="number" class="form-control" name="id_left" value="{$info.id_left}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label>ID距离顶部<span style="margin-left: 8px;color: #aaa;">背景高度%</span></label>
+                                <input type="number" class="form-control" name="id_top" value="{$info.id_top}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label>颜色<span style="margin-left: 8px;color: #aaa;">如：#000</span></label>
+                                <input type="text" class="form-control" name="id_color" value="{$info.id_color}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label>是否显示ID<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <select class="form-control m-b" name="is_id">
+                                    <option value="1"
+                                    <?php if($info['is_id']==1){ echo "selected='selected'"; } ?>>是</option>
+                                    <option value="0"
+                                    <?php if($info['is_id']==0){ echo "selected='selected'"; } ?>>否</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-4">
+                                <label>昵称大小<span style="margin-left: 8px;color: #aaa;">像素</span></label>
+                                <input type="number" class="form-control" name="nick_size" value="{$info.nick_size}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label>昵称距离左边<span style="margin-left: 8px;color: #aaa;">背景宽度%</span></label>
+                                <input type="number" class="form-control" name="nick_left" value="{$info.nick_left}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label>昵称距离顶部<span style="margin-left: 8px;color: #aaa;">背景高度%</span></label>
+                                <input type="number" class="form-control" name="nick_top" value="{$info.nick_top}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label>颜色<span style="margin-left: 8px;color: #aaa;">如：#000</span></label>
+                                <input type="text" class="form-control" name="nick_color" value="{$info.nick_color}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label>是否显示昵称<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <select class="form-control m-b" name="is_nick">
+                                    <option value="1"
+                                    <?php if($info['is_nick']==1){ echo "selected='selected'"; } ?>>是</option>
+                                    <option value="0"
+                                    <?php if($info['is_nick']==0){ echo "selected='selected'"; } ?>>否</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+
+                            <div class="col-sm-6">
+                                <label>状态<span style="margin-left: 8px;color: #aaa;"></span></label>
+                                <select class="form-control m-b" name="status">
+                                    <option value="1"
+                                    <?php if($info['status']==1){ echo "selected='selected'"; } ?>>上架</option>
+                                    <option value="0"
+                                    <?php if($info['status']==0){ echo "selected='selected'"; } ?>>下架</option>
+                                </select>
+                            </div>
+
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <button type="submit" class="btn btn-primary ajax-post" target-form="form-horizontal">
+                                    确定
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script src="__JS__/ajaxfileupload.js" type="text/javascript"></script>
+<script>
+    var gid;
+
+    function choose_file(obj) {
+        gid = obj.data("gid");
+        $("#fileid").trigger("click");
+    }
+
+    function fileUpload() {
+        var index = layer.load(1, {
+            shade: [0.1, '#fff'] //0.1透明度的白色背景
+        });
+        //上传图片
+        $.ajaxFileUpload({
+            url: "{:U('File/upload')}", //文件上传到哪个地址，告诉ajaxFileUpload
+            secureuri: false, //一般设置为false
+            fileElementId: 'fileid', //文件上传控件的Id  <input type="file" id="fileUpload" name="file" />
+            dataType: 'json', //返回值类型 一般设置为json
+            success: function (ret, status)  //服务器成功响应处理函数
+            {
+                layer.closeAll();
+                console.log(ret);
+                if (ret.errno == 0) {
+                    $("#" + gid).val(ret.data);
+                    toastr.success(ret.errmsg);
+                } else {
+                    toastr.error(ret.errmsg);
+                }
+            }
+        })
+    }
+</script>
+
+</html>

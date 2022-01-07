@@ -1,0 +1,85 @@
+{include file="public/header" /}
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>数据库</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-sm-9">
+                            <button type="button" class="btn btn-primary no-refresh ajax-post" id="export"
+                                    target-form="ids"
+                                    url="{:U('export')}"><i class="fa fa-folder"></i>
+                                立即备份
+                            </button>
+                        </div>
+                        <div class="col-sm-3 text-right">
+                            <button type="button" class="btn btn-warning no-refresh ajax-post" target-form="ids"
+                                    url="{:U('repair')}">修复选中表
+                            </button>
+                            <button type="button" class="btn btn-success no-refresh ajax-post" target-form="ids"
+                                    url="{:U('optimize')}">优化选中表
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive tooltip-demo">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th><input type="checkbox" checked class="i-checks check-all">全选</th>
+                                <th>表名</th>
+                                <th>类型</th>
+                                <th>数据行</th>
+                                <th>数据大小</th>
+                                <th>日期</th>
+                                <th>备注</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="list" id="vo" key="key"}
+                            <tr>
+                                <td><input type="checkbox" checked class="i-checks ids" name="tables[]"
+                                           value="{$vo.name}"></td>
+                                <td>{$vo.name}</td>
+                                <td>{$vo.engine}</td>
+                                <td>{$vo.rows}</td>
+                                <td>{$vo.data_length|format_bytes}</td>
+                                <td>{$vo.create_time}</td>
+                                <td>{$vo.comment}</td>
+                                <td>
+                                    <a href="{:U('repair',['tables'=>$vo['name']])}"
+                                       class="no-refresh ajax-get">修复表</a>
+                                    <a href="{:U('optimize',['tables'=>$vo['name']])}"
+                                       class="no-refresh ajax-get">优化表</a>
+                                </td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green',
+        });
+    });
+</script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,175 @@
+{include file="public/header" /}
+<style>
+    .table-bordered > tbody > tr:hover {
+        background-color: #f5f5f5
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>导入确认列表</h5>
+                    &nbsp;<a href="{:C('PORDER_EXCEL_IN_DOC')}" target="_blank">下载导入模板</a>
+                    &nbsp;<a href="http://{$_SERVER['HTTP_HOST']}/yrapi.php/auto/crontab_60" target="_blank"
+                             title="将该地址添加定时任务，每1分钟执行一次">任务处理地址</a>
+                </div>
+                <div class="ibox-content">
+                    <div class="row input-groups">
+                        <div class="col-md-6 form-inline text-left">
+                            <div class="form-group">
+                                <a class="btn btn-sm btn-white open-reload"><i
+                                        class="glyphicon glyphicon-repeat"></i></a>
+                            </div>
+                            <div class="form-group">
+                                <a class="btn btn-sm btn-white confirm ajax-get"
+                                   href="{:U('empty_porder_excel',['status'=>1])}">清空未提交记录</a>
+                                <a class="btn btn-sm btn-white confirm ajax-get"
+                                   href="{:U('empty_porder_excel',['status'=>4])}">清空成功记录</a>
+                                <a class="btn btn-sm btn-white confirm ajax-get"
+                                   href="{:U('empty_porder_excel',['status'=>5])}">清空失败记录</a>
+                            </div>
+                            <div class="form-group">
+                                <input type="file" class="form-control" name="excel" id="excelid" style="display: none">
+                                <button class="btn btn-sm btn-primary file-upload" for="#excelid" type="button"
+                                        style="display: block;"><strong>上传提单表格</strong></button>
+                            </div>
+
+                        </div>
+                        <div class="col-md-6 m-b-xs form-inline text-right">
+                            <div class="form-group">
+                                <?php $statusarr=C('PORDER_EXCEL_STATUS');?>
+                                <label class="control-label">状态:</label>
+                                <select class="input-sm form-control input-s-sm inline serach_selects" name="status"
+                                        style="width: auto;">
+                                    <option value="0">请选择</option>
+                                    {volist name="statusarr" id="vo"}
+                                    <option value="{$key}"
+                                    <?php if($status==$key){ echo "selected='selected'"; } ?>>{$vo}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <button type="button" id="search"
+                                        class="btn btn-sm btn-primary"
+                                        url="{:U('porder_excel')}"> 搜索
+                                </button>
+                            </div>
+                            <div class="form-group">
+                                <button type="button" class="btn btn-sm btn-warning confirm ajax-get"
+                                        href="{:U('push_excel')}"> 一键提交推送
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>行</th>
+                                <th>套餐</th>
+                                <th>充值号码</th>
+                                <th>地区</th>
+                                <th>接口充值</th>
+                                <th>订单金额</th>
+                                <th>平台检验栏</th>
+                                <th>导入检验栏</th>
+                                <th>校验结果</th>
+                                <th>状态</th>
+                                <th>单号</th>
+                                <th>备注</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="_list" id="vo"}
+                            <tr>
+                                <td>{$vo.hang}</td>
+                                <td>{:C('PRODUCT_TYPE')[$vo['type']]}:{$vo.product_name}</td>
+                                <td>{$vo.mobile}</td>
+                                <td>{$vo.area}</td>
+                                <td>
+                                    {eq name="vo.api_open" value="1"}
+                                    <?php $apiarr = json_decode($vo['api_arr'],true);?>
+                                    {volist name="apiarr" id="ap" key="key"}
+                                    {$key}. {$ap.reapi_id|getReapiName}-{$ap.param_id|getReapiParamName}<br/>
+                                    {/volist}
+                                    {else/}
+                                    {$vo.api_open?'打开':'关闭'}
+                                    {/eq}
+                                </td>
+                                <td>{$vo.total_price}</td>
+                                <td>{$vo.ptjiaoyan}</td>
+                                <td>{$vo.drjiaoyan}</td>
+                                <td>{eq name="vo.jy_jg" value="1"}<span class="text-info">通过</span>{else/}<span
+                                        class="text-danger">不通过</span>{/eq}
+                                </td>
+                                <td>{:C('PORDER_EXCEL_STATUS')[$vo.status]}</td>
+                                <td>{$vo.order_number}</td>
+                                <td>{$vo.resmsg}</td>
+                                <td>
+                                    {eq name="vo.status" value="1"}
+                                    <a class="text-danger ajax-get confirm"
+                                       href="{:U('delete_porder_excel?id='.$vo.id)}"
+                                       title="删除">删除</a>
+                                    {/eq}
+                                </td>
+                            </tr>
+                            {/volist}
+                            <tr>
+                                <td colspan="5">汇总</td>
+                                <td>￥{$total_price}</td>
+                                <td>{$alljy_pt}</td>
+                                <td>{$alljy_dr}</td>
+                                <td>{eq name="alljy_jg" value="1"}<span class="text-info">通过</span>{else/}<span
+                                        class="text-danger">不通过</span>{/eq}
+                                </td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="__JS__/ajaxfileupload.js?v1" type="text/javascript"></script>
+<script>
+    $("#excelid").unbind("change").bind("change", function () {
+        var index = layer.load(1, {
+            shade: [0.1, '#fff'] //0.1透明度的白色背景
+        });
+        //上传图片
+        $.ajaxFileUpload({
+            url: "{:U('in_excel')}", //文件上传到哪个地址，告诉ajaxFileUpload
+            secureuri: false, //一般设置为false
+            fileElementId: 'excelid', //文件上传控件的Id
+            dataType: 'json', //返回值类型 一般设置为json
+            success: function (ret, status)  //服务器成功响应处理函数
+            {
+                layer.closeAll();
+                if (ret.errno == 0) {
+                    layer.confirm(ret.errmsg, {
+                        btn: ['好的'] //按钮
+                    }, function () {
+                        window.location.href = ret.data.url;
+                    });
+                } else {
+                    layer.confirm(ret.errmsg, {
+                        btn: ['知道了'] //按钮
+                    }, function () {
+                        window.location.reload();
+                    });
+                }
+            }
+        })
+    });
+</script>
+</body>
+</html>
