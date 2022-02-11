@@ -4,7 +4,8 @@ namespace app\api\controller;
 
 use app\common\library\Createlog;
 use app\common\model\Client;
-use app\common\model\Porder as PorderModel;
+use app\common\model\Expressorder as ExpressorderModel;
+
 use Recharge\Qbd;
 
 class Expressorder
@@ -14,17 +15,40 @@ class Expressorder
      */
     public function create_order()
     {
-        $mobile = I('mobile');
-        $product_id = I('product_id');
-        $area = I('area');
-        $res = PorderModel::createOrder($mobile, $product_id, $area, $this->customer['id'], $this->client, '下单');
-        if ($res['errno'] != 0) {
-            return djson($res['errno'], $res['errmsg'], $res['data']);
+        $orderSendTime= I('orderSendTime');
+        $senderText= I('senderText');
+        $receiveText= I('receiveText');
+        $senderName= I('senderName');
+        $senderCity= I('senderCity');
+        $senderAddress= I('senderAddress');
+        $senderPhone= I('senderPhone');
+        $receiveName= I('receiveName');
+        $receiveAddress= I('receiveAddress');
+        $receiveCity= I('receiveCity');
+        $receivePhone= I('receivePhone');
+        $weight= I('weight');
+        $goods= I('goods');
+        $insuredValue= I('insuredValue');
+        $guaranteeValueAmount= I('guaranteeValueAmount');
+        $remark= I('remark');// 面单备注
+        $sadd= I('sadd');
+        $type= I('type');// 快递类型
+        $qbd=new Qbd();
+
+        // 查询价格
+        $priceRes = $qbd->findPrice($weight,$senderAddress,$receiveAddress,$type);
+        // 根据查到的价格 创建本地订单 跳起支付 支付完毕远程生单
+        if ($priceRes['errno'] ==0) {
+            $res= ExpressorderModel::createOrder($senderName,$senderPhone,$senderCity,$senderAddress,$receiveName,$receivePhone,$receiveCity,$receiveAddress,null,$goods,
+                $guaranteeValueAmount,$insuredValue,$orderSendTime,$remark,$type,$senderText,$receiveText,$weight,'',$priceRes);
+            if ($res['errno'] ==0) {
+                return  rjson(0,'下单成功',$res['data']);
+            }else{
+                return  rjson(1,'下单失败',$res['data']);
+            }
+        }else{
+            return djson(1, "价格获取失败",'');
         }
-        $aid = $res['data'];
-        PorderModel::compute_rebate($aid);
-        Createlog::porderLog($aid, "用户下单成功");
-        return djson(0, "ok", ['id' => $aid]);
     }
     //估算运费
     public function estimateprice() {
@@ -35,52 +59,14 @@ class Expressorder
         if ($priceRes['errno']==0) {
             // 看折扣 还是看 首重续重 计算
             $data= $priceRes['data'];
-            return   $this->totalPrice($weight,$priceRes['data']['priceA'],$data['priceB'],$data['discount'],$data['totalFeeOri']);
+            return   ExpressorderModel::culTotalPrice($weight,$data);
         }else {
             return $priceRes['msg'];
         }
 
     }
 
-    /**
-     * 预估价格
-     * @param $weight //重量
-     * @param $priceA //首重
-     * @param $priceB //续重
-     * @param $discount //折扣
-     * @param $totalFeeOri //折扣原价
-     * @return float|int //计算出来的总价
-     */
-    private function totalPrice($weight,$priceA,$priceB,$discount,$totalFeeOri) {
-        // 查询价格 根据价格计算 保价费 重量  续重 或者 总价x折扣
-        if ($priceA) {
-            if ($priceB<2.5) {
-                $priceB =2.5;
-            }elseif ($priceB<3) {
-                $priceB =3;
-            }else {
-                $priceB= $priceB+0.5;
-            }
-            // 首重 加 续重 算法
-            if ($priceA<6.5) {
-                return  6.5+($weight-1)*$priceB;
-            }else if ($priceA<7) {
-                return  7+($weight-1)*$priceB;
-            }else if ($priceA<8) {
-                return  8+($weight-1)*$priceB;
-            }else {
-                return  ($priceA+0.5)+($weight-1)*$priceB;
-            }
-        }else{
-            if ($discount<7) {
-                return $totalFeeOri*0.7;
-            }else if ($discount<8){
-                return $totalFeeOri*0.8;
-            }else {
-                return  $totalFeeOri*($discount+0.5)*0.1;
-            }
-        }
-    }
+
 
 
     //创建支付
