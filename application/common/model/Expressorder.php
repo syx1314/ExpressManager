@@ -18,7 +18,6 @@ use app\common\model\Porder as PorderModel;
 use think\Model;
 
 /**
-
  **/
 class Expressorder extends Model
 {
@@ -70,6 +69,7 @@ class Expressorder extends Model
             }
         }
     }
+
     /**
      * 预估价格
      * @param $weight //重量
@@ -79,45 +79,59 @@ class Expressorder extends Model
      * @param $totalFeeOri //折扣原价
      * @return float|int //计算出来的总价
      */
-    public static function culTotalPrice($weight,$data) {
+    public static function culTotalPrice($weight, $data)
+    {
         // 查询价格 根据价格计算 保价费 重量  续重 或者 总价x折扣
         $weight = $weight;
-        $priceA =   $data['priceA'];
+        $priceA = $data['priceA'];
         $priceB = $data['priceB'];
         $discount = $data['discount'];
-        $totalFeeOri =$data['fee'];
+        $totalFeeOri = $data['fee'];
         if ($priceA) {
-            if ($priceB<2.5) {
-                $priceB =2.5;
-            }elseif ($priceB<3) {
-                $priceB =3;
-            }else {
-                $priceB= $priceB+0.5;
+            if ($priceB < 2.5) {
+                $priceB = 2.5;
+            } elseif ($priceB < 3) {
+                $priceB = 3;
+            } else {
+                $priceB = $priceB + 0.5;
             }
             // 首重 加 续重 算法
-            if ($priceA<6.5) {
-                $sum =  6.5+($weight-1)*$priceB;
-            }else if ($priceA<7) {
-                $sum =  7+($weight-1)*$priceB;
-            }else if ($priceA<8) {
-                $sum =  8+($weight-1)*$priceB;
-            }else {
-                $sum=  ($priceA+0.5)+($weight-1)*$priceB;
+            if ($priceA < 6.5) {
+                $priceA = 6.5;
+            } else if ($priceA < 7) {
+                $priceA = 7;
+            } else if ($priceA < 8) {
+                $priceA = 8;
+            } else {
+                $priceA = ($priceA + 0.5);
             }
-        }else{
-            if ($discount <=5) {
-                $sum = $totalFeeOri*0.5;
-            } else if ($discount<7) {
-                $sum = $totalFeeOri*0.7;
-            }else if ($discount<8){
-                $sum = $totalFeeOri*0.8;
-            }else {
-                $sum =  $totalFeeOri*($discount+0.5)*0.1;
+            $sum = $priceA + ($weight - 1) * $priceB;
+        } else {
+            if ($discount <= 5) {
+                $discount = 5;
+            } else if ($discount < 7) {
+                $discount = 7;
+            } else if ($discount < 8) {
+                $discount = 8;
+            } else {
+                $discount = $discount + 0.5;
             }
+            $sum = $totalFeeOri * $discount * 0.1;
         }
-        $sum+= $data['serviceCharge'];
-        return $sum;
+        $sum += $data['serviceCharge'];
+
+        $pr = [
+            'priceA' => $priceA,
+            'priceB' => $priceB,
+            'totalFeeOri' => $totalFeeOri,
+            'discount' => $discount,
+            'serviceCharge' => $data['serviceCharge'],
+            'totalPrice' => $sum,
+            'remark'     =>$data['remark']
+        ];
+        return $pr;
     }
+
     /**
      * @param $sender_name
      * @param $sender_phone
@@ -127,11 +141,11 @@ class Expressorder extends Model
      * @param $receivePhone
      * @param $receiveCity
      * @param $receiveAddress
-     * @param $deliveryType  //产品类型 6:特快零担 25 特快重货type=3必填
+     * @param $deliveryType //产品类型 6:特快零担 25 特快重货type=3必填
      * @param $goods // 商品名字
-     * @param $guaranteeValueAmount  // 保价金额
+     * @param $guaranteeValueAmount // 保价金额
      * @param $insuranceFee // 保价费
-     * @param $order_send_time  //预约时间
+     * @param $order_send_time //预约时间
      * @param $remark //面单备注
      * @param $type // 快递类型
      * @param $senderText // 寄件文本
@@ -139,39 +153,41 @@ class Expressorder extends Model
      * @param $priceRes // 价格查询结果
      * @return array|\think\response\Json
      */
-    public static function createOrder($sender_name,$sender_phone,$senderCity,$sender_address,$receiveName,$receivePhone,$receiveCity,$receiveAddress,
-                                       $deliveryType,$goods,$guaranteeValueAmount,$insuranceFee,$order_send_time,$remark,$type,$senderText,$receiveText,$weight,$out_trade_num,$priceRes)
+    public static function createOrder($sender_name, $sender_phone, $senderCity, $sender_address, $receiveName, $receivePhone, $receiveCity, $receiveAddress,
+                                       $deliveryType, $goods, $guaranteeValueAmount, $insuranceFee, $order_send_time, $remark, $type, $senderText, $receiveText, $weight, $out_trade_num, $priceRes)
     {
 
         $data['out_trade_num'] = $out_trade_num;
-        $data['sender_name'] =$sender_name;
-        $data['sender_phone'] =$sender_phone;
-        $data['senderCity'] =$senderCity;
-        $data['sender_address'] =$sender_address;
-        $data['receiveName'] =$receiveName;
-        $data['receivePhone'] =$receivePhone;
-        $data['receiveCity'] =$receiveCity;
-        $data['receiveAddress'] =$receiveAddress;
-        $data['deliveryType'] =$deliveryType;
-        $data['goods'] =$goods;
-        $data['guaranteeValueAmount'] =$guaranteeValueAmount;
-        $data['insuranceFee'] =$insuranceFee;
-        $data['order_send_time'] =$order_send_time;
-        $data['remark'] =$remark;
-        $data['type'] =$type;
-        $data['senderText'] =$senderText;
-        $data['receiveText'] =$receiveText;
-        $data['type'] =$type;
-        $data['weight'] =$weight;
-        $data['channelPriceA'] =$type;
-        $data['channelPriceB'] =$type;
-        $data['channelDiscount'] =$type;
-        $data['fee'] =$type;
-        $data['fee1'] =$type;
-        $data['serviceCharge'] =$type;
-        $data['channelToatlPrice'] =$type;
+        $data['sender_name'] = $sender_name;
+        $data['sender_phone'] = $sender_phone;
+        $data['senderCity'] = $senderCity;
+        $data['sender_address'] = $sender_address;
+        $data['receiveName'] = $receiveName;
+        $data['receivePhone'] = $receivePhone;
+        $data['receiveCity'] = $receiveCity;
+        $data['receiveAddress'] = $receiveAddress;
+        $data['deliveryType'] = $deliveryType;
+        $data['goods'] = $goods;
+        $data['guaranteeValueAmount'] = $guaranteeValueAmount;
+        $data['insuranceFee'] = $insuranceFee;
+        $data['order_send_time'] = $order_send_time;
+        $data['remark'] = $remark;
+        $data['type'] = $type;
+        $data['senderText'] = $senderText;
+        $data['receiveText'] = $receiveText;
+        $data['type'] = $type;
+        $data['weight'] = $weight;
+        $data['channelPriceA'] = $priceRes['priceA'];
+        $data['channelPriceB'] = $priceRes['priceB'];
+        $data['channelDiscount'] = $priceRes['discount'];;
+        $data['fee'] = $priceRes['fee'];;
+        $data['fee1'] = $priceRes['fee1'];;
+        $data['serviceCharge'] = $priceRes['serviceCharge'];;
+        $data['channelToatlPrice'] = $priceRes['totalFee'];;
+        $data['channelName'] = $priceRes['name'];;
         // 计算自己的价格
-        $data['totalPrice'] =culTotalPrice($weight,$priceRes['data']);
+        $data['totalPrice'] = Expressorder::culTotalPrice($weight, $priceRes)['totalPrice'];
+        $data['create_time'] = time();
         $model = new self();
         $model->save($data);
         if (!$aid = $model->id) {
@@ -179,8 +195,6 @@ class Expressorder extends Model
         }
         return rjson(0, '下单成功', $model->id);
     }
-
-
 
 
     //生成支付数据
@@ -260,7 +274,8 @@ class Expressorder extends Model
             return rjson(0, '请继续提交接口充值', ['api' => $api_arr[$index], 'index' => $index, 'num' => 1]);
         }
     }
-     public static function getCurApi2($porder_id)
+
+    public static function getCurApi2($porder_id)
     {
         $porder = M('porder')->where(['order_number' => $porder_id, 'api_open' => 1])->find();
         if (!$porder) {
@@ -273,6 +288,7 @@ class Expressorder extends Model
         $index = $porder['api_cur_index'];
         return rjson(0, '请继续提交接口充值', ['api' => $api_arr[$index], 'index' => $index, 'num' => 1]);
     }
+
     //充值成功api
     public static function rechargeSusApi($api, $api_order_number, $data)
     {

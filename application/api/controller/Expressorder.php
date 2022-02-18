@@ -6,7 +6,9 @@ use app\common\library\Createlog;
 use app\common\model\Client;
 use app\common\model\Expressorder as ExpressorderModel;
 
+use app\common\model\Expressorder as ExPorderModel;
 use Recharge\Qbd;
+use think\Log;
 
 class Expressorder
 {
@@ -15,28 +17,30 @@ class Expressorder
      */
     public function create_order()
     {
-        $orderSendTime= I('orderSendTime');
-        $senderText= I('senderText');
-        $receiveText= I('receiveText');
-        $senderName= I('senderName');
-        $senderCity= I('senderCity');
-        $senderAddress= I('senderAddress');
-        $senderPhone= I('senderPhone');
-        $receiveName= I('receiveName');
-        $receiveAddress= I('receiveAddress');
-        $receiveCity= I('receiveCity');
-        $receivePhone= I('receivePhone');
-        $weight= I('weight');
-        $goods= I('goods');
-        $insuredValue= I('insuredValue');
-        $guaranteeValueAmount= I('guaranteeValueAmount');
-        $remark= I('remark');// 面单备注
-        $sadd= I('sadd');
-        $type= I('type');// 快递类型
+        Log::error("创建订单".file_get_contents("php://input"));
+        $res=json_decode(file_get_contents("php://input"),true);
+        $orderSendTime= $res['orderSendTime'];
+        $senderText= $res['senderText'];
+        $receiveText= $res['receiveText'];
+        $senderName= $res['senderName'];
+        $senderCity=$res['senderCity'];
+        $senderAddress= $res['senderAddress'];
+        $senderPhone= $res['senderPhone'];
+        $receiveName= $res['receiveName'];
+        $receiveAddress=$res['receiveAddress'];
+        $receiveCity= $res['receiveCity'];
+        $receivePhone= $res['receivePhone'];
+        $weight= $res['weight'];
+        $goods= $res['goods'];
+        $insuredValue= $res['insuredValue'];
+        $guaranteeValueAmount= $res['guaranteeValueAmount'];
+        $remark= $res['remark'];;// 面单备注
+        $sadd= $res['sadd'];
+        $type= $res['type'];// 快递类型
         $qbd=new Qbd();
 
         // 查询价格
-        $priceRes = $qbd->findPrice($weight,$senderAddress,$receiveAddress,$type);
+        $priceRes = $qbd->findPrice($weight,$senderText,$receiveText,$type);
         // 根据查到的价格 创建本地订单 跳起支付 支付完毕远程生单
         if ($priceRes['errno'] ==0) {
             $res= ExpressorderModel::createOrder($senderName,$senderPhone,$senderCity,$senderAddress,$receiveName,$receivePhone,$receiveCity,$receiveAddress,null,$goods,
@@ -47,23 +51,26 @@ class Expressorder
                 return  rjson(1,'下单失败',$res['data']);
             }
         }else{
-            return djson(1, "价格获取失败",'');
+            return djson(1, "价格获取失败",$priceRes['data']);
         }
     }
     //估算运费
     public function estimateprice() {
-        $weight = I('weight');
+
+        $res=json_decode(file_get_contents("php://input"),true);
+        $weight = $res['weight'];
+        $sendAddress = $res['sendAddress'];
+        $receiveAddress = $res['receiveAddress'];
+        $type = $res['type'];
         $qbd= new Qbd();
-        $priceRes = $qbd->findPrice($weight,'河北省承德市隆化县隆化镇下洼子南胡同盛达水暖','广东省东莞市横沥镇新世纪华庭金岸7A','6');
-        var_dump($priceRes);
+        $priceRes = $qbd->findPrice($weight,$sendAddress,$receiveAddress,$type);
         if ($priceRes['errno']==0) {
             // 看折扣 还是看 首重续重 计算
             $data= $priceRes['data'];
-            return   ExpressorderModel::culTotalPrice($weight,$data);
+            return   rjson(0,'费用获取成功',ExpressorderModel::culTotalPrice($weight,$data));
         }else {
-            return $priceRes['msg'];
+            return   rjson(1,'费用获取失败',$priceRes['errmsg']);
         }
-
     }
 
 
@@ -78,7 +85,20 @@ class Expressorder
 
     // 查询订单
     public function queryOrder() {
-
+//        $map = ['customer_id' => $this->customer['id'], 'is_del' => 0, 'status' => ['gt', 1]];
+//        if (I('type')) {
+//            $map['type'] = I('type');
+//        }
+//        if (I('key')) {
+//            $map['order_number|mobile'] = I('key');
+//        }
+        $map =[];
+        $lists = ExPorderModel::where($map)->order("create_time desc")->paginate(10);
+        if ($lists) {
+            return djson(0, "ok", $lists);
+        } else {
+            return djson(1, "暂时还没有充值记录");
+        }
     }
     // 地址解析
     public function nlpAddress() {
