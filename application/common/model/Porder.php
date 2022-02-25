@@ -18,7 +18,7 @@ use app\common\model\Porder as PorderModel;
 use think\Model;
 
 /**
- 
+
  **/
 class Porder extends Model
 {
@@ -140,15 +140,15 @@ class Porder extends Model
         if (!$order) {
             return rjson(1, '订单无需支付' . $aid);
         }
-        $customer = M('customer')->where(['id' => $order['customer_id']])->find();
+        $customer = M('customer')->where(['id' => $order['userid']])->find();
         if (!$customer) {
             return rjson(1, '用户数据不存在');
         }
         return PayWay::create($payway, $client, [
             'openid' => $customer['wx_openid'] ? $customer['wx_openid'] : $customer['ap_openid'],
-            'body' => $order['body'],
-            'order_number' => $order['order_number'],
-            'total_price' => $order['total_price'],
+            'body' => $order['sender_name'].'快递支付,订单号：'.$order['out_trade_num'],
+            'order_number' => $order['out_trade_num'],
+            'total_price' => $order['totalPrice'],
             'appid' => $customer['weixin_appid']
         ]);
     }

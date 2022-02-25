@@ -5,12 +5,10 @@ namespace app\api\controller;
 use app\common\library\Createlog;
 use app\common\model\Client;
 use app\common\model\Expressorder as ExpressorderModel;
-
-use app\common\model\Expressorder as ExPorderModel;
 use Recharge\Qbd;
 use think\Log;
 
-class Expressorder
+class Expressorder extends Home
 {
     /**
      * 下单
@@ -20,6 +18,7 @@ class Expressorder
         Log::error("创建订单".file_get_contents("php://input"));
         $res=json_decode(file_get_contents("php://input"),true);
         $orderSendTime= $res['orderSendTime'];
+        $userid= $res['userid'];
         $senderText= $res['senderText'];
         $receiveText= $res['receiveText'];
         $senderName= $res['senderName'];
@@ -43,7 +42,7 @@ class Expressorder
         $priceRes = $qbd->findPrice($weight,$senderText,$receiveText,$type);
         // 根据查到的价格 创建本地订单 跳起支付 支付完毕远程生单
         if ($priceRes['errno'] ==0) {
-            $res= ExpressorderModel::createOrder($senderName,$senderPhone,$senderCity,$senderAddress,$receiveName,$receivePhone,$receiveCity,$receiveAddress,null,$goods,
+            $res= ExpressorderModel::createOrder($userid,$senderName,$senderPhone,$senderCity,$senderAddress,$receiveName,$receivePhone,$receiveCity,$receiveAddress,null,$goods,
                 $guaranteeValueAmount,$insuredValue,$orderSendTime,$remark,$type,$senderText,$receiveText,$weight,'',$priceRes);
             if ($res['errno'] ==0) {
                 return  rjson(0,'下单成功',$res['data']);
@@ -79,7 +78,7 @@ class Expressorder
     //创建支付
     public function topay()
     {
-        $res = PorderModel::create_pay(I('order_id'), I('paytype'), $this->client);
+        $res = ExpressorderModel::create_pay(I('order_id'), I('paytype'), $this->client);
         return djson($res['errno'], $res['errmsg'], $res['data']);
     }
 
@@ -93,11 +92,11 @@ class Expressorder
 //            $map['order_number|mobile'] = I('key');
 //        }
         $map =[];
-        $lists = ExPorderModel::where($map)->order("create_time desc")->paginate(10);
+        $lists = ExpressorderModel::where($map)->order("create_time desc")->paginate(10);
         if ($lists) {
             return djson(0, "ok", $lists);
         } else {
-            return djson(1, "暂时还没有充值记录");
+            return djson(1, "暂无订单记录");
         }
     }
     // 地址解析

@@ -153,11 +153,12 @@ class Expressorder extends Model
      * @param $priceRes // 价格查询结果
      * @return array|\think\response\Json
      */
-    public static function createOrder($sender_name, $sender_phone, $senderCity, $sender_address, $receiveName, $receivePhone, $receiveCity, $receiveAddress,
+    public static function createOrder($userid,$sender_name, $sender_phone, $senderCity, $sender_address, $receiveName, $receivePhone, $receiveCity, $receiveAddress,
                                        $deliveryType, $goods, $guaranteeValueAmount, $insuranceFee, $order_send_time, $remark, $type, $senderText, $receiveText, $weight, $out_trade_num, $priceRes)
     {
 
         $data['out_trade_num'] = $out_trade_num;
+        $data['userid'] = $userid;
         $data['sender_name'] = $sender_name;
         $data['sender_phone'] = $sender_phone;
         $data['senderCity'] = $senderCity;
@@ -200,7 +201,8 @@ class Expressorder extends Model
     //生成支付数据
     public static function create_pay($aid, $payway, $client)
     {
-        $order = self::where(['id' => $aid, 'status' => 1])->find();
+        //预下单 待支付
+        $order = self::where(['id' => $aid, 'status' => 0])->find();
         if (!$order) {
             return rjson(1, '订单无需支付' . $aid);
         }
