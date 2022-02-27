@@ -18,19 +18,18 @@ use app\common\model\Porder as PorderModel;
 use think\Model;
 
 /**
-
  **/
-class Porder extends Model
+class Expressorder extends Model
 {
-    const PR = 'CZH';
+    const PR = 'DASHAN';
 
     protected $append = ['status_text', 'status_text2', 'create_time_text'];
 
     public static function init()
     {
-        self::event('after_insert', function ($porder) {
-            $order_number = self::PR . date('ymd', time()) . $porder->id;
-            $porder->where(['id' => $porder->id])->update(['order_number' => $order_number]);
+        self::event('after_insert', function ($expressorder) {
+            $order_number = self::PR . date('ymd', time()) . $expressorder->id;
+            $expressorder->where(['id' => $expressorder->id])->update(['out_trade_num' => $order_number]);
         });
     }
 
@@ -71,60 +70,125 @@ class Porder extends Model
         }
     }
 
-    public static function createOrder($mobile, $product_id, $area, $customer_id, $client = 1, $remark = '下单', $out_trade_num = '')
+    /**
+     * 预估价格
+     * @param $weight //重量
+     * @param $priceA //首重
+     * @param $priceB //续重
+     * @param $discount //折扣
+     * @param $totalFeeOri //折扣原价
+     * @return float|int //计算出来的总价
+     */
+    public static function culTotalPrice($weight, $data)
     {
-        $mobile = trim($mobile);
-        $prd = M('product')->where(['id' => $product_id])->find();
-        if (!$prd) {
-            return rjson(1, '未找到相关产品');
+        // 查询价格 根据价格计算 保价费 重量  续重 或者 总价x折扣
+        $weight = $weight;
+        $priceA = $data['priceA'];
+        $priceB = $data['priceB'];
+        $discount = $data['discount'];
+        $totalFeeOri = $data['fee'];
+        if ($priceA) {
+            if ($priceB < 2.5) {
+                $priceB = 2.5;
+            } elseif ($priceB < 3) {
+                $priceB = 3;
+            } else {
+                $priceB = $priceB + 0.5;
+            }
+            // 首重 加 续重 算法
+            if ($priceA < 6.5) {
+                $priceA = 6.5;
+            } else if ($priceA < 7) {
+                $priceA = 7;
+            } else if ($priceA < 8) {
+                $priceA = 8;
+            } else {
+                $priceA = ($priceA + 0.5);
+            }
+            $sum = $priceA + ($weight - 1) * $priceB;
+        } else {
+            if ($discount <= 5) {
+                $discount = 5;
+            } else if ($discount < 7) {
+                $discount = 7;
+            } else if ($discount < 8) {
+                $discount = 8;
+            } else {
+                $discount = $discount + 0.5;
+            }
+            $sum = $totalFeeOri * $discount * 0.1;
         }
-        $user = M('customer')->where(['id' => $customer_id])->find();
-        switch ($prd['type']) {
-            case 1://话费
-            case 2://流量
-                $guishu = QCellCore($mobile);
-                if ($guishu['errno'] != 0) {
-                    return rjson($guishu['errno'], $guishu['errmsg']);
-                }
-                $map['p.isp'] = ['like', '%' . $guishu['data']['isp'] . '%'];
-                $data['isp'] = $guishu['data']['ispstr'];
-                $data['guishu'] = $guishu['data']['prov'] . $guishu['data']['city'];
-                break;
-            case 3://电费
-                if (!$area) {
-                    return rjson(1, '请选择电费地区！');
-                }
-                $data['isp'] = $area;
-                break;
-            default:
-                break;
-        }
-        $map['p.id'] = $product_id;
-        $map['p.added'] = 1;
-        $product = Product::getProduct($map, $user['id']);
-        if (!$product) {
-            return rjson(1, '未找到相关产品');
-        }
-        $data['product_id'] = $product['id'];
-        $data['customer_id'] = $customer_id;
-        $data['total_price'] = $product['price'];
-        $data['create_time'] = time();
-        $data['status'] = 1;
-        $data['remark'] = $remark;
-        $data['mobile'] = $mobile;
-        $data['type'] = $product['type'];
-        $data['title'] = $product['name'] . C('PRODUCT_TYPE')[$product['type']];
-        $data['product_name'] = $product['name'];
-        $data['product_desc'] = $product['desc'];
-        $data['body'] = '为号码' . $mobile . '充值' . $product['name'] . C('PRODUCT_TYPE')[$product['type']];
-        $data['api_open'] = $product['api_open'];
-        $data['api_arr'] = $product['api_arr'];
-        $data['api_cur_index'] = -1;
-        $data['out_trade_num'] = $out_trade_num;
-        $data['pay_way'] = PayWay::PAY_WAY_NULL;
-        $data['api_cur_count'] = 0;
-        $data['client'] = $client;
+        $sum += $data['serviceCharge'];
 
+        $pr = [
+            'priceA' => $priceA,
+            'priceB' => $priceB,
+            'totalFeeOri' => $totalFeeOri,
+            'discount' => $discount,
+            'serviceCharge' => $data['serviceCharge'],
+            'totalPrice' => $sum,
+            'remark'     =>$data['remark']
+        ];
+        return $pr;
+    }
+
+    /**
+     * @param $sender_name
+     * @param $sender_phone
+     * @param $senderCity
+     * @param $sender_address
+     * @param $receiveName
+     * @param $receivePhone
+     * @param $receiveCity
+     * @param $receiveAddress
+     * @param $deliveryType //产品类型 6:特快零担 25 特快重货type=3必填
+     * @param $goods // 商品名字
+     * @param $guaranteeValueAmount // 保价金额
+     * @param $insuranceFee // 保价费
+     * @param $order_send_time //预约时间
+     * @param $remark //面单备注
+     * @param $type // 快递类型
+     * @param $senderText // 寄件文本
+     * @param $receiveText // 收件文本
+     * @param $priceRes // 价格查询结果
+     * @return array|\think\response\Json
+     */
+    public static function createOrder($userid,$sender_name, $sender_phone, $senderCity, $sender_address, $receiveName, $receivePhone, $receiveCity, $receiveAddress,
+                                       $deliveryType, $goods, $guaranteeValueAmount, $insuranceFee, $order_send_time, $remark, $type, $senderText, $receiveText, $weight, $out_trade_num, $priceRes)
+    {
+
+        $data['out_trade_num'] = $out_trade_num;
+        $data['userid'] = $userid;
+        $data['sender_name'] = $sender_name;
+        $data['sender_phone'] = $sender_phone;
+        $data['senderCity'] = $senderCity;
+        $data['sender_address'] = $sender_address;
+        $data['receiveName'] = $receiveName;
+        $data['receivePhone'] = $receivePhone;
+        $data['receiveCity'] = $receiveCity;
+        $data['receiveAddress'] = $receiveAddress;
+        $data['deliveryType'] = $deliveryType;
+        $data['goods'] = $goods;
+        $data['guaranteeValueAmount'] = $guaranteeValueAmount;
+        $data['insuranceFee'] = $insuranceFee;
+        $data['order_send_time'] = $order_send_time;
+        $data['remark'] = $remark;
+        $data['type'] = $type;
+        $data['senderText'] = $senderText;
+        $data['receiveText'] = $receiveText;
+        $data['type'] = $type;
+        $data['weight'] = $weight;
+        $data['channelPriceA'] = $priceRes['priceA'];
+        $data['channelPriceB'] = $priceRes['priceB'];
+        $data['channelDiscount'] = $priceRes['discount'];;
+        $data['fee'] = $priceRes['fee'];;
+        $data['fee1'] = $priceRes['fee1'];;
+        $data['serviceCharge'] = $priceRes['serviceCharge'];;
+        $data['channelToatlPrice'] = $priceRes['totalFee'];;
+        $data['channelName'] = $priceRes['name'];;
+        // 计算自己的价格
+        $data['totalPrice'] = Expressorder::culTotalPrice($weight, $priceRes)['totalPrice'];
+        $data['create_time'] = time();
         $model = new self();
         $model->save($data);
         if (!$aid = $model->id) {
@@ -133,22 +197,24 @@ class Porder extends Model
         return rjson(0, '下单成功', $model->id);
     }
 
+
     //生成支付数据
     public static function create_pay($aid, $payway, $client)
     {
-        $order = self::where(['id' => $aid, 'status' => 1])->find();
+        //预下单 待支付
+        $order = self::where(['id' => $aid, 'status' => 0])->find();
         if (!$order) {
             return rjson(1, '订单无需支付' . $aid);
         }
-        $customer = M('customer')->where(['id' => $order['userid']])->find();
+        $customer = M('customer')->where(['id' => $order['customer_id']])->find();
         if (!$customer) {
             return rjson(1, '用户数据不存在');
         }
         return PayWay::create($payway, $client, [
             'openid' => $customer['wx_openid'] ? $customer['wx_openid'] : $customer['ap_openid'],
-            'body' => $order['sender_name'].'快递支付,订单号：'.$order['out_trade_num'],
-            'order_number' => $order['out_trade_num'],
-            'total_price' => $order['totalPrice'],
+            'body' => $order['body'],
+            'order_number' => $order['order_number'],
+            'total_price' => $order['total_price'],
             'appid' => $customer['weixin_appid']
         ]);
     }
@@ -210,7 +276,8 @@ class Porder extends Model
             return rjson(0, '请继续提交接口充值', ['api' => $api_arr[$index], 'index' => $index, 'num' => 1]);
         }
     }
-     public static function getCurApi2($porder_id)
+
+    public static function getCurApi2($porder_id)
     {
         $porder = M('porder')->where(['order_number' => $porder_id, 'api_open' => 1])->find();
         if (!$porder) {
@@ -223,6 +290,7 @@ class Porder extends Model
         $index = $porder['api_cur_index'];
         return rjson(0, '请继续提交接口充值', ['api' => $api_arr[$index], 'index' => $index, 'num' => 1]);
     }
+
     //充值成功api
     public static function rechargeSusApi($api, $api_order_number, $data)
     {

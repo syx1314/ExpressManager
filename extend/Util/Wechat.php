@@ -61,6 +61,7 @@ class Wechat
     const MSGTYPE_VOICE = 'voice';
     const MSGTYPE_VIDEO = 'video';
     const API_URL_PREFIX = 'https://api.weixin.qq.com/cgi-bin';
+    // 获取Access token
     const AUTH_URL = '/token?grant_type=client_credential&';
     const MENU_CREATE_URL = '/menu/create?';
     const MENU_GET_URL = '/menu/get?';
@@ -221,7 +222,7 @@ class Wechat
     }
 
     /**
-     
+
      * @return bool|mixed
      * 获取用户增减数据,最大能查询跨度为7天
      * $data:{
