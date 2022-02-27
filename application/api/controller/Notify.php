@@ -6,6 +6,8 @@ use app\common\library\Email;
 use app\common\library\PayWay;
 use app\common\model\OrderUpgrade;
 use app\common\model\Porder as PorderModel;
+use app\common\model\Expressorder as ExorderModel;
+use think\Log;
 use WeChatPay\Crypto\AesGcm;
 
 
@@ -31,6 +33,9 @@ class Notify extends \app\common\controller\Base
             case OrderUpgrade::PR:
                 OrderUpgrade::notify($info['order_number'], $info['payway'], $info['serial_number']);
                 break;
+            case ExorderModel::PR:
+                ExorderModel::notify($info['order_number'], $info['payway'], $info['serial_number']);
+                break;
             default:
         }
     }
@@ -42,9 +47,11 @@ class Notify extends \app\common\controller\Base
     public function weixin()
     {
         $inpstr = file_get_contents("php://input");
+        Log::error("微信支付回掉".$inpstr);
         $miarr = json_decode($inpstr, true);
         $data_str = AesGcm::decrypt($miarr['resource']['ciphertext'], C('weixin.key'), $miarr['resource']['nonce'], $miarr['resource']['associated_data']);
         $data = json_decode($data_str, true);
+        Log::error("微信支付解密".$data_str);
         $weixin = M('weixin')->where(['appid' => $data['appid']])->find();
         if (!$weixin) {
             Email::sendMail('非平台微信支付回调', var_export($data, true));

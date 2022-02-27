@@ -15,6 +15,7 @@ use app\common\library\PayWay;
 use app\common\library\Rechargeapi;
 use app\common\library\Wxrefundapi;
 use app\common\model\Porder as PorderModel;
+use think\Log;
 use think\Model;
 
 /**
@@ -221,16 +222,20 @@ class Expressorder extends Model
 
     public static function notify($order_number, $payway, $serial_number)
     {
-        $porder = M('porder')->where(['order_number' => $order_number, 'status' => 1])->find();
+        //预下单 待支付
+        $porder = M('expressorder')->where(['out_trade_num' => $order_number, 'status' => 0])->find();
+        Log::error("寻找快递单子".json_encode($porder));
         if (!$porder) {
             return rjson(1, '不存在订单');
         }
-        Createlog::porderLog($porder['id'], "用户支付回调成功");
-        M('porder')->where(['id' => $porder['id'], 'status' => 1])->setField(['status' => 2, 'pay_time' => time(), 'pay_way' => $payway]);
-        //api充值队列
-        $porder['api_open'] == 1 && queue('app\queue\job\Work@porderSubApi', $porder['id']);
+        Createlog::porderLog($porder['id'], "快递用户支付回调成功");
+
+        M('expressorder')->where(['id' => $porder['id'], 'status' => 0])->setField(['status' => 1, 'pay_time' => time(), 'pay_way' => $payway]);
+        Log::error("修改快递状态代取件");
+//        //api充值队列
+//        $porder['api_open'] == 1 && queue('app\queue\job\Work@porderSubApi', $porder['id']);
         //发送通知
-        Notification::paySus($porder['id']);
+        Notification::payExpressSus($porder['id']);
         return rjson(0, '回调处理完成');
     }
 

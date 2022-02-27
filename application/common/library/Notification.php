@@ -11,6 +11,7 @@ namespace app\common\library;
 
 //下发通知
 use app\common\model\Client;
+use think\Log;
 use Util\Http;
 
 class Notification
@@ -145,6 +146,30 @@ class Notification
                 return Templetmsg::paySus($porder['customer_id'], '订单已经提交，正在充值中...', $porder['order_number'], $porder['total_price']);
             case Client::CLIENT_MP://小程序
                 return SubscribeMessage::paySus($porder['customer_id'], $porder['order_number'], $porder['title'], $porder['total_price'], '订单已经提交，正在充值中...');
+            default:
+                Createlog::porderLog($porder['id'], '该端订单无需下单成功通知');
+                return rjson(0, '无需通知');
+        }
+    }
+    //快递下单成功
+    public static function payExpressSus($porder_id)
+    {
+        Log::error('发送公众号模板消息');
+        // 支付完成代取件
+        $porder = M('expressorder')->where(['id' => $porder_id, 'status' => 1, 'is_del' => 0])->find();
+        if (!$porder) {
+            return rjson(1, '未找到订单');
+        }
+        $customer = M('customer')->where(['id' => $porder['userid'], 'is_del' => 0, 'status' => 1])->find();
+        if (!$customer) {
+            return rjson(1, '用户未找到');
+        }
+        Log::error('发送公众号模板消息2');
+        switch ($porder['client']) {
+            case Client::CLIENT_WX://公众号
+                return Templetmsg::paySus($porder['userid'], '快递下单完成,等待快递接单中......', $porder['out_trade_num'], $porder['totalPrice']);
+            case Client::CLIENT_MP://小程序
+                return SubscribeMessage::paySus($porder['userid'], $porder['out_trade_num'], $porder['sender_name'].'寄得快递', $porder['totalPrice'], '快递下单完成,等待快递接单中......');
             default:
                 Createlog::porderLog($porder['id'], '该端订单无需下单成功通知');
                 return rjson(0, '无需通知');
