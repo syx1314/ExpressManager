@@ -45,47 +45,46 @@ class Qbd
      * @param $sadd
      * @param $agentCode
      */
-    public function createOrder($orderSendTime,$senderText,$receiveText,$packageNum,$senderName,$senderCity,
-                                $senderAddress,$senderPhone,$receiveName,$receiveAddress,$receiveCity,$receivePhone,
-                                $weight,$goods,$insuredValue,$guaranteeValueAmount,$remark,$channelName,
-                                $priceA,$priceB,$discount,$fee,$isThird,$isInsured,$fee1,$remark1,$type,$sadd,$agentCode){
-        $data = [
-            "t" => $this->timeram(),
-            "orderSendTime" => "",
-            "senderAddressCode"=>"",
-            "senderText"=>"叶林(15850812532)\n地址：广东省江门市新会区新会经济开发区三和大道南9号,唐朝主题养生馆",
-            "receiveText"=>"叶林(15850812532)\n地址：广东省江门市新会区新会经济开发区三和大道南9号,唐朝主题养生馆",
-            "id"=>0,
-            "packageNum"=>1,
-            "senderName"=>"叶林",
-            "senderCity"=>"广东省江门市新会区新会经济开发区",
-            "senderAddress"=>"广东省江门市新会区新会经济开发区三和大道南9号,唐朝主题养生馆",
-            "senderPhone"=>"15850812532",
-            "receiveName"=>"叶林",
-            "receiveAddress"=>"广东省江门市新会区新会经济开发区三和大道南9号,唐朝主题养生馆",
-            "receiveCity"=>"广东省江门市新会区新会经济开发区",
-            "receivePhone"=>"15850812532",
-            "weight"=>1,
-            "goods"=>"日用品",
-            "insuredValue"=>0,
-            "guaranteeValueAmount"=>0,
-            "remark"=>"",
-            "channelName"=>"QBD-京东-TKE-QGA",
-            "priceA"=>6.17,
-            "priceB"=>1.02,
-            "discount"=>0,
-            "fee"=>0,
-            "isThird"=>true,
-            "isInsured"=>true,
-            "fee1"=>6.17,
-            "remark1"=>"",
-            "type"=>1,
-            "sadd"=>"三和大道南9号,唐朝主题养生馆",
-            "agentCode"=>"13102101195"
-        ];
+    public function createOrder($data){
+//        $data = [
+//            "t" => $this->timeram(),
+//            "orderSendTime" => "",
+//            "senderAddressCode"=>"",
+//            "senderText"=>"叶林(15850812532)\n地址：广东省江门市新会区新会经济开发区三和大道南9号,唐朝主题养生馆",
+//            "receiveText"=>"叶林(15850812532)\n地址：广东省江门市新会区新会经济开发区三和大道南9号,唐朝主题养生馆",
+//            "id"=>0,
+//            "packageNum"=>1,
+//            "senderName"=>"叶林",
+//            "senderCity"=>"广东省江门市新会区新会经济开发区",
+//            "senderAddress"=>"广东省江门市新会区新会经济开发区三和大道南9号,唐朝主题养生馆",
+//            "senderPhone"=>"15850812532",
+//            "receiveName"=>"叶林",
+//            "receiveAddress"=>"广东省江门市新会区新会经济开发区三和大道南9号,唐朝主题养生馆",
+//            "receiveCity"=>"广东省江门市新会区新会经济开发区",
+//            "receivePhone"=>"15850812532",
+//            "weight"=>1,
+//            "goods"=>"日用品",
+//            "insuredValue"=>0,
+//            "guaranteeValueAmount"=>0,
+//            "remark"=>"",
+//            "channelName"=>"QBD-京东-TKE-QGA",
+//            "priceA"=>6.17,
+//            "priceB"=>1.02,
+//            "discount"=>0,
+//            "fee"=>0,
+//            "isThird"=>true,
+//            "isInsured"=>true,
+//            "fee1"=>6.17,
+//            "remark1"=>"",
+//            "type"=>1,
+//            "sadd"=>"三和大道南9号,唐朝主题养生馆",
+//            "agentCode"=>"13102101195"
+//        ];
+        $data['t'] = $this->timeram();
+        $data['agentCode'] = '13102101195';
         // 查价格  计算总额 生成订单
         // 生成预生单
-        $this->http('https://jdkd.ulifego.com/ht/jdkd/jdkdorder/advanceOrder',$data);
+      return  $this->http('https://jdkd.ulifego.com/ht/jdkd/jdkdorder/advanceOrder',$data);
 
     }
 
@@ -183,10 +182,12 @@ class Qbd
 
     /**
      *查询订单详情
+     * @param $channel_order_id 渠道订单id
+     * @param $type 快递公司
      */
-    public function checkOrder($data)
+    public function checkOrder($channel_order_id,$type)
     {
-        return $this->http('https://jdkd.ulifego.com/ht/jdkd/jdkdorder/advanceOrder',$data);
+        return $this->http2('https://jdkd.ulifego.com/ht/back/order/detail/'.$channel_order_id.'/'.$type.'?t='.$this->timeram(),null);
     }
 
     /**
@@ -264,6 +265,62 @@ class Qbd
         if ($res) {
             if ( $res['code']== 0) {
                 return rjson(0,'接口请求成功',$res['data']);
+            }else if ($res['code']== 401) {
+                // token 失效 继续登录
+                $this->login();
+                return rjson(1,'系统繁忙,请重试',$res['msg']);
+            }else{
+                return rjson($res['code'],'请求失败原因:'.$res['msg'],$res['msg']);
+            }
+        }else{
+            return rjson(1,'系统异常接口失败','');
+        }
+
+    }
+    /**
+     *  请求 p 空  get  否则post
+     */
+    private function http2($url, $param)
+    {
+        $oCurl = curl_init();
+        curl_setopt($oCurl, CURLOPT_URL, $url);
+        curl_setopt($oCurl, CURLOPT_RETURNTRANSFER, 1);
+        if ($param) {
+            $strPOST = json_encode($param,JSON_UNESCAPED_UNICODE);
+            curl_setopt($oCurl, CURLOPT_POST, true);
+            curl_setopt($oCurl, CURLOPT_POSTFIELDS, $strPOST);
+            curl_setopt($oCurl, CURLOPT_HTTPHEADER, ["Content-Type:application/json;charset=utf-8"]);
+            Log::error("请求参数".$strPOST);
+        }
+        curl_setopt($oCurl, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($oCurl, CURLOPT_TIMEOUT, 30);
+        curl_setopt($oCurl, CURLOPT_HEADER, 0);
+        $redis=new RedisPackage();
+        $token = $redis::get('qbdToken');
+
+//        QBD/3.0(iPhone;iOS 10.3.1;Scale/3.00)
+        if ($token) {
+            Log::error("QBDtoken1".$token);
+            $header= [
+                'Content-Type:application/json;charset=utf-8',
+                'token:'.$token
+            ];
+            curl_setopt($oCurl, CURLOPT_HTTPHEADER, $header);
+        }else if (!strpos($url,'loginNew')){
+            // 不是登录路径 而且没有登录成功 就去登录
+            $this->login();
+            return rjson(1,'系统繁忙,请重试','');
+        }
+        $sContent = curl_exec($oCurl);
+        $a=curl_getinfo($oCurl);
+        Log::error("头".http_build_query($a));
+        curl_close($oCurl);
+        Log::error("快递接口请求地址".$url);
+        Log::error("快递接口返回".$sContent);
+        $res=json_decode($sContent, true);
+        if ($res) {
+            if ( $res['code']== 0) {
+                return rjson(0,'接口请求成功',$res);
             }else if ($res['code']== 401) {
                 // token 失效 继续登录
                 $this->login();

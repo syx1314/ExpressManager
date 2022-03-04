@@ -15,6 +15,7 @@ use app\common\library\PayWay;
 use app\common\library\Rechargeapi;
 use app\common\library\Wxrefundapi;
 use app\common\model\Porder as PorderModel;
+use Recharge\Qbd;
 use think\Log;
 use think\Model;
 
@@ -155,7 +156,7 @@ class Expressorder extends Model
      * @return array|\think\response\Json
      */
     public static function createOrder($userid,$sender_name, $sender_phone, $senderCity, $sender_address, $receiveName, $receivePhone, $receiveCity, $receiveAddress,
-                                       $deliveryType, $goods, $guaranteeValueAmount, $insuranceFee, $order_send_time, $remark, $type, $senderText, $receiveText, $weight, $out_trade_num, $priceRes)
+                                       $deliveryType, $goods,$packageNum, $guaranteeValueAmount, $insuranceFee, $order_send_time, $remark, $type, $senderText, $receiveText, $weight, $out_trade_num, $priceRes)
     {
 
         $data['out_trade_num'] = $out_trade_num;
@@ -170,6 +171,7 @@ class Expressorder extends Model
         $data['receiveAddress'] = $receiveAddress;
         $data['deliveryType'] = $deliveryType;
         $data['goods'] = $goods;
+        $data['packageNum'] = $packageNum;
         $data['guaranteeValueAmount'] = $guaranteeValueAmount;
         $data['insuranceFee'] = $insuranceFee;
         $data['order_send_time'] = $order_send_time;
@@ -229,72 +231,64 @@ class Expressorder extends Model
             return rjson(1, '不存在订单');
         }
         Createlog::porderLog($porder['id'], "快递用户支付回调成功");
-
+        //TODO 判断支付了多钱 比较
         M('expressorder')->where(['id' => $porder['id'], 'status' => 0])->setField(['status' => 1, 'pay_time' => time(), 'pay_way' => $payway]);
         Log::error("修改快递状态代取件");
-//        //api充值队列
-//        $porder['api_open'] == 1 && queue('app\queue\job\Work@porderSubApi', $porder['id']);
-        //发送通知
+//        //api下单队列放到队列去远程生单
+        queue('app\queue\job\Work@createChannelExpressApi', $porder['id']);
+        //发送支付成功通知
         Notification::payExpressSus($porder['id']);
         return rjson(0, '回调处理完成');
     }
 
-    //提交接口充值
-    public static function subApi($porder_id)
-    {
-        $porder = M('porder')->where(['id' => $porder_id, 'status' => 2, 'api_open' => 1])->find();
+    // 创建远程渠道生单
+    public static function createChannelExpress($order_id) {
+        Log::error("创建渠道生单".$order_id);
+        // 此单已经支付完成
+        $porder = M('expressorder')->where(['id' => $order_id, 'status' => 1])->find();
         if (!$porder) {
-            return rjson(1, '订单无需提交接口充值');
+            return rjson(1, '订单非已支付状态无法提交远程下单');
         }
-        //提交充值接口
-        Rechargeapi::recharge($porder['id']);
+        //提交远程渠道下快递
+        $qbd=new Qbd();
+        $data = [
+            "orderSendTime" => $porder['order_send_time'],
+            "senderAddressCode"=>"",
+            "senderText"=>$porder['senderText'],
+            "receiveText"=>$porder['receiveText'],
+            "id"=>0,
+            "packageNum"=>$porder['packageNum'],
+            "senderName"=>$porder['sender_name'],
+            "senderCity"=>$porder['senderCity'],
+            "senderAddress"=>$porder['sender_address'],
+            "senderPhone"=>$porder['sender_phone'],
+            "receiveName"=>$porder['receiveName'],
+            "receiveAddress"=>$porder['receiveAddress'],
+            "receiveCity"=>$porder['receiveCity'],
+            "receivePhone"=>$porder['receivePhone'],
+            "weight"=>$porder['weight'],
+            "goods"=>$porder['goods'],
+            "insuredValue"=>$porder['insuranceFee'],
+            "guaranteeValueAmount"=>$porder['guaranteeValueAmount'],
+            "remark"=>$porder['remark'],
+            "channelName"=>$porder['channelName'],
+            "priceA"=>$porder['channelPriceA'],
+            "priceB"=>$porder['channelPriceB'],
+            "discount"=>$porder['channelDiscount'],
+            "fee"=>$porder['fee'],
+            "isThird"=>true,
+            "isInsured"=>true,
+            "fee1"=>$porder['fee1'],
+            "remark1"=>"",
+            "type"=>$porder['type'],
+            "sadd"=>$porder['sender_address'],
+        ];
+        Log::error("渠道生单发起请求".$order_id);
+        $res=$qbd->createOrder($data);
+        Log::error("渠道生单结果".json_encode($res));
         return rjson(0, '提交接口工作完成');
     }
 
-    //获取当前当充值的API
-    public static function getCurApi($porder_id)
-    {
-        $porder = M('porder')->where(['id' => $porder_id, 'status' => ['in', '2,3'], 'api_open' => 1])->find();
-        if (!$porder) {
-            return rjson(1, '自动充值订单无效');
-        }
-        $api_arr = json_decode($porder['api_arr'], true);
-        if (count($api_arr) == 0) {
-            return rjson(1, '自动充值接口为空');
-        }
-        if ($porder['api_cur_index'] >= count($api_arr) - 1 && $api_arr[$porder['api_cur_index']]['num'] <= $porder['api_cur_num']) {
-            return rjson(1, '无可继续调用的API');
-        }
-        if ($porder['api_cur_index'] >= 0) {
-            $num = $api_arr[$porder['api_cur_index']]['num'];
-            $cur_num = $porder['api_cur_num'];
-            if ($cur_num >= $num) {
-                $index = $porder['api_cur_index'] + 1;
-                $cnum = 1;
-            } else {
-                $index = $porder['api_cur_index'];
-                $cnum = $porder['api_cur_num'] + 1;
-            }
-            return rjson(0, '请继续提交接口充值', ['api' => $api_arr[$index], 'index' => $index, 'num' => $cnum]);
-        } else {
-            $index = $porder['api_cur_index'] + 1;
-            return rjson(0, '请继续提交接口充值', ['api' => $api_arr[$index], 'index' => $index, 'num' => 1]);
-        }
-    }
-
-    public static function getCurApi2($porder_id)
-    {
-        $porder = M('porder')->where(['order_number' => $porder_id, 'api_open' => 1])->find();
-        if (!$porder) {
-            return rjson(1, '自动充值订单无效');
-        }
-        $api_arr = json_decode($porder['api_arr'], true);
-        if (count($api_arr) == 0) {
-            return rjson(1, '自动充值接口为空');
-        }
-        $index = $porder['api_cur_index'];
-        return rjson(0, '请继续提交接口充值', ['api' => $api_arr[$index], 'index' => $index, 'num' => 1]);
-    }
 
     //充值成功api
     public static function rechargeSusApi($api, $api_order_number, $data)

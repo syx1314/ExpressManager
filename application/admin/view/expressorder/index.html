@@ -10,7 +10,7 @@
         <div class="col-sm-12">
             <div class="ibox float-e-margins">
                 <div class="ibox-title">
-                    <h5>订单列表（{$_total}）&nbsp;&nbsp;总金额：￥{$total_price}&nbsp;&nbsp;利润：￥{$total_price-$cost}</h5>
+                    <h5>订单列表（{$_total}）&nbsp;&nbsp;总金额：￥{$total_price}&nbsp;&nbsp;利润：￥{$total_price}</h5>
                 </div>
                 <div class="ibox-content">
                     <div class="row input-groups">
@@ -48,48 +48,10 @@
                                     {/volist}
                                 </select>
                             </div>
-                            <div class="form-group">
-                                <?php $type=C('PRODUCT_TYPE'); ?>
-                                <label class="control-label">类型:</label>
-                                <select class="input-sm form-control input-s-sm inline serach_selects" name="type"
-                                        style="width: auto;">
-                                    <option value="0">请选择</option>
-                                    {volist name="type" id="vo"}
-                                    <option value="{$key}"
-                                    <?php if(I('type')==$key){ echo "selected='selected'"; } ?>>{$vo}</option>
-                                    {/volist}
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label">分类:</label>
-                                <select class="input-sm form-control input-s-sm inline serach_selects" name="cate"
-                                        style="width: auto;">
-                                    <option value="0">请选择</option>
-                                    {notempty name="cates"}
-                                    {volist name="cates" id="vo"}
-                                    <option value="{$vo['id']}"
-                                    <?php if(I('cate')==$vo['id']){ echo "selected='selected'"; } ?>>{$vo.cate}</option>
-                                    {/volist}
-                                    {/notempty}
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label">套餐:</label>
-                                <select class="input-sm form-control input-s-sm inline serach_selects" name="product_id"
-                                        style="width: auto;">
-                                    <option value="0">请选择</option>
-                                    {notempty name="products"}
-                                    {volist name="products" id="vo"}
-                                    <option value="{$vo['id']}"
-                                    <?php if(I('product_id')==$vo['id']){ echo "selected='selected'"; } ?>
-                                    >{$vo.name}</option>
-                                    {/volist}
-                                    {/notempty}
-                                </select>
-                            </div>
+
                             <div class="form-group">
                                 <?php $isps=C('ISP_TEXT');?>
-                                <label class="control-label">运营商:</label>
+                                <label class="control-label">渠道商:</label>
                                 <select class="input-sm form-control input-s-sm inline serach_selects" name="isp"
                                         style="width: auto;">
                                     <option value="0">请选择</option>
@@ -139,16 +101,20 @@
                                     >订单号</option>
                                     <option value="mobile"
                                     <?php if(I('query_name')=='mobile'){ echo "selected='selected'"; } ?>>手机号</option>
-                                    <option value="rebate_id"
-                                    <?php if(I('query_name')=='rebate_id'){ echo "selected='selected'"; } ?>
-                                    >返利ID</option>
                                     <option value="customer.wx_openid.customer_id"
                                     <?php if(I('query_name')=='customer.wx_openid.customer_id'){ echo "selected='selected'"; } ?>
                                     >openid</option>
-                                    <option value="customer.weixin_appid.customer_id"
-                                    <?php if(I('query_name')=='customer.weixin_appid.customer_id'){ echo "selected='selected'"; } ?>
-                                    >appid</option>
                                 </select>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="hidden" name="customer_id" value="{:I('customer_id')}">
+                                    <input type="text" name="key" placeholder="请输入套餐/单号/手机号" value="{:I('key')}"
+                                           class="input-sm form-control">
+                                    <span class="input-group-btn"><button type="button" id="search"
+                                                                          class="btn btn-sm btn-primary"
+                                                                          url="{:U('index')}"> 搜索</button></span>
+                                </div>
                             </div>
                         </div>
 
@@ -158,17 +124,14 @@
                             <thead>
                             <tr>
                                 <th><input type="checkbox" class="i-checks check-all">全选</th>
-                                <th>序号</th>
                                 <th>运单信息</th>
                                 <th>运单状态</th>
                                 <th>客户信息</th>
                                 <th>体积信息</th>
                                 <th>重量信息</th>
                                 <th>其它费用</th>
-                                <td>运费状态</td>
-                                <th>支付金额</th>
-                                <th>时间</th>
-                                <th>返利</th>
+                                <th>运费信息</th>
+                                <th>支付明细</th>
                                 <th>操作</th>
                             </tr>
                             </thead>
@@ -176,62 +139,72 @@
                             {volist name="_list" id="vo"}
                             <tr>
                                 <td style="width: 70px;">
-                                    <span>1</span>
+                                    <input type="checkbox" class="i-checks ids" name="id[]" value="{$vo.id}">
                                 </td>
-                                <td style="font-size: 12px;">
+                                <td style="font-size: 12px; width: 200px;">
                                     运单编号:{$vo.trackingNum}<br/>
-                                    下单时间:{$vo.createDate}<br/>
-                                    下单渠道: QBD-申通-通票-QYA
+                                    下单时间:{$vo.create_time}<br/>
+                                    下单渠道: {$vo.channelName}
                                 </td>
-                                <td>
-                                    手动取消<br/>
-                                    运单详情</br>
-                                </td>
-                                <td>
-                                    寄件姓名: {$vo.sender_name}
-                                    寄件电话: {$vo.sender_phone}
-                                    寄件城市: {$vo.senderCity}
-                                    收件姓名: {$vo.receiveName}
-                                    收件电话: {$vo.receivePhone}
-                                    收件城市: {$vo.receiveCity}
-                                    物品名称: {$vo.receiveAddress}
-                                </td>
-                                <td>
-                                    体积: 0.001m³
-                                    换算: 0.17kg
-                                    取整: 1kg
-                                </td>
-                                <td>
-                                    下单重量: 1kg
-                                    实际重量: 0kg
-                                    计费重量: 0kg
-                                </td>
-                                <td>
-                                    保价费: 0元
-                                    耗材费: 0元
-                                </td>
-                                <td>
+                                <td style="text-align: center">
+                                    {$vo.statusName}<br/>
+                                    <div class="form-group">
+                                        <span style="display: none" id="order_id">{$vo.id}</span>
+                                        <button type="button" id="express_trail"
+                                                class="btn btn-sm btn-primary" >运单详细
+                                        </button>
+                                    </div>
 
                                 </td>
-                                <td>{$vo.total_price}</td>
                                 <td>
-                                    快递费用: 0元
-                                    总计费用: 0元
-                                    下单运费
-                                    已扣
+                                    <span style="color: #000;font-weight: 700">寄件姓名: {$vo.sender_name}</span><br/>
+                                    寄件电话: {$vo.sender_phone}<br/>
+                                    寄件城市: {$vo.senderCity}<br/>
+                                    <span style="color: #000;font-weight: 700">收件姓名: {$vo.receiveName}</span><br/>
+                                    收件电话: {$vo.receivePhone}<br/>
+                                    收件城市: {$vo.receiveCity}<br/>
+                                    物品名称: {$vo.goods}<br/>
+                                </td>
+                                <td>
+                                    体积: {$vo.volume}m³<br/>
+                                    换算: {$vo.volumeWeight}kg<br/>
+                                    取整: {$vo.volumeWeight}kg
+                                </td>
+                                <td>
+                                    下单重量: {$vo.weight}kg<br/>
+                                    实际重量: {$vo.weightActual}kg<br/>
+                                    计费重量: {$vo.weightBill}kg
+                                </td>
+                                <td>
+                                    保价费: {$vo.insuranceFee}元<br/>
+                                    耗材费: {$vo.consumeFee}元<br/>
+                                    服务费: {$vo.serviceCharge}元<br/>
+                                    其它费: {$vo.otherFee}元
+                                </td>
+                                <td>
+                                    快递费用: {$vo.totalPrice}元<br/>
+                                    总计费用: {$vo.totalPrice}元<br/>
+                                    渠道费用：{$vo.channelToatlPrice}元
+                                </td>
+                                <td>
+                                    首次支付：{$vo.totalPrice}元<br/>
+                                    补差价超重1kg：{$vo.totalPrice}元
                                 </td>
                                 <td style="font-size: 12px;">
-                                    1
+                                        <button class="btn btn-sm btn-danger ajax-post" target-form="i-checks"
+                                                href="{:U('refund')}" title="多选框选中的订单">
+                                                取消运单
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-sm btn-primary"
+                                                url="{:U('out_excel')}" title="筛选条件中的所有订单"> 远程生单
+                                        </button>
+                                        <button class="btn btn-sm btn-warning ajax-post" target-form="i-checks"
+                                                href="{:U('updateRemoteOrder?channel_order_id='.$vo.channel_order_id.'&type='.$vo.type)}" title="多选框选中的订单">
+                                            更新渠道信息
+                                        </button>
                                 </td>
-                                <td style="font-size: 12px;">
-                                    2
-                                </td>
-                                <td style="font-size: 12px;">
-                                    3
-                                </td>
-                                <td style="font-size: 12px;">
-                                    4
-                                </td>
+
                             </tr>
                             {/volist}
                             </tbody>
@@ -271,6 +244,22 @@
             layer.closeAll();
         });
     });
+
+
+    $('#express_trail').click(function (){
+        console.log($("#channel_order_id_text").text())
+
+        layer.open({
+            type:2,
+            fixed: false, //不固定
+            maxmin: true,
+            title: false,
+            area: ['630px', '360px'],
+            shade: 0.8,
+            title: '快递轨迹',
+            content: "{:U('express_trail')}?id="+$("#order_id").text()
+        });
+    })
 </script>
 <script>
     $(document).ready(function () {

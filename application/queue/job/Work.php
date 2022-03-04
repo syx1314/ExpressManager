@@ -5,11 +5,12 @@ namespace app\queue\job;
 use app\common\controller\Base;
 use app\common\library\Createlog;
 use app\common\model\Porder;
+use app\common\model\Expressorder;
 use think\Log;
 use think\queue\Job;
 
 /**
- 
+
  **/
 class Work extends Base
 {
@@ -42,6 +43,12 @@ class Work extends Base
         Porder::subApi($porder_id);
         $job->delete();
     }
+    //提交远程快递生单
+    public function createChannelExpressApi(Job $job, $order_id) {
+       Expressorder::createChannelExpress($order_id);
+       $job->delete();
+    }
+    //定时任务 拉取远程 订单详情
     //批量提交接口充值
     public function pordersSubApi(Job $job, $data)
     {

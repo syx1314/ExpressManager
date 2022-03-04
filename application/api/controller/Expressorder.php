@@ -31,6 +31,7 @@ class Expressorder extends Home
         $receivePhone= $res['receivePhone'];
         $weight= $res['weight'];
         $goods= $res['goods'];
+        $packageNum= $res['packageNum'];
         $insuredValue= $res['insuredValue'];
         $guaranteeValueAmount= $res['guaranteeValueAmount'];
         $remark= $res['remark'];;// 面单备注
@@ -43,7 +44,7 @@ class Expressorder extends Home
         // 根据查到的价格 创建本地订单 跳起支付 支付完毕远程生单
         if ($priceRes['errno'] ==0) {
             $res= ExpressorderModel::createOrder($userid,$senderName,$senderPhone,$senderCity,$senderAddress,$receiveName,$receivePhone,$receiveCity,$receiveAddress,null,$goods,
-                $guaranteeValueAmount,$insuredValue,$orderSendTime,$remark,$type,$senderText,$receiveText,$weight,'',$priceRes);
+               $packageNum, $guaranteeValueAmount,$insuredValue,$orderSendTime,$remark,$type,$senderText,$receiveText,$weight,'',$priceRes['data']);
             if ($res['errno'] ==0) {
                 return  rjson(0,'下单成功',$res['data']);
             }else{
@@ -78,6 +79,7 @@ class Expressorder extends Home
     //创建支付
     public function topay()
     {
+        Log::error("cline".$this->client);
         $res = ExpressorderModel::create_pay(I('order_id'), I('paytype'), $this->client);
         return djson($res['errno'], $res['errmsg'], $res['data']);
     }
@@ -98,6 +100,39 @@ class Expressorder extends Home
         } else {
             return djson(1, "暂无订单记录");
         }
+    }
+    // 查询订单详情
+    public function queryOrderDetail() {
+        $id= I('id');
+        // 1. 查找本地
+        $order =M('expressorder') -> where(['id'=>$id])->find();
+        //2. 查询渠道订单详情
+        if ($order['channel_order_id']) {
+            $qbd = new Qbd();
+            $channelOrderInfo= $qbd->checkOrder($order['channel_order_id'],$order['type']);
+            // 返回的数组
+            if ($channelOrderInfo) {
+                $channelOrder= $channelOrderInfo['data']['order'];
+                $order['rackingNum'] = $channelOrder['waybillNo'];
+                $order['volume'] = $channelOrder['volume'];
+                $order['volumeWeight'] = $channelOrder['volumeWeight'];
+                $order['weightActual'] = $channelOrder['weightFinal'];// 实际重量
+                $order['weightBill'] = $channelOrder['weightFee'];// 计费重量
+                $order['guaranteeValueAmount'] = $channelOrder['insuredValue'];// 保价价格
+                $order['insuranceFee'] = $channelOrder['insuredFee'];// 保价费
+                $order['channelToatlPrice'] = $channelOrder['total'];// 渠道总价格
+                $order['status'] = $channelOrder['status'];// 运单状态
+                $order['statusName'] = $channelOrder['orderStatus'];// 运单状态
+                $order['overWeightStatus'] = $channelOrder['overweightStatus'];// 1 超重 2 超重/耗材/保价/转寄/加长已处理  3 超轻
+                $order['otherFee'] = $channelOrder['otherFee'];// 其它费用
+                $order['consumeFee'] = $channelOrder['consumables'];// 耗材费用
+                $order['serviceCharge'] = $channelOrder['serviceCharge'];// 服务费
+                $order['soliciter'] = $channelOrder['soliciter'];// 揽件员
+                $order['traceList'] = $channelOrderInfo['data']['traceList'];//轨迹
+            }
+        }
+
+        return djson(0, "ok", $order);
     }
     // 地址解析
     public function nlpAddress() {
