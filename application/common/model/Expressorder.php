@@ -20,7 +20,7 @@ use think\Model;
  **/
 class Expressorder extends Model
 {
-    const PR = 'DASHAN';
+    const PR = 'SAN';
 
     protected $append = ['status_text', 'status_text2', 'create_time_text'];
 
@@ -190,7 +190,13 @@ class Expressorder extends Model
         $data['fee'] = $priceRes['fee'];;
         $data['fee1'] = $priceRes['fee1'];;
         $data['serviceCharge'] = $priceRes['serviceCharge'];;
-        $data['remark1'] = $priceRes['remark1']; //计泡比等描述
+        $remark= '';
+        if (isset($priceRes['remark1'])){
+            $remark = $priceRes['remark1'];
+        }else if (isset($priceRes['remark'])) {
+            $remark = $priceRes['remark'];
+        }
+        $data['remark1'] = $remark; //计泡比等描述
         $data['channelToatlPrice'] = $priceRes['totalFee'];;
         $data['channelName'] = $priceRes['name'];;
         // 计算自己的价格
@@ -252,15 +258,15 @@ class Expressorder extends Model
         if (!$order) {
             return rjson(1, '订单无需支付' . $aid);
         }
-        $customer = M('customer')->where(['id' => $order['customer_id']])->find();
+        $customer = M('customer')->where(['id' => $order['userid']])->find();
         if (!$customer) {
             return rjson(1, '用户数据不存在');
         }
         return PayWay::create($payway, $client, [
             'openid' => $customer['wx_openid'] ? $customer['wx_openid'] : $customer['ap_openid'],
-            'body' => $order['body'],
-            'order_number' => $order['order_number'],
-            'total_price' => $order['total_price'],
+            'body' => '快递支付订单号:'.$order['out_trade_num'],
+            'order_number' => $order['out_trade_num'],
+            'total_price' => '0.01',
             'appid' => $customer['weixin_appid']
         ]);
     }
@@ -303,10 +309,10 @@ class Expressorder extends Model
             "packageNum"=>$porder['packageNum'],
             "senderName"=>$porder['sender_name'],
             "senderCity"=>$porder['senderProvince'].$porder['senderCity'].$porder['senderCounty'].$porder['senderTown'],
-            "senderAddress"=>$porder['sender_address'],
+            "senderAddress"=>$porder['senderProvince'].$porder['senderCity'].$porder['senderCounty'].$porder['senderTown'].$porder['sender_address'],
             "senderPhone"=>$porder['sender_phone'],
             "receiveName"=>$porder['receiveName'],
-            "receiveAddress"=>$porder['receiveAddress'],
+            "receiveAddress"=>$porder['receiveProvince'].$porder['receiveCity'].$porder['receiveCounty'].$porder['receiveTown'].$porder['receiveAddress'],
             "receiveCity"=>$porder['receiveProvince'].$porder['receiveCity'].$porder['receiveCounty'].$porder['receiveTown'],
             "receivePhone"=>$porder['receivePhone'],
             "weight"=>$porder['weight'],
@@ -322,7 +328,7 @@ class Expressorder extends Model
             "isThird"=>true,
             "isInsured"=>true,
             "fee1"=>$porder['fee1'],
-            "remark1"=>"",
+            "remark1"=>$porder['remark1'],
             "type"=>$porder['type'],
             "sadd"=>$porder['sender_address'],
         ];

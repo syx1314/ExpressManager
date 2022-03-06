@@ -153,8 +153,8 @@
                                     {$vo.statusName}<br/>
                                     <div class="form-group">
                                         <span style="display: none" id="order_id">{$vo.id}</span>
-                                        <button type="button" id="express_trail"
-                                                class="btn btn-sm btn-primary" >运单详细
+                                        <button type="button"
+                                                class="btn btn-sm btn-primary express_trail" value="{$vo.id}">运单详细
                                         </button>
                                     </div>
 
@@ -249,7 +249,7 @@
     });
 
 
-    $('#express_trail').click(function (){
+    $('.express_trail').click(function (){
         layer.open({
             type:2,
             fixed: false, //不固定
@@ -258,7 +258,7 @@
             area: ['800px', '560px'],
             shade: 0.8,
             title: false,
-            content: "{:U('express_trail')}?id="+$("#order_id").text()
+            content: "{:U('express_trail')}?id="+$(this).val()
         });
     })
 </script>
