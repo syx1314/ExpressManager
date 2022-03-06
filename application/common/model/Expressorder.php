@@ -8,13 +8,10 @@
 
 namespace app\common\model;
 
-use app\api\controller\Notify;
 use app\common\library\Createlog;
 use app\common\library\Notification;
 use app\common\library\PayWay;
-use app\common\library\Rechargeapi;
 use app\common\library\Wxrefundapi;
-use app\common\model\Porder as PorderModel;
 use Recharge\Qbd;
 use think\Log;
 use think\Model;
@@ -155,19 +152,26 @@ class Expressorder extends Model
      * @param $priceRes // 价格查询结果
      * @return array|\think\response\Json
      */
-    public static function createOrder($userid,$sender_name, $sender_phone, $senderCity, $sender_address, $receiveName, $receivePhone, $receiveCity, $receiveAddress,
-                                       $deliveryType, $goods,$packageNum, $guaranteeValueAmount, $insuranceFee, $order_send_time, $remark, $type, $senderText, $receiveText, $weight, $out_trade_num, $priceRes)
+    public static function createOrder($userid,$sender_name, $sender_phone,$senderProvince, $senderCity,$senderCounty,$senderTown, $sender_address, $receiveName, $receivePhone,
+                                       $receiveProvince, $receiveCity,$receiveCounty, $receiveTown,  $receiveAddress, $deliveryType, $goods,$packageNum, $guaranteeValueAmount,
+                                       $insuranceFee, $order_send_time, $remark, $type, $senderText, $receiveText, $weight, $out_trade_num, $priceRes)
     {
 
         $data['out_trade_num'] = $out_trade_num;
         $data['userid'] = $userid;
         $data['sender_name'] = $sender_name;
         $data['sender_phone'] = $sender_phone;
+        $data['senderProvince'] = $senderProvince;
         $data['senderCity'] = $senderCity;
+        $data['senderCounty'] = $senderCounty;
+        $data['senderTown'] = $senderTown;
         $data['sender_address'] = $sender_address;
         $data['receiveName'] = $receiveName;
         $data['receivePhone'] = $receivePhone;
+        $data['receiveProvince'] = $receiveProvince;
         $data['receiveCity'] = $receiveCity;
+        $data['receiveCounty'] = $receiveCounty;
+        $data['receiveTown'] = $receiveTown;
         $data['receiveAddress'] = $receiveAddress;
         $data['deliveryType'] = $deliveryType;
         $data['goods'] = $goods;
@@ -179,7 +183,6 @@ class Expressorder extends Model
         $data['type'] = $type;
         $data['senderText'] = $senderText;
         $data['receiveText'] = $receiveText;
-        $data['type'] = $type;
         $data['weight'] = $weight;
         $data['channelPriceA'] = $priceRes['priceA'];
         $data['channelPriceB'] = $priceRes['priceB'];
@@ -187,6 +190,7 @@ class Expressorder extends Model
         $data['fee'] = $priceRes['fee'];;
         $data['fee1'] = $priceRes['fee1'];;
         $data['serviceCharge'] = $priceRes['serviceCharge'];;
+        $data['remark1'] = $priceRes['remark1']; //计泡比等描述
         $data['channelToatlPrice'] = $priceRes['totalFee'];;
         $data['channelName'] = $priceRes['name'];;
         // 计算自己的价格
@@ -200,7 +204,46 @@ class Expressorder extends Model
         return rjson(0, '下单成功', $model->id);
     }
 
-
+    /**
+     * @param $channel_order_id  渠道id
+     * @param $type  快递类型
+     * @return \think\response\Json
+     * @throws \think\Exception
+     * @throws \think\exception\PDOException
+     */
+    public static function fetchRemoteOrder($channel_order_id,$type) {
+        Log::error("aaaaaaa");
+        if ($channel_order_id && $type) {
+            $qbd = new Qbd();
+            $channelOrderInfo= $qbd->checkOrder($channel_order_id,$type);
+            // 返回的数组
+            if ($channelOrderInfo && $channelOrderInfo['errno']==0) {
+                $channelOrder= $channelOrderInfo['data']['order'];
+                $order['trackingNum'] = $channelOrder['waybillNo'];
+                $order['volume'] = $channelOrder['volume'];
+                $order['volumeWeight'] = $channelOrder['volumeWeight'];
+                $order['weightActual'] = $channelOrder['weightFinal'];// 实际重量
+                $order['weightBill'] = $channelOrder['weightFee'];// 计费重量
+                $order['guaranteeValueAmount'] = $channelOrder['insuredValue'];// 保价价格
+                $order['insuranceFee'] = $channelOrder['insuredFee'];// 保价费
+                $order['channelToatlPrice'] = $channelOrder['total'];// 渠道总价格
+                $order['status'] = $channelOrder['status'];// 运单状态
+                $order['statusName'] = $channelOrder['orderStatus'];// 运单状态
+                $order['overWeightStatus'] = $channelOrder['overweightStatus'];// 1 超重 2 超重/耗材/保价/转寄/加长已处理  3 超轻
+                $order['otherFee'] = $channelOrder['otherFee'];// 其它费用
+                $order['consumeFee'] = $channelOrder['consumables'];// 耗材费用
+                $order['serviceCharge'] = $channelOrder['serviceCharge'];// 服务费
+                $order['soliciter'] = $channelOrder['soliciter'];// 揽件员
+                self::where(['channel_order_id'=>$channel_order_id])->setField($order);
+                $order['traceList'] = $channelOrderInfo['data']['traceList'];//轨迹
+                return rjson(0,'拉取订单成功',$order);
+            }else{
+                return rjson(1,$channelOrderInfo['errmsg'],null);
+            }
+        }else {
+            return rjson(1,'参数 有误',null);
+        }
+    }
     //生成支付数据
     public static function create_pay($aid, $payway, $client)
     {
@@ -259,12 +302,12 @@ class Expressorder extends Model
             "id"=>0,
             "packageNum"=>$porder['packageNum'],
             "senderName"=>$porder['sender_name'],
-            "senderCity"=>$porder['senderCity'],
+            "senderCity"=>$porder['senderProvince'].$porder['senderCity'].$porder['senderCounty'].$porder['senderTown'],
             "senderAddress"=>$porder['sender_address'],
             "senderPhone"=>$porder['sender_phone'],
             "receiveName"=>$porder['receiveName'],
             "receiveAddress"=>$porder['receiveAddress'],
-            "receiveCity"=>$porder['receiveCity'],
+            "receiveCity"=>$porder['receiveProvince'].$porder['receiveCity'].$porder['receiveCounty'].$porder['receiveTown'],
             "receivePhone"=>$porder['receivePhone'],
             "weight"=>$porder['weight'],
             "goods"=>$porder['goods'],
@@ -286,6 +329,12 @@ class Expressorder extends Model
         Log::error("渠道生单发起请求".$order_id);
         $res=$qbd->createOrder($data);
         Log::error("渠道生单结果".json_encode($res));
+        //远程生单结果完成 讲 id  和渠道 id 放到redis中
+        if ($res['errno'] == 0){
+
+        }else {
+            return  rjson(1, $res['errmsg']);
+        }
         return rjson(0, '提交接口工作完成');
     }
 
@@ -475,83 +524,6 @@ class Expressorder extends Model
             M('porder')->where(['id' => $porder_id])->setField(['is_rebate' => 1, 'rebate_time' => time()]);
             Balance::revenue($porder['rebate_id'], $porder['rebate_price'], '用户充值返利，单号' . $porder['order_number'], Balance::STYLE_REWARDS, '系统');
         }
-    }
-
-
-    //代理excel下单
-    public static function agentExcelOrder($id)
-    {
-        $item = M('agent_proder_excel')->where(['status' => 2, 'id' => $id])->find();
-        if (!$item) {
-            return rjson(1, '订单不可推送');
-        }
-        M('agent_proder_excel')->where(['status' => 2, 'id' => $id])->setField(['status' => 3]);
-        $res = PorderModel::createOrder($item['mobile'], $item['product_id'], $item['area'], $item['customer_id'], Client::CLIENT_AGA, '导入下单', $item['out_trade_num']);
-        if ($res['errno'] != 0) {
-            M('agent_proder_excel')->where(['id' => $item['id']])->setField(['status' => 5, 'resmsg' => $res['errmsg']]);
-            return rjson(1, '下单失败,' . $res['errmsg']);
-        }
-        $aid = $res['data'];
-        self::compute_rebate($aid);
-        Createlog::porderLog($aid, "代理后台批量下单成功");
-        $porder = M('porder')->where(['id' => $aid])->field("id,order_number,mobile,product_id,total_price,create_time,guishu,title,out_trade_num")->find();
-        $ret = Balance::expend($item['customer_id'], $porder['total_price'], "代理商后台为号码：" . $porder['mobile'] . ",充值产品：" . $porder['title'] . "，单号" . $porder['order_number'], Balance::STYLE_ORDERS, '代理商_导入');
-        if ($ret['errno'] != 0) {
-            M('agent_proder_excel')->where(['id' => $item['id']])->setField(['status' => 5, 'resmsg' => $ret['errmsg']]);
-            return rjson(1, '下单支付失败,' . $res['errmsg']);
-        }
-        Createlog::porderLog($aid, "余额支付成功");
-        $porder = M('porder')->where(['id' => $aid])->field("id,order_number")->find();
-        M('agent_proder_excel')->where(['id' => $item['id']])->setField(['status' => 4, 'order_number' => $porder['order_number']]);
-
-        $noticy = new Notify();
-        $noticy->balance($porder['order_number']);
-        return rjson(1, '下单成功');
-    }
-
-    //代理api下单支付
-    public static function agentApiPayPorder($porder_id, $customer_id, $notify_url)
-    {
-        self::where(['id' => $porder_id])->setField(['notify_url' => $notify_url]);
-        self::compute_rebate($porder_id);
-        Createlog::porderLog($porder_id, "用户下单成功");
-        $porder = M('porder')->where(['id' => $porder_id])->field("id,order_number,remark,mobile,product_id,total_price,create_time,guishu,title,out_trade_num")->find();
-        $ret = Balance::expend($customer_id, $porder['total_price'], "api为号码：" . $porder['mobile'] . ",充值产品：" . $porder['title'] . "，单号" . $porder['order_number'], Balance::STYLE_ORDERS, '用户自己api');
-        if ($ret['errno'] != 0) {
-            Createlog::porderLog($porder_id, $ret['errmsg']);
-            M('porder')->where(['id' => $porder_id])->setField(['remark' => $porder['remark'] . '|' . $ret['errmsg']]);
-            queue('app\queue\job\Work@callFunc', ['class' => '\app\common\library\Notification', 'func' => 'rechargeFail', 'param' => $porder['id']]);
-            return rjson($ret['errno'], $ret['errmsg']);
-        }
-        Createlog::porderLog($porder_id, "余额支付成功");
-        $noticy = new Notify();
-        $noticy->balance($porder['order_number']);
-        return rjson(0, '操作成功');
-    }
-
-
-    //后台excel导入订单
-    public static function adminExcelOrder($id)
-    {
-        $cus = M('customer')->where(['id' => C('PORDER_EXCEL_CUSID'), 'is_del' => 0])->find();
-        if (!$cus) {
-            return rjson(1, '未找到正确的导入用户ID,点击导入设置配置用户ID');
-        }
-        $item = M('proder_excel')->where(['id' => $id, 'status' => 2])->find();
-        if (!$item) {
-            return rjson(1, '不可推送');
-        }
-        M('proder_excel')->where(['status' => 2, 'id' => $id])->setField(['status' => 3]);
-        $res = PorderModel::createOrder($item['mobile'], $item['product_id'], $item['area'], $cus['id'], Client::CLIENT_ADM, '导入下单');
-        if ($res['errno'] != 0) {
-            M('proder_excel')->where(['id' => $item['id']])->setField(['status' => 5, 'resmsg' => $res['errmsg']]);
-            return rjson(1, '下单失败,' . $res['errmsg']);
-        }
-        $porder = M('porder')->where(['id' => $res['data']])->field("id,order_number")->find();
-        M('proder_excel')->where(['id' => $item['id']])->setField(['status' => 4, 'order_number' => $porder['order_number']]);
-        $noticy = new Notify();
-        $noticy->offline($porder['order_number']);
-        return rjson('成功推送');
     }
 
 

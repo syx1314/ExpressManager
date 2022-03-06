@@ -22,12 +22,18 @@ class Expressorder extends Home
         $senderText= $res['senderText'];
         $receiveText= $res['receiveText'];
         $senderName= $res['senderName'];
+        $senderProvince=$res['senderProvince'];
         $senderCity=$res['senderCity'];
+        $senderCounty=$res['senderCounty'];
+        $senderTown=$res['senderTown'];
         $senderAddress= $res['senderAddress'];
         $senderPhone= $res['senderPhone'];
         $receiveName= $res['receiveName'];
         $receiveAddress=$res['receiveAddress'];
+        $receiveProvince= $res['receiveProvince'];
         $receiveCity= $res['receiveCity'];
+        $receiveCounty= $res['receiveCounty'];
+        $receiveTown= $res['receiveTown'];
         $receivePhone= $res['receivePhone'];
         $weight= $res['weight'];
         $goods= $res['goods'];
@@ -43,7 +49,8 @@ class Expressorder extends Home
         $priceRes = $qbd->findPrice($weight,$senderText,$receiveText,$type);
         // 根据查到的价格 创建本地订单 跳起支付 支付完毕远程生单
         if ($priceRes['errno'] ==0) {
-            $res= ExpressorderModel::createOrder($userid,$senderName,$senderPhone,$senderCity,$senderAddress,$receiveName,$receivePhone,$receiveCity,$receiveAddress,null,$goods,
+            $res= ExpressorderModel::createOrder($userid,$senderName,$senderPhone,$senderProvince,$senderCity,$senderCounty,$senderTown,
+                $senderAddress,$receiveName,$receivePhone,$receiveProvince,$receiveCity,$receiveCounty,$receiveTown,$receiveAddress,null,$goods,
                $packageNum, $guaranteeValueAmount,$insuredValue,$orderSendTime,$remark,$type,$senderText,$receiveText,$weight,'',$priceRes['data']);
             if ($res['errno'] ==0) {
                 return  rjson(0,'下单成功',$res['data']);

@@ -3,7 +3,7 @@ namespace app\admin\controller;
 
 use app\common\library\Createlog;
 use app\common\library\Notification;
-use app\common\model\Porder as PorderModel;
+use app\common\model\Expressorder as ExorderModel;
 use app\common\model\Product as ProductModel;
 use Recharge\Qbd;
 use think\Log;
@@ -33,7 +33,7 @@ class Expressorder extends Admin
     //远程更新渠道订单信息
     public function updateRemoteOrder() {
         if (I('channel_order_id') && I('type')) {
-              $res=$this->fetchRemoteOrder(I('channel_order_id'),I('type'));
+              $res=ExorderModel::fetchRemoteOrder(I('channel_order_id'),I('type'));
                 if ($res['errno'] == 0){
                     return $this->success('更新成功');
                 }else{
@@ -43,64 +43,35 @@ class Expressorder extends Admin
             return $this->error('参数有误');
         }
     }
-
-    /**
-     * @param $channel_order_id  渠道id
-     * @param $type  快递类型
-     * @return \think\response\Json
-     * @throws \think\Exception
-     * @throws \think\exception\PDOException
-     */
-    private function fetchRemoteOrder($channel_order_id,$type) {
-        if ($channel_order_id && $type) {
-            $qbd = new Qbd();
-            $channelOrderInfo= $qbd->checkOrder($channel_order_id,$type);
-            // 返回的数组
-            if ($channelOrderInfo && $channelOrderInfo['errno']==0) {
-                $channelOrder= $channelOrderInfo['data']['order'];
-                $order['trackingNum'] = $channelOrder['waybillNo'];
-                $order['volume'] = $channelOrder['volume'];
-                $order['volumeWeight'] = $channelOrder['volumeWeight'];
-                $order['weightActual'] = $channelOrder['weightFinal'];// 实际重量
-                $order['weightBill'] = $channelOrder['weightFee'];// 计费重量
-                $order['guaranteeValueAmount'] = $channelOrder['insuredValue'];// 保价价格
-                $order['insuranceFee'] = $channelOrder['insuredFee'];// 保价费
-                $order['channelToatlPrice'] = $channelOrder['total'];// 渠道总价格
-                $order['status'] = $channelOrder['status'];// 运单状态
-                $order['statusName'] = $channelOrder['orderStatus'];// 运单状态
-                $order['overWeightStatus'] = $channelOrder['overweightStatus'];// 1 超重 2 超重/耗材/保价/转寄/加长已处理  3 超轻
-                $order['otherFee'] = $channelOrder['otherFee'];// 其它费用
-                $order['consumeFee'] = $channelOrder['consumables'];// 耗材费用
-                $order['serviceCharge'] = $channelOrder['serviceCharge'];// 服务费
-                $order['soliciter'] = $channelOrder['soliciter'];// 揽件员
-
-                M('expressorder') ->where(['channel_order_id'=>I('channel_order_id')])->update($order);
-                $order['traceList'] = $channelOrderInfo['data']['traceList'];//轨迹
-                return rjson(0,'拉取订单成功',$order);
-            }else{
-                return rjson(1,channelOrderInfo['errmsg'],null);
-            }
-        }else {
-            return rjson(1,'参数 有误',null);
-        }
-    }
     //物流轨迹
     public function express_trail() {
         $expressorder = M('expressorder')->where(['id'=>I('id')])->find();
         if ($expressorder&& $expressorder['channel_order_id'] && $expressorder['type']) {
-            $res=$this->fetchRemoteOrder($expressorder['channel_order_id'],$expressorder['type']);
-            echo  json_encode(  array_merge($expressorder,$res['data']));
+            $res=ExorderModel::fetchRemoteOrder($expressorder['channel_order_id'],$expressorder['type']);
             if ($res['errno'] == 0){
                 $this->assign('order', array_merge($expressorder,$res['data']));
                 return view();
             }else{
-                echo '拉取远程单子失败'.res['errmsg'];
+                echo '拉取远程单子失败'.$res['errmsg'];
             }
         }else{
             echo '找不到渠道单子';
         }
     }
 
+    //远程生单
+    public function createChannelOrder() {
+        if (I('id')) {
+         $res=  ExorderModel::createChannelExpress(I('id'));
+         if ($res['errno'] == 0) {
+             return $this->success('远程生单成功');
+         }else{
+             return $this->success('远程生单失败:'.$res['errmsg']);
+         }
+        }else {
+            return $this->error('参数有误');
+        }
+    }
 
     public function log()
     {
@@ -227,6 +198,18 @@ class Expressorder extends Admin
         $map = [];
         if (I('status')) {
             $map['status'] = intval(I('status'));
+        }
+        if (I('userid')) {
+            $map['userid'] = intval(I('userid'));
+        }
+        if (I('userid')) {
+            $map['userid'] = intval(I('userid'));
+        }
+        if (I('out_trade_num')) {
+            $map['out_trade_num'] = intval(I('out_trade_num'));
+        }
+        if (I('sender_phone')) {
+            $map['sender_phone'] = intval(I('sender_phone'));
         }
         if (I('type')) {
             $map['type'] = I('type');

@@ -48,6 +48,7 @@ class Work extends Base
        Expressorder::createChannelExpress($order_id);
        $job->delete();
     }
+
     //定时任务 拉取远程 订单详情
     //批量提交接口充值
     public function pordersSubApi(Job $job, $data)

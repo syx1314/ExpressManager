@@ -5,88 +5,103 @@
     }
     .express_info {
         overflow: hidden;
-        margin-top: 64px;
+        margin-top: 45px;
     }
     .leftBox,
     .sender_box,
     .receive_box{
         float: left;
-        margin-left: 20px;
+        margin-left: 30px;
         overflow: hidden;
         width: 200px;
     }
-
+    .time_line_box {
+        margin: 20px;
+    }
+    .layui-timeline-title {
+        font-size: 14px !important;
+    }
+    .title {
+        margin-bottom: 20px;
+    }
+    .common_text {
+        line-height: 20px;
+    }
+    .refresh {
+        color: #17b3a3;
+    }
 </style>
-<body class="gray-bg">
+<body class="gray-bg" style="background-color: #FFFFFF">
 
 <div class="express_info">
     <div class="leftBox">
-        运单号：{$order.trackingNum}</br>
-        订单号：YTKD164636202661896</br>
-        下单人：13102101195
+        <div class="common_text">
+            运单号：{$order.trackingNum}
+        </div>
+        <div class="common_text">
+            订单号：{$order.out_trade_num}
+        </div>
     </div>
     <div class="sender_box">
-        寄件信息</br>
-        {$order.sender_name}</br>
-        {$order.sender_phone}</br>
-        {$order.senderCity}{$order.sender_address}</br>
-        物品信息</br>
-        托寄物：{$order.goods}</br>
-        包裹数：{$order.packageNum}</br>
-        保价：{$order.guaranteeValueAmount}
+        <div class="common_text">
+            寄件信息
+        </div>
+        <div class="common_text">
+            {$order.sender_name}
+        </div>
+        <div class="common_text">
+            {$order.sender_phone}
+        </div>
+        <div class="common_text">
+            {$order.senderCity}{$order.sender_address}
+        </div>
+        <div class="common_text">
+            物品信息
+        </div>
+        <div class="common_text">
+            托寄物：{$order.goods}
+        </div>
+        <div class="common_text">
+            包裹数：{$order.packageNum}
+        </div>
+        <div class="common_text">
+            保价：{$order.guaranteeValueAmount}
+        </div>
     </div>
     <div class="receive_box">
-        收件信息</br>
-        {$order.receiveName}</br>
-        {$order.receivePhone}</br>
-        {$order.receiveCity}{$order.receiveAddress}</br>
+
+        <div class="common_text">
+            收件信息
+        </div>
+        <div class="common_text">
+            {$order.receiveName}
+        </div>
+        <div class="common_text">
+            {$order.receivePhone}
+        </div>
+        <div class="common_text">
+            {$order.receiveCity}{$order.receiveAddress}
+        </div>
     </div>
 </div>
 
 
 <!--时间线-->
 <div class="time_line_box">
+    <div class="title">
+        <span>物流跟踪  </span>
+        <span class="refresh" onclick="location.reload()">刷新</span>
+    </div>
     <ul class="layui-timeline">
+        {volist name="order.traceList" id="vo"}
         <li class="layui-timeline-item">
             <i class="layui-icon layui-timeline-axis"></i>
             <div class="layui-timeline-content layui-text">
-                <h3 class="layui-timeline-title">8月18日</h3>
-                <p>
-                    layui 2.0 的一切准备工作似乎都已到位。发布之弦，一触即发。
-                    <br>不枉近百个日日夜夜与之为伴。因小而大，因弱而强。
-                    <br>无论它能走多远，抑或如何支撑？至少我曾倾注全心，无怨无悔 <i class="layui-icon"></i>
-                </p>
+                <h3 class="layui-timeline-title">{$vo.opeRemark}</h3>
+                <p>{$vo.opeTime}</p>
             </div>
         </li>
-        <li class="layui-timeline-item">
-            <i class="layui-icon layui-timeline-axis"></i>
-            <div class="layui-timeline-content layui-text">
-                <h3 class="layui-timeline-title">8月16日</h3>
-                <p>杜甫的思想核心是儒家的仁政思想，他有<em>“致君尧舜上，再使风俗淳”</em>的宏伟抱负。个人最爱的名篇有：</p>
-                <ul>
-                    <li>《登高》</li>
-                    <li>《茅屋为秋风所破歌》</li>
-                </ul>
-            </div>
-        </li>
-        <li class="layui-timeline-item">
-            <i class="layui-icon layui-timeline-axis"></i>
-            <div class="layui-timeline-content layui-text">
-                <h3 class="layui-timeline-title">8月15日</h3>
-                <p>
-                    中国人民抗日战争胜利日
-                    <br>铭记、感恩
-                    <br>所有为中华民族浴血奋战的英雄将士
-                    <br>永垂不朽
-                </p>
-            </div>
-        </li>
-        <li class="layui-timeline-item">
-            <i class="layui-icon layui-timeline-axis"></i>
-            <div class="layui-timeline-content layui-text">
-                <div class="layui-timeline-title">过去</div>
-            </div>
-        </li>
+        {/volist}
     </ul>
 </div>
 </div>

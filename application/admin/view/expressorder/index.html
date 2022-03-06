@@ -93,23 +93,20 @@
                                 <select class="input-sm form-control input-s-sm inline" name="query_name"
                                         style="width: auto;">
                                     <option value="">模糊</option>
-                                    <option value="customer_id"
-                                    <?php if(I('query_name')=='customer_id'){ echo "selected='selected'"; } ?>
+                                    <option value="userid"
+                                    <?php if(I('query_name')=='userid'){ echo "selected='selected'"; } ?>
                                     >用户ID</option>
-                                    <option value="order_number"
-                                    <?php if(I('query_name')=='order_number'){ echo "selected='selected'"; } ?>
+                                    <option value="out_trade_num"
+                                    <?php if(I('query_name')=='out_trade_num'){ echo "selected='selected'"; } ?>
                                     >订单号</option>
-                                    <option value="mobile"
-                                    <?php if(I('query_name')=='mobile'){ echo "selected='selected'"; } ?>>手机号</option>
-                                    <option value="customer.wx_openid.customer_id"
-                                    <?php if(I('query_name')=='customer.wx_openid.customer_id'){ echo "selected='selected'"; } ?>
-                                    >openid</option>
+                                    <option value="sender_phone"
+                                    <?php if(I('query_name')=='sender_phone'){ echo "selected='selected'"; } ?>>手机号</option>
                                 </select>
                             </div>
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input type="hidden" name="customer_id" value="{:I('customer_id')}">
-                                    <input type="text" name="key" placeholder="请输入套餐/单号/手机号" value="{:I('key')}"
+                                    <input type="hidden" name="userid" value="{:I('userid')}">
+                                    <input type="text" name="key" placeholder="请输入名字/单号/手机号" value="{:I('key')}"
                                            class="input-sm form-control">
                                     <span class="input-group-btn"><button type="button" id="search"
                                                                           class="btn btn-sm btn-primary"
@@ -124,6 +121,7 @@
                             <thead>
                             <tr>
                                 <th><input type="checkbox" class="i-checks check-all">全选</th>
+                                <th>客户信息</th>
                                 <th>运单信息</th>
                                 <th>运单状态</th>
                                 <th>客户信息</th>
@@ -142,7 +140,12 @@
                                     <input type="checkbox" class="i-checks ids" name="id[]" value="{$vo.id}">
                                 </td>
                                 <td style="font-size: 12px; width: 200px;">
+                                    ID:{$vo.userid}<br/>
+                                    昵称:{$vo.out_trade_num}<br/>
+                                </td>
+                                <td style="font-size: 12px; width: 200px;">
                                     运单编号:{$vo.trackingNum}<br/>
+                                    订单编号:{$vo.out_trade_num}<br/>
                                     下单时间:{$vo.create_time}<br/>
                                     下单渠道: {$vo.channelName}
                                 </td>
@@ -191,18 +194,18 @@
                                     补差价超重1kg：{$vo.totalPrice}元
                                 </td>
                                 <td style="font-size: 12px;">
-                                        <button class="btn btn-sm btn-danger ajax-post" target-form="i-checks"
-                                                href="{:U('refund')}" title="多选框选中的订单">
-                                                取消运单
-                                        </button>
-                                        <button type="button"
-                                                class="btn btn-sm btn-primary"
-                                                url="{:U('out_excel')}" title="筛选条件中的所有订单"> 远程生单
-                                        </button>
-                                        <button class="btn btn-sm btn-warning ajax-post" target-form="i-checks"
-                                                href="{:U('updateRemoteOrder?channel_order_id='.$vo.channel_order_id.'&type='.$vo.type)}" title="多选框选中的订单">
-                                            更新渠道信息
-                                        </button>
+                                    <button class="btn btn-sm btn-danger ajax-post" target-form="i-checks"
+                                            href="{:U('refund')}" title="多选框选中的订单">
+                                        取消运单
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-sm btn-primary ajax-post" target-form="i-checks"
+                                            href="{:U('createChannelOrder?id='.$vo.id)}" title="筛选条件中的所有订单"> 远程生单
+                                    </button>
+                                    <button class="btn btn-sm btn-warning ajax-post" target-form="i-checks"
+                                            href="{:U('updateRemoteOrder?channel_order_id='.$vo.channel_order_id.'&type='.$vo.type)}" title="多选框选中的订单">
+                                        更新渠道信息
+                                    </button>
                                 </td>
 
                             </tr>
@@ -247,16 +250,14 @@
 
 
     $('#express_trail').click(function (){
-        console.log($("#channel_order_id_text").text())
-
         layer.open({
             type:2,
             fixed: false, //不固定
             maxmin: true,
             title: false,
-            area: ['630px', '360px'],
+            area: ['800px', '560px'],
             shade: 0.8,
-            title: '快递轨迹',
+            title: false,
             content: "{:U('express_trail')}?id="+$("#order_id").text()
         });
     })
