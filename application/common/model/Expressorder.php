@@ -274,14 +274,15 @@ class Expressorder extends Model
     public static function notify($order_number, $payway, $serial_number)
     {
         //预下单 待支付
-        $porder = M('expressorder')->where(['out_trade_num' => $order_number, 'status' => 0])->find();
+        $porder = M('expressorder')->where(['out_trade_num' => $order_number, 'status' => -2])->find();
         Log::error("寻找快递单子".json_encode($porder));
         if (!$porder) {
             return rjson(1, '不存在订单');
         }
         Createlog::porderLog($porder['id'], "快递用户支付回调成功");
         //TODO 判断支付了多钱 比较
-        M('expressorder')->where(['id' => $porder['id'], 'status' => 0])->setField(['status' => 1, 'pay_time' => time(), 'pay_way' => $payway]);
+        //-2创建订单 -1 支付完成 0渠道预下单1待取件2运输中5已签收6取消订单7终止揽收
+        M('expressorder')->where(['id' => $porder['id'], 'status' => 0])->setField(['status' => -1, 'pay_time' => time(), 'pay_way' => $payway,'statusName'=>'支付完毕']);
         Log::error("修改快递状态代取件");
 //        //api下单队列放到队列去远程生单
         queue('app\queue\job\Work@createChannelExpressApi', $porder['id']);
@@ -337,6 +338,12 @@ class Expressorder extends Model
         Log::error("渠道生单结果".json_encode($res));
         //远程生单结果完成 讲 id  和渠道 id 放到redis中
         if ($res['errno'] == 0){
+            if ($res['data']) {
+             $resOrder = $res['data'];
+                self::where(['id'=>$order_id])->setField(['channel_order_id'=>$resOrder['id'],'volume'=>$resOrder['volume'],'volumeWeight'=>$resOrder['volumeWeight'],'status'=> 0,'statusName'=>'渠道预下单']);
+                $confirmRes=$qbd->checkOrder($resOrder['id'],$porder['type']);
+                return  rjson(1, $confirmRes['errmsg']);
+            }
 
         }else {
             return  rjson(1, $res['errmsg']);
@@ -344,6 +351,18 @@ class Expressorder extends Model
         return rjson(0, '提交接口工作完成');
     }
 
+    // 取消订单
+    public static function cancelOrder($order_id) {
+        $porder = M('expressorder')->where(['id' => $order_id])->find();
+        if (!$porder) {
+            return rjson(1, '找不到订单');
+        }
+        if (!$porder['channel_order_id']){
+            return rjson(1, '找不到渠道订单');
+        }
+       $qbd= new Qbd();
+       return $qbd->cancelOrder($porder['channel_order_id'],$porder['type']);
+    }
 
     //充值成功api
     public static function rechargeSusApi($api, $api_order_number, $data)

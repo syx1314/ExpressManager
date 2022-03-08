@@ -73,6 +73,20 @@ class Expressorder extends Admin
         }
     }
 
+    // 取消订单
+    public function cancelOrder() {
+        if (I('id')) {
+            $res=  ExorderModel::cancelOrder(I('id'));
+            if ($res['errno'] == 0) {
+                return $this->success('取消远程订单成功');
+            }else{
+                return $this->success('取消远程订单失败:'.$res['errmsg']);
+            }
+        }else {
+            return $this->error('参数有误');
+        }
+    }
+
     public function log()
     {
         $list = M('porder_log')->where(['porder_id' => I('id')])->order("id asc")->select();

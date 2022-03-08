@@ -12,8 +12,7 @@ use think\Log;
  **/
 class Qbd
 {
-
-
+    private $baseUrl='https://jdkd.ulifego.com';
     /**
      * @param $orderSendTime  //预约时间
      * @param $senderText  //寄件人文本
@@ -84,9 +83,32 @@ class Qbd
         $data['agentCode'] = '13102101195';
         // 查价格  计算总额 生成订单
         // 生成预生单
-      return  $this->http('https://jdkd.ulifego.com/ht/jdkd/jdkdorder/advanceOrder',$data);
+        //根据type 请求不同的地址
+        $url='';
+        if ($data['type'] ==1) {
+            //京东
+            $url ='/ht/jdkd/jdkdorder/advanceOrder';
+        }else if ($data['type'] ==2) {
+            //德邦
+            $url ='/ht/deppon/depponorder/advanceOrder';
+        }else if ($data['type'] ==5) {
+            //申通
+            $url ='/ht/sto/stoorder/advanceOrder';
+        }else if ($data['type'] ==6) {
+            //圆通
+            $url ='/ht/yto/ytoorder/advanceOrder';
+        }else if ($data['type'] ==7) {
+            //德邦航空
+            $url ='/ht/yto/ytoorder/advanceOrder';
+        }else if ($data['type'] ==13) {
+            //兔子
+            $url ='/ht/yto/ytoorder/advanceOrder';
+        }
+      return  $this->http($this->baseUrl.$url,$data);
 
     }
+
+    //
 
     // 地址解析
     public function nlpaddress($text) {
@@ -113,7 +135,7 @@ class Qbd
 //                "telPhone":null
 //                 }
 //        }
-        $res= $this->http('https://jdkd.ulifego.com/ht/common/nlpaddress?t='.$this->timeram().'&text='.urlencode($text).'&type=1',null);
+        $res= $this->http($this->baseUrl.'/ht/common/nlpaddress?t='.$this->timeram().'&text='.urlencode($text).'&type=1',null);
         if ($res['errno']== 0 && $res['data']) {
             return rjson(0,'解析地址成功',$res['data']);
         }else {
@@ -173,7 +195,7 @@ class Qbd
 //                "otherRemark":null
 //            }
 //        }
-        $res=$this->http('https://jdkd.ulifego.com/ht/common/getChannelFreight',$data);
+        $res=$this->http($this->baseUrl.'/ht/common/getChannelFreight',$data);
         if ($res['errno'] == 0) {
             return rjson(0,'费用预估成功',$res['data']);
         }
@@ -187,15 +209,68 @@ class Qbd
      */
     public function checkOrder($channel_order_id,$type)
     {
-        return $this->http2('https://jdkd.ulifego.com/ht/back/order/detail/'.$channel_order_id.'/'.$type.'?t='.$this->timeram(),null);
+        return $this->http2($this->baseUrl.'/ht/back/order/detail/'.$channel_order_id.'/'.$type.'?t='.$this->timeram(),null);
     }
 
     /**
+     * 取人生成快递公司订单
+     */
+    public function confirmOrder($channel_order_id,$type) {
+        $data = [
+            't' =>$this->timeram()
+        ];
+        $url='';
+        if ($type ==1) {
+            //京东
+            $url ='/ht/jdkd/jdkdorder/confirm';
+        }else if ($type ==2) {
+            //德邦
+            $url ='/ht/deppon/depponorder/confirm';
+        }else if ($type==5) {
+            //申通
+            $url ='/ht/sto/stoorder/confirm';
+        }else if ($type ==6) {
+            //圆通
+            $url ='/ht/yto/ytoorder/confirm';
+        }else if ($type ==7) {
+            //德邦航空
+            $url ='/ht/yto/ytoorder/confirm';
+        }else if ($type ==13) {
+            //兔子
+            $url ='/ht/yto/ytoorder/confirm';
+        }
+        return  $this->http($this->baseUrl.$url.$channel_order_id,$data);
+    }
+    /**
      * 取消订单
      */
-    public function cancelOrder() {
-
+    public function cancelOrder($channel_order_id,$type) {
+      $data = [
+          't' =>$this->timeram()
+      ];
+        $url='';
+        if ($type ==1) {
+            //京东
+            $url ='/ht/jdkd/jdkdorder/cancelWaybill';
+        }else if ($type ==2) {
+            //德邦
+            $url ='/ht/deppon/depponorder/cancelWaybill';
+        }else if ($type==5) {
+            //申通
+            $url ='/ht/sto/stoorder/cancelWaybill';
+        }else if ($type ==6) {
+            //圆通
+            $url ='/ht/yto/ytoorder/cancelWaybill';
+        }else if ($type ==7) {
+            //德邦航空
+            $url ='/ht/yto/ytoorder/cancelWaybill';
+        }else if ($type ==13) {
+            //兔子
+            $url ='/ht/yto/ytoorder/cancelWaybill';
+        }
+      return  $this->http($this->baseUrl.$url.$channel_order_id,$data);
     }
+
 
     /**
      * 登录存token
@@ -207,7 +282,7 @@ class Qbd
             'account'=>'13102101195',
             'password'=>'123456'
         ];
-        $loginRes = $this->http('https://jdkd.ulifego.com/ht/web/login/loginNew',$data);
+        $loginRes = $this->http($this->baseUrl.'/ht/web/login/loginNew',$data);
         if ($loginRes['errno'] == 0) {
             $loginData= $loginRes['data'];
             var_dump($loginData);
