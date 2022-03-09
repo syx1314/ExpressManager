@@ -10,6 +10,7 @@ namespace app\common\library;
 
 
 //下发通知
+use app\common\enum\ExpressOrderEnum;
 use app\common\model\Client;
 use think\Log;
 use Util\Http;
@@ -156,7 +157,7 @@ class Notification
     {
         Log::error('发送公众号模板消息');
         // 支付完成代取件
-        $porder = M('expressorder')->where(['id' => $porder_id, 'status' => 1, 'is_del' => 0])->find();
+        $porder = M('expressorder')->where(['id' => $porder_id, 'status' => ExpressOrderEnum::PAY_COMPLETE, 'is_del' => 0])->find();
         if (!$porder) {
             return rjson(1, '未找到订单');
         }

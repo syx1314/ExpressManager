@@ -222,22 +222,22 @@ class Qbd
         $url='';
         if ($type ==1) {
             //京东
-            $url ='/ht/jdkd/jdkdorder/confirm';
+            $url ='/ht/jdkd/jdkdorder/confirm/';
         }else if ($type ==2) {
             //德邦
-            $url ='/ht/deppon/depponorder/confirm';
+            $url ='/ht/deppon/depponorder/confirm/';
         }else if ($type==5) {
             //申通
-            $url ='/ht/sto/stoorder/confirm';
+            $url ='/ht/sto/stoorder/confirm/';
         }else if ($type ==6) {
             //圆通
-            $url ='/ht/yto/ytoorder/confirm';
+            $url ='/ht/yto/ytoorder/confirm/';
         }else if ($type ==7) {
             //德邦航空
-            $url ='/ht/yto/ytoorder/confirm';
+            $url ='/ht/yto/ytoorder/confirm/';
         }else if ($type ==13) {
             //兔子
-            $url ='/ht/yto/ytoorder/confirm';
+            $url ='/ht/yto/ytoorder/confirm/';
         }
         return  $this->http($this->baseUrl.$url.$channel_order_id,$data);
     }
@@ -251,22 +251,22 @@ class Qbd
         $url='';
         if ($type ==1) {
             //京东
-            $url ='/ht/jdkd/jdkdorder/cancelWaybill';
+            $url ='/ht/jdkd/jdkdorder/cancelWaybill/';
         }else if ($type ==2) {
             //德邦
-            $url ='/ht/deppon/depponorder/cancelWaybill';
+            $url ='/ht/deppon/depponorder/cancelWaybill/';
         }else if ($type==5) {
             //申通
-            $url ='/ht/sto/stoorder/cancelWaybill';
+            $url ='/ht/sto/stoorder/cancelWaybill/';
         }else if ($type ==6) {
             //圆通
-            $url ='/ht/yto/ytoorder/cancelWaybill';
+            $url ='/ht/yto/ytoorder/cancelWaybill/';
         }else if ($type ==7) {
             //德邦航空
-            $url ='/ht/yto/ytoorder/cancelWaybill';
+            $url ='/ht/yto/ytoorder/cancelWaybill/';
         }else if ($type ==13) {
             //兔子
-            $url ='/ht/yto/ytoorder/cancelWaybill';
+            $url ='/ht/yto/ytoorder/cancelWaybill/';
         }
       return  $this->http($this->baseUrl.$url.$channel_order_id,$data);
     }
@@ -338,8 +338,10 @@ class Qbd
         Log::error("快递接口返回".$sContent);
         $res=json_decode($sContent, true);
         if ($res) {
-            if ( $res['code']== 0) {
+            if ( $res['code']== 0  && isset($res['data'])) {
                 return rjson(0,'接口请求成功',$res['data']);
+            }else if ($res['code']== 0  && !isset($res['data'])){
+                return rjson(0,'接口请求成功',$res['msg']);
             }else if ($res['code']== 401) {
                 // token 失效 继续登录
                 $this->login();

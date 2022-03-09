@@ -194,14 +194,18 @@
                                     补差价超重1kg：{$vo.totalPrice}元
                                 </td>
                                 <td style="font-size: 12px;">
+                                    {if condition="($vo.status >0)"}
                                     <button class="btn btn-sm btn-danger ajax-post" target-form="i-checks"
-                                            href="{:U('refund')}" title="多选框选中的订单">
+                                            href="{:U('cancelOrder?id='.$vo.id)}" title="多选框选中的订单">
                                         取消运单
                                     </button>
+                                    {/if}
+                                    {if condition="($vo.status == -1)"}
                                     <button type="button"
                                             class="btn btn-sm btn-primary ajax-post" target-form="i-checks"
                                             href="{:U('createChannelOrder?id='.$vo.id)}" title="筛选条件中的所有订单"> 远程生单
                                     </button>
+                                    {/if}
                                     <button class="btn btn-sm btn-warning ajax-post" target-form="i-checks"
                                             href="{:U('updateRemoteOrder?channel_order_id='.$vo.channel_order_id.'&type='.$vo.type)}" title="多选框选中的订单">
                                         更新渠道信息

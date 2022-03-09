@@ -8,9 +8,11 @@
 
 namespace app\common\model;
 
+use app\common\enum\ExpressOrderEnum;
 use app\common\library\Createlog;
 use app\common\library\Notification;
 use app\common\library\PayWay;
+use app\common\library\WxExpressrefundapi;
 use app\common\library\Wxrefundapi;
 use Recharge\Qbd;
 use think\Log;
@@ -39,13 +41,14 @@ class Expressorder extends Model
 
     public function getStatusTextAttr($value, $data)
     {
-        return C('PORDER_STATUS')[$data['status']];
+        return '我擦';
+//        return C('PORDER_STATUS')[$data['status']];
     }
 
-    public function getStatusText2Attr($value, $data)
-    {
-        return C('ORDER_STUTAS')[$data['status']];
-    }
+//    public function getStatusText2Attr($value, $data)
+//    {
+//        return C('ORDER_STUTAS')[$data['status']];
+//    }
 
     public function getCreateTimeTextAttr($value, $data)
     {
@@ -254,7 +257,7 @@ class Expressorder extends Model
     public static function create_pay($aid, $payway, $client)
     {
         //预下单 待支付
-        $order = self::where(['id' => $aid, 'status' => 0])->find();
+        $order = self::where(['id' => $aid, 'status' => ExpressOrderEnum::CREATE])->find();
         if (!$order) {
             return rjson(1, '订单无需支付' . $aid);
         }
@@ -274,7 +277,7 @@ class Expressorder extends Model
     public static function notify($order_number, $payway, $serial_number)
     {
         //预下单 待支付
-        $porder = M('expressorder')->where(['out_trade_num' => $order_number, 'status' => -2])->find();
+        $porder = M('expressorder')->where(['out_trade_num' => $order_number, 'status' => ExpressOrderEnum::CREATE])->find();
         Log::error("寻找快递单子".json_encode($porder));
         if (!$porder) {
             return rjson(1, '不存在订单');
@@ -282,7 +285,7 @@ class Expressorder extends Model
         Createlog::porderLog($porder['id'], "快递用户支付回调成功");
         //TODO 判断支付了多钱 比较
         //-2创建订单 -1 支付完成 0渠道预下单1待取件2运输中5已签收6取消订单7终止揽收
-        M('expressorder')->where(['id' => $porder['id'], 'status' => 0])->setField(['status' => -1, 'pay_time' => time(), 'pay_way' => $payway,'statusName'=>'支付完毕']);
+        M('expressorder')->where(['id' => $porder['id'], 'status' => ExpressOrderEnum::CREATE])->setField(['status' => ExpressOrderEnum::PAY_COMPLETE, 'pay_time' => time(), 'pay_way' => $payway,'statusName'=>'支付完毕']);
         Log::error("修改快递状态代取件");
 //        //api下单队列放到队列去远程生单
         queue('app\queue\job\Work@createChannelExpressApi', $porder['id']);
@@ -291,11 +294,16 @@ class Expressorder extends Model
         return rjson(0, '回调处理完成');
     }
 
+    //订单是否支付完成
+   public static function  findPayCompleteStatus($order_id) {
+       // 此单已经支付完成  //-2创建订单 -1 支付完成 0渠道预下单1待取件2运输中5已签收6取消订单7终止揽收
+     return  M('expressorder')->where(['id' => $order_id, 'status' => ExpressOrderEnum::PAY_COMPLETE])->find();
+   }
     // 创建远程渠道生单
     public static function createChannelExpress($order_id) {
         Log::error("创建渠道生单".$order_id);
-        // 此单已经支付完成
-        $porder = M('expressorder')->where(['id' => $order_id, 'status' => 1])->find();
+        // 此单已经支付完成  //-2创建订单 -1 支付完成 0渠道预下单1待取件2运输中5已签收6取消订单7终止揽收
+        $porder = self::findPayCompleteStatus($order_id);
         if (!$porder) {
             return rjson(1, '订单非已支付状态无法提交远程下单');
         }
@@ -341,7 +349,7 @@ class Expressorder extends Model
             if ($res['data']) {
              $resOrder = $res['data'];
                 self::where(['id'=>$order_id])->setField(['channel_order_id'=>$resOrder['id'],'volume'=>$resOrder['volume'],'volumeWeight'=>$resOrder['volumeWeight'],'status'=> 0,'statusName'=>'渠道预下单']);
-                $confirmRes=$qbd->checkOrder($resOrder['id'],$porder['type']);
+                $confirmRes=$qbd->confirmOrder($resOrder['id'],$porder['type']);
                 return  rjson(1, $confirmRes['errmsg']);
             }
 
@@ -358,7 +366,10 @@ class Expressorder extends Model
             return rjson(1, '找不到订单');
         }
         if (!$porder['channel_order_id']){
-            return rjson(1, '找不到渠道订单');
+
+            // 加入到任务队列退款
+            self::where(['id'=>$order_id])->setField(['status'=>6]);
+            return rjson(1, '找不到渠道订单,本地订单取消完毕');
         }
        $qbd= new Qbd();
        return $qbd->cancelOrder($porder['channel_order_id'],$porder['type']);
@@ -463,19 +474,42 @@ class Expressorder extends Model
     //退款
     public static function refund($order_id, $remark, $operator)
     {
-        $porder = M('porder')->where(['id' => $order_id, 'status' => 5])->find();
+        //-2创建订单 -1 支付完成 0渠道预下单1待取件2运输中5已签收6取消订单7终止揽收
+        // 没有到达运输中
+        // 渠道查询运单状态
+
+        $porder = M('expressorder')->where(['id' => $order_id])->find();
         if (!$porder) {
             return rjson(1, '未查询到退款订单');
         }
+        //创建订单 直接取消订单
+        if ($porder['status'] == ExpressOrderEnum::CREATE){
+            //直接退款
+            self::where(['id'=>$order_id])->setField(['status'=>6]);
+            Createlog::porderLog($porder['id'], "退款成功|" . $remark);
+            Notification::refundSus($porder['id']);
+            return rjson(0, "订单无需退款 取消成功");
+        }else if ($porder['status'] == ExpressOrderEnum::CANCEL_ORDER){
+            return rjson(0, "订单无需退款");
+        }else {
+              $qbd= new Qbd();
+              //取消远程单子
+             if ($porder['channel_order_id']) {
+                   $res=$qbd->cancelOrder($porder['channel_order_id'],$porder['type']);
+                   if ($res['errno']!=0) {
+                       return rjson(1, "退款失败".$res['errmsg']);
+                   }
+             }
+        }
         switch ($porder['pay_way']) {
             case 1://公众号微信支付-退款
-                $ret = Wxrefundapi::porder_wxpay_refund($porder['id']);
+                $ret = WxExpressrefundapi::porder_wxpay_refund($porder['id']);
                 break;
             case 2://余额
-                $ret = Balance::revenue($porder['customer_id'], $porder['total_price'], "订单:" . $porder['order_number'] . "充值失败退款", Balance::STYLE_REFUND, $operator);
+                $ret = Balance::revenue($porder['userid'], $porder['totalPrice'], "订单:" . $porder['out_trade_num'] . "充值失败退款", Balance::STYLE_REFUND, $operator);
                 break;
             case 3://小程序微信支付
-                $ret = Wxrefundapi::porder_wxpay_refund($porder['id']);
+                $ret = WxExpressrefundapi::porder_wxpay_refund($porder['id']);
                 break;
             case 4://线下支付
                 $ret = rjson(0, '线下支付无需退款');
