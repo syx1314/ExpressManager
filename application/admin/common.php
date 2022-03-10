@@ -1,6 +1,6 @@
 <?php
 /**
- 
+
  * 公司：
  **/
 /**
@@ -108,6 +108,29 @@ function return_material_video($media_id)
     $map['media_id'] = $media_id;
     $ret = M('weixin_pic')->where($map)->find();
     return $ret['path'];
+}
+
+function expressOrderStatusName($status) {
+    switch ($status) {
+        case \app\common\enum\ExpressOrderEnum::CREATE:
+            return '创建订单';
+        case \app\common\enum\ExpressOrderEnum::PAY_COMPLETE:
+            return  '支付完成';
+        case \app\common\enum\ExpressOrderEnum::YU_CREATE_ORDER:
+            return  '渠道预下单';
+        case \app\common\enum\ExpressOrderEnum::DAI_QU_JIAN:
+            return  '待取件';
+        case \app\common\enum\ExpressOrderEnum::YUN_SHU_ZHONG:
+            return  '运输中';
+        case \app\common\enum\ExpressOrderEnum::YI_QIAN_SHOU:
+            return  '已签收';
+        case \app\common\enum\ExpressOrderEnum::CANCEL_ORDER:
+            return  '取消订单';
+        case \app\common\enum\ExpressOrderEnum::ZUN_ZHI_LAN_SHOU:
+            return  '终止揽收';
+        default:
+            return '';
+    }
 }
 
 

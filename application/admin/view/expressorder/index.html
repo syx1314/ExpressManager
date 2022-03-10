@@ -150,7 +150,7 @@
                                     下单渠道: {$vo.channelName}
                                 </td>
                                 <td style="text-align: center">
-                                    {$vo.statusName}<br/>
+                                    {$vo.status | expressOrderStatusName=}<br/>
                                     <div class="form-group">
                                         <span style="display: none" id="order_id">{$vo.id}</span>
                                         <button type="button"
@@ -194,7 +194,7 @@
                                     补差价超重1kg：{$vo.totalPrice}元
                                 </td>
                                 <td style="font-size: 12px;">
-                                    {if condition="($vo.status >0)"}
+                                    {if condition="($vo.status >=-1)"}
                                     <button class="btn btn-sm btn-danger ajax-post" target-form="i-checks"
                                             href="{:U('cancelOrder?id='.$vo.id)}" title="多选框选中的订单">
                                         取消运单

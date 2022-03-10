@@ -12,6 +12,7 @@ use app\common\enum\ExpressOrderEnum;
 use app\common\library\Createlog;
 use app\common\library\Notification;
 use app\common\library\PayWay;
+use app\common\library\RedisPackage;
 use app\common\library\WxExpressrefundapi;
 use app\common\library\Wxrefundapi;
 use Recharge\Qbd;
@@ -348,8 +349,25 @@ class Expressorder extends Model
         if ($res['errno'] == 0){
             if ($res['data']) {
              $resOrder = $res['data'];
-                self::where(['id'=>$order_id])->setField(['channel_order_id'=>$resOrder['id'],'volume'=>$resOrder['volume'],'volumeWeight'=>$resOrder['volumeWeight'],'status'=> 0,'statusName'=>'渠道预下单']);
+                self::where(['id'=>$order_id])->setField(['channel_order_id'=>$resOrder['id'],'volume'=>$resOrder['volume'],'volumeWeight'=>$resOrder['volumeWeight'],'status'=> ExpressOrderEnum::CANCEL_ORDER]);
                 $confirmRes=$qbd->confirmOrder($resOrder['id'],$porder['type']);
+                Log::error("渠道确认生单结果".json_encode($confirmRes));
+                if ($confirmRes['errno'] == 0) {
+                    self::where(['id'=>$order_id])->setField(['channel_order_id'=>$resOrder['id'],'volume'=>$resOrder['volume'],'volumeWeight'=>$resOrder['volumeWeight'],'status'=>ExpressOrderEnum::DAI_QU_JIAN ]);
+                    // 加入到定时任务队列 拉取订单信息
+                    //放到redis理
+                    $redisData = [
+                        'id'=> $order_id,
+                        'channel_order_id'=>$resOrder['id']
+                    ];
+                  $expressOrderList =  RedisPackage::get('expressOrderList');
+                  if ($expressOrderList) {
+                       array_push($expressOrderList,$redisData);
+                      RedisPackage::set('expressOrderList',json_encode($expressOrderList));
+                  }else {
+                      RedisPackage::set('expressOrderList',json_encode($redisData));
+                  }
+                }
                 return  rjson(1, $confirmRes['errmsg']);
             }
 
@@ -372,7 +390,13 @@ class Expressorder extends Model
             return rjson(1, '找不到渠道订单,本地订单取消完毕');
         }
        $qbd= new Qbd();
-       return $qbd->cancelOrder($porder['channel_order_id'],$porder['type']);
+       $res = $qbd->cancelOrder($porder['channel_order_id'],$porder['type']);
+       if ($res['errno'] == 0) {
+           // 取消成功
+           return rjson(0, '取消成功订单');
+       }else {
+           return rjson(1, '取消失败');
+       }
     }
 
     //充值成功api
@@ -477,7 +501,6 @@ class Expressorder extends Model
         //-2创建订单 -1 支付完成 0渠道预下单1待取件2运输中5已签收6取消订单7终止揽收
         // 没有到达运输中
         // 渠道查询运单状态
-
         $porder = M('expressorder')->where(['id' => $order_id])->find();
         if (!$porder) {
             return rjson(1, '未查询到退款订单');

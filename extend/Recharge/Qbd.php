@@ -341,6 +341,7 @@ class Qbd
             if ( $res['code']== 0  && isset($res['data'])) {
                 return rjson(0,'接口请求成功',$res['data']);
             }else if ($res['code']== 0  && !isset($res['data'])){
+                Log::error("没有data执行");
                 return rjson(0,'接口请求成功',$res['msg']);
             }else if ($res['code']== 401) {
                 // token 失效 继续登录
