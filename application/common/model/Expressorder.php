@@ -360,12 +360,14 @@ class Expressorder extends Model
                         'id'=> $order_id,
                         'channel_order_id'=>$resOrder['id']
                     ];
+                    $redisData1=[$order_id];
                   $expressOrderList =  RedisPackage::get('expressOrderList');
                   if ($expressOrderList) {
-                       array_push($expressOrderList,$redisData);
-                      RedisPackage::set('expressOrderList',json_encode($expressOrderList));
+                      $expressOrderListArr = json_decode($expressOrderList,true);
+                      array_push($expressOrderListArr,$order_id);
+                      RedisPackage::set('expressOrderList',json_encode($expressOrderListArr));
                   }else {
-                      RedisPackage::set('expressOrderList',json_encode($redisData));
+                      RedisPackage::set('expressOrderList',json_encode($redisData1));
                   }
                 }
                 return  rjson(1, $confirmRes['errmsg']);
