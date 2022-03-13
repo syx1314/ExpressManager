@@ -4,6 +4,7 @@ namespace app\queue\job;
 
 use app\common\controller\Base;
 use app\common\library\Createlog;
+use app\common\library\RedisPackage;
 use app\common\model\Porder;
 use app\common\model\Expressorder;
 use think\Log;
@@ -49,6 +50,24 @@ class Work extends Base
        $job->delete();
     }
 
+    public function contab1hFetchExpress(Job $job) {
+        // 先从redis 拿到需要更新得任务队列
+        $rd=new RedisPackage();
+        $expressOrderJson =   $rd->get('expressOrderList');
+        echo "得到任务列表！" . $expressOrderJson;
+        if ($expressOrderJson) {
+            $arr = json_decode($expressOrderJson,true);
+            for ($i=0;count($arr);$i++) {
+                queue('app\queue\job\Work@fetchChannelExpressOrder', $arr[$i]);
+            }
+        }
+    }
+
+    //拉去远程订单详情
+    public function fetchChannelExpressOrder(Job $job, $order_id) {
+        Expressorder::fetchRemoteOrderById($order_id);
+        $job->delete();
+    }
     //定时任务 拉取远程 订单详情
     //批量提交接口充值
     public function pordersSubApi(Job $job, $data)

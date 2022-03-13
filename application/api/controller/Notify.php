@@ -34,7 +34,7 @@ class Notify extends \app\common\controller\Base
                 OrderUpgrade::notify($info['order_number'], $info['payway'], $info['serial_number']);
                 break;
             case ExorderModel::PR:
-                ExorderModel::notify($info['order_number'], $info['payway'], $info['serial_number']);
+                ExorderModel::notify($info['order_number'], $info['payway'], $info['serial_number'],$info['money']);
                 break;
             default:
         }

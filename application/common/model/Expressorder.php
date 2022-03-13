@@ -15,6 +15,7 @@ use app\common\library\PayWay;
 use app\common\library\RedisPackage;
 use app\common\library\WxExpressrefundapi;
 use app\common\library\Wxrefundapi;
+use app\common\model\Expressorder as ExorderModel;
 use Recharge\Qbd;
 use think\Log;
 use think\Model;
@@ -29,10 +30,10 @@ class Expressorder extends Model
 
     public static function init()
     {
-        self::event('after_insert', function ($expressorder) {
-            $order_number = self::PR . date('ymd', time()) . $expressorder->id;
-            $expressorder->where(['id' => $expressorder->id])->update(['out_trade_num' => $order_number]);
-        });
+//        self::event('before_insert', function ($expressorder) {
+//            $order_number = self::PR . date('ymd', time()) . $expressorder->id;
+//            $expressorder->where(['id' => $expressorder->id])->update(['out_trade_num' => $order_number]);
+//        });
     }
 
     public function Customer()
@@ -160,8 +161,8 @@ class Expressorder extends Model
                                        $receiveProvince, $receiveCity,$receiveCounty, $receiveTown,  $receiveAddress, $deliveryType, $goods,$packageNum, $guaranteeValueAmount,
                                        $insuranceFee, $order_send_time, $remark, $type, $senderText, $receiveText, $weight, $out_trade_num, $priceRes)
     {
-
-        $data['out_trade_num'] = $out_trade_num;
+        $order_number = self::PR . date('ymd', time()) . time();
+        $data['out_trade_num'] = $order_number;
         $data['userid'] = $userid;
         $data['sender_name'] = $sender_name;
         $data['sender_phone'] = $sender_phone;
@@ -211,9 +212,28 @@ class Expressorder extends Model
         if (!$aid = $model->id) {
             return rjson(1, '下单失败，请重试！');
         }
-        return rjson(0, '下单成功', $model->id);
+        // 创建支付账单
+        $bill=ExpressorderBill::createBill($data['userid'], $data['out_trade_num'],1,$data['totalPrice']);
+        if ($bill['errno'] == 0) {
+            return rjson(1, '下单成功',$bill['data']);
+        }
+        return  $bill;
     }
 
+
+    public static function fetchRemoteOrderById ($id) {
+        $expressorder = M('expressorder')->where(['id'=>$id])->find();
+        if ($expressorder&& $expressorder['channel_order_id'] && $expressorder['type']) {
+            $res=self::fetchRemoteOrder($expressorder['channel_order_id'],$expressorder['type']);
+            if ($res['errno'] == 0){
+                return rjson(0,'拉取订单成功',null);
+            }else{
+                return rjson(0,'拉取远程单子失败',$res['errmsg']);
+            }
+        }else{
+            return rjson(0,'找不到渠道单子');
+        }
+    }
     /**
      * @param $channel_order_id  渠道id
      * @param $type  快递类型
@@ -222,7 +242,6 @@ class Expressorder extends Model
      * @throws \think\exception\PDOException
      */
     public static function fetchRemoteOrder($channel_order_id,$type) {
-        Log::error("aaaaaaa");
         if ($channel_order_id && $type) {
             $qbd = new Qbd();
             $channelOrderInfo= $qbd->checkOrder($channel_order_id,$type);
@@ -257,41 +276,59 @@ class Expressorder extends Model
     //生成支付数据
     public static function create_pay($aid, $payway, $client)
     {
-        //预下单 待支付
-        $order = self::where(['id' => $aid, 'status' => ExpressOrderEnum::CREATE])->find();
-        if (!$order) {
-            return rjson(1, '订单无需支付' . $aid);
+        // 查询账单  待支付
+        $bill = M('expressorder_bill')->where(['id' => $aid, 'pay_status' => 1])->find();
+        if (!$bill) {
+            return rjson(1, '账单无需支付' . $aid);
         }
-        $customer = M('customer')->where(['id' => $order['userid']])->find();
+        $customer = M('customer')->where(['id' => $bill['userid']])->find();
         if (!$customer) {
             return rjson(1, '用户数据不存在');
         }
+        $body= '';
+        if ($bill['type']==1) {
+            $body = '为订单号'.$bill['order_number'].'支付快递费'.$bill['total_price'].'元';
+        }else if ($bill['type']==2) {
+            $body = '为订单号'.$bill['order_number'].'支付超重转寄等费用'.$bill['total_price'].'元';
+        }
         return PayWay::create($payway, $client, [
             'openid' => $customer['wx_openid'] ? $customer['wx_openid'] : $customer['ap_openid'],
-            'body' => '快递支付订单号:'.$order['out_trade_num'],
-            'order_number' => $order['out_trade_num'],
+            'body' => $body,
+            'order_number' => $bill['bill_no'], // 用账单id
             'total_price' => '0.01',
             'appid' => $customer['weixin_appid']
         ]);
     }
 
-    public static function notify($order_number, $payway, $serial_number)
+    public static function notify($bill_no, $payway, $serial_number,$money)
     {
-        //预下单 待支付
-        $porder = M('expressorder')->where(['out_trade_num' => $order_number, 'status' => ExpressOrderEnum::CREATE])->find();
-        Log::error("寻找快递单子".json_encode($porder));
-        if (!$porder) {
-            return rjson(1, '不存在订单');
+        // 查账单id
+        $bill = M('expressorder_bill')->where(['bill_no' => $bill_no, 'pay_status' => 1])->find();
+        Log::error('找到账单支付');
+        if (!$bill) {
+            return rjson(1, '账单不存在 或者已经支付过');
         }
-        Createlog::porderLog($porder['id'], "快递用户支付回调成功");
-        //TODO 判断支付了多钱 比较
-        //-2创建订单 -1 支付完成 0渠道预下单1待取件2运输中5已签收6取消订单7终止揽收
-        M('expressorder')->where(['id' => $porder['id'], 'status' => ExpressOrderEnum::CREATE])->setField(['status' => ExpressOrderEnum::PAY_COMPLETE, 'pay_time' => time(), 'pay_way' => $payway,'statusName'=>'支付完毕']);
-        Log::error("修改快递状态代取件");
-//        //api下单队列放到队列去远程生单
-        queue('app\queue\job\Work@createChannelExpressApi', $porder['id']);
+
+        if ($bill['type'] ==1) {
+            //支付快递费
+            $porder = M('expressorder')->where(['out_trade_num' =>$bill['order_number'], 'status' => ExpressOrderEnum::CREATE])->find();
+            Log::error("寻找快递单子".json_encode($porder));
+            if (!$porder) {
+                return rjson(1, '不存在订单');
+            }
+            Createlog::porderLog($porder['id'], "快递用户支付回调成功");
+            //TODO 判断支付了多钱 比较
+            //-2创建订单 -1 支付完成 0渠道预下单1待取件2运输中5已签收6取消订单7终止揽收
+            M('expressorder')->where(['id' => $porder['id'], 'status' => ExpressOrderEnum::CREATE])->setField(['status' => ExpressOrderEnum::PAY_COMPLETE, 'pay_time' => time(), 'pay_way' => $payway,'statusName'=>'支付完毕']);
+            Log::error("修改快递状态代取件");
+//         //api下单队列放到队列去远程生单
+            queue('app\queue\job\Work@createChannelExpressApi', $porder['id']);
+
+        }
+        $bill_id = $bill['id'];
+        M('expressorder_bill')->where(['id' => $bill_id])->setField(['pay_status'=> 2 , 'pay_money' => $money,'transaction_id' => $serial_number]);
         //发送支付成功通知
-        Notification::payExpressSus($porder['id']);
+        Notification::payExpressSus($bill_id);
         return rjson(0, '回调处理完成');
     }
 
