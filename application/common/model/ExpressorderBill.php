@@ -7,7 +7,7 @@ use think\Model;
 
 class ExpressorderBill extends Model
 {
-    const PR = 'BILL';
+    const PR = 'BIL';
     // 创建快递账单
     public static function createBill($userid,$order_number,$type,$total_price) {
         $data = [

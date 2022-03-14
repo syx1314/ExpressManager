@@ -6,6 +6,7 @@ use app\common\library\Notification;
 use app\common\model\Expressorder as ExorderModel;
 use app\common\model\Product as ProductModel;
 use Recharge\Qbd;
+use think\Db;
 use think\Log;
 
 /**
@@ -24,7 +25,14 @@ class Expressorder extends Admin
         } else {
             $sort = "id desc";
         }
-        $list = M('expressorder')->where($map)->field('*')->order($sort)->paginate(C('LIST_ROWS'));
+
+        $list = M('expressorder')
+            ->alias('ex')->join('expressorder_bill eb','eb.order_number = ex.out_trade_num','Left')
+            ->where($map)->field('ex.*, eb.pay_money, eb.type as bill_type, eb.pay_status')->order($sort)->paginate(C('LIST_ROWS'));
+
+//        $testList =  Db::query("select * from dyr_expressorder as a left join dyr_expressorder_bill as b on a.out_trade_num = b.order_number;");
+
+
         $this->assign('total_price', M('expressorder')->where($map)->sum("totalPrice"));
         $this->assign('_list', $list);
         $this->assign('_total', $list->total());

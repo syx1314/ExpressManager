@@ -4,6 +4,7 @@ namespace app\api\controller;
 
 use app\common\library\Email;
 use app\common\library\PayWay;
+use app\common\model\ExpressorderBill;
 use app\common\model\OrderUpgrade;
 use app\common\model\Porder as PorderModel;
 use app\common\model\Expressorder as ExorderModel;
@@ -33,7 +34,8 @@ class Notify extends \app\common\controller\Base
             case OrderUpgrade::PR:
                 OrderUpgrade::notify($info['order_number'], $info['payway'], $info['serial_number']);
                 break;
-            case ExorderModel::PR:
+            case ExpressorderBill::PR:
+                Log::error("这战力支付".$info['money']);
                 ExorderModel::notify($info['order_number'], $info['payway'], $info['serial_number'],$info['money']);
                 break;
             default:
@@ -73,15 +75,15 @@ class Notify extends \app\common\controller\Base
         if ($data['trade_state'] == "SUCCESS") {
             $info = [
                 'order_number' => $data['out_trade_no'],
-                'money' => intval(strval(floatval($data['amount']['total']) / 100)),
+                'money' => intval(strval(floatval($data['amount']['total']) * 0.01)),
                 'serial_number' => $data['transaction_id'],
                 'pay_time' => strtotime($data['success_time']),
                 'payway' => $data['trade_type'] == 'MWEB' ? PayWay::PAY_WAY_H5YS : ($weixin['type'] == 1 ? PayWay::PAY_WAY_JSYS : PayWay::PAY_WAY_MPYS)
             ];
             $this->notify($info);
         }
-        echo json_encode(['code' => "SUCCESS", "message" => "成功"]);
-        return true;
+
+        return  json_encode(['code' => "SUCCESS", "message" => "成功"]);
     }
 
     /**
