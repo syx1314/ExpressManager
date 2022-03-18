@@ -101,7 +101,10 @@ class Expressorder extends Home
 //            $map['order_number|mobile'] = I('key');
 //        }
         $map =[];
-        $lists = ExpressorderModel::where($map)->order("create_time desc")->paginate(10);
+        $lists = ExpressorderModel::where($map)->order("create_time desc")->paginate(10)->toArray();
+        foreach ($lists as $arr ) {
+            print_r($arr);
+        }
         if ($lists) {
             return djson(0, "ok", $lists);
         } else {
@@ -113,6 +116,8 @@ class Expressorder extends Home
         $id= I('id');
         // 1. 查找本地
         $order =M('expressorder') -> where(['id'=>$id])->find();
+        $bill = M('expressorder_bill')->where(['order_number' => $order['out_trade_num']])->select();
+        $order ['bill'] = $bill;
         //2. 查询渠道订单详情
         if ($order['channel_order_id']) {
             $qbd = new Qbd();

@@ -23,6 +23,30 @@ class Customer extends Home
         $customer['tixian_sum'] = M('tixian')->where(['customer_id' => $this->customer['id']])->sum('money');
         return djson(0, 'ok', $customer);
     }
+    public function getAddress() {
+        if (I('userId')) {
+           $list= M('address')->where(['userId'=>I('userId')])->select();
+            return djson(0, '地址结果', $list);
+        }
+        return djson(1, '没有查询到用户地址', null);
+    }
+    public function saveAddress() {
+        if (I('userId')) {
+            $res=json_decode(file_get_contents("php://input"),true);
+            $data['userId'] =I('userId');
+            $data['text'] =$res['text'];
+            $data['uname'] =$res['uname'];
+            $data['phone'] =$res['phone'];
+            $data['province'] =$res['province'];
+            $data['city'] =$res['city'];
+            $data['county'] =$res['county'];
+            $data['town'] =$res['town'];
+            $data['address_detail'] =$res['address_detail'];
+            M('address')->insert($data);
+            return djson(0, '保存成功', null);
+        }
+        return djson(1, '没有查询到用户地址', null);
+    }
 
     /**
      * 保存用户信息

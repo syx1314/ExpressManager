@@ -32,7 +32,6 @@ class Expressorder extends Admin
 
 //        $testList =  Db::query("select * from dyr_expressorder as a left join dyr_expressorder_bill as b on a.out_trade_num = b.order_number;");
 
-
         $this->assign('total_price', M('expressorder')->where($map)->sum("totalPrice"));
         $this->assign('_list', $list);
         $this->assign('_total', $list->total());

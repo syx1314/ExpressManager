@@ -45,6 +45,20 @@ class Index extends Home
     }
 
 
+    // 获取 通知
+    public function getNotice() {
+        $list=M('tagline_txt')->select();
+        return djson(0, 'ok', $list);
+    }
+    // 以读 通知
+    public function setNoticeStatus() {
+        if (I('userId') && I('noticeId')) {
+            M('tagline_status')->setField(['userId' => I('userId'),'noticeId'=>I('noticeId'),'status'=> 1 ]);
+            return djson(0, '保存成功', '');
+        }
+        return djson(1, '参数有误', '');
+    }
+
     //ip定位
     public function get_client_city()
     {
