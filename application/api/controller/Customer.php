@@ -31,7 +31,7 @@ class Customer extends Home
         return djson(1, '没有查询到用户地址', null);
     }
     public function saveAddress() {
-        if (I('userId')) {
+        if (I('userId') ) {
             $res=json_decode(file_get_contents("php://input"),true);
             $data['userId'] =I('userId');
             $data['text'] =$res['text'];
@@ -42,9 +42,14 @@ class Customer extends Home
             $data['county'] =$res['county'];
             $data['town'] =$res['town'];
             $data['address_detail'] =$res['address_detail'];
+            if ($res['id']) {
+                M('address') -> where(['id' => $res['id']])->setField($data);
+                return djson(0, '更新成功', null);
+            }
             M('address')->insert($data);
             return djson(0, '保存成功', null);
         }
+
         return djson(1, '没有查询到用户地址', null);
     }
 
