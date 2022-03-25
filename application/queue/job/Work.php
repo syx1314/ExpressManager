@@ -49,6 +49,10 @@ class Work extends Base
        Expressorder::createChannelExpress($order_id);
        $job->delete();
     }
+    public function createOtherFeeBill(Job $job, $order_id) {
+        Expressorder::createOtherFeeBill($order_id);
+        $job->delete();
+    }
 
     public function contab1hFetchExpress(Job $job) {
         // 先从redis 拿到需要更新得任务队列

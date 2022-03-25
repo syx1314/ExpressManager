@@ -26,7 +26,7 @@ class Expressorder extends Model
 {
     const PR = 'SAN';
 
-    protected $append = ['status_text', 'status_text2', 'create_time_text'];
+
 
     public static function init()
     {
@@ -192,6 +192,7 @@ class Expressorder extends Model
         $data['channelPriceA'] = $priceRes['priceA'];
         $data['channelPriceB'] = $priceRes['priceB'];
         $data['channelDiscount'] = $priceRes['discount'];;
+        $data['channelTotalFeeOri'] = $priceRes['totalFeeOri'];;
         $data['fee'] = $priceRes['fee'];;
         $data['fee1'] = $priceRes['fee1'];;
         $data['serviceCharge'] = $priceRes['serviceCharge'];;
@@ -205,17 +206,22 @@ class Expressorder extends Model
         $data['channelToatlPrice'] = $priceRes['totalFee'];;
         $data['channelName'] = $priceRes['name'];;
         // 计算自己的价格
-        $data['totalPrice'] = Expressorder::culTotalPrice($weight, $priceRes)['totalPrice'];
+        $pr = Expressorder::culTotalPrice($weight, $priceRes);
+        $data['priceA'] = $pr['priceA'];
+        $data['priceB'] = $pr['priceB'];
+        $data['discount'] = $pr['discount'];
+        $data['totalPrice'] = $pr['totalPrice'];
         $data['create_time'] = time();
         $model = new self();
         $model->save($data);
         if (!$aid = $model->id) {
+            var_dump($model->id);
             return rjson(1, '下单失败，请重试！');
         }
         // 创建支付账单
         $bill=ExpressorderBill::createBill($data['userid'], $data['out_trade_num'],1,$data['totalPrice']);
         if ($bill['errno'] == 0) {
-            return rjson(1, '下单成功',$bill['data']);
+            return rjson(0, '下单成功',$bill['data']);
         }
         return  $bill;
     }
@@ -226,6 +232,11 @@ class Expressorder extends Model
         if ($expressorder&& $expressorder['channel_order_id'] && $expressorder['type']) {
             $res=self::fetchRemoteOrder($expressorder['channel_order_id'],$expressorder['type']);
             if ($res['errno'] == 0){
+                // 加入任务队列 生成超重等账单
+                $order =$res['data'];
+                if ($order['overWeightStatus'] == 1) {
+                    queue('app\queue\job\Work@createOtherFeeBill', $id);
+                }
                 return rjson(0,'拉取订单成功',null);
             }else{
                 return rjson(0,'拉取远程单子失败',$res['errmsg']);
@@ -247,24 +258,25 @@ class Expressorder extends Model
             $channelOrderInfo= $qbd->checkOrder($channel_order_id,$type);
             // 返回的数组
             if ($channelOrderInfo && $channelOrderInfo['errno']==0) {
-                $channelOrder= $channelOrderInfo['data']['order'];
-                $order['trackingNum'] = $channelOrder['waybillNo'];
+                $channelOrder= $channelOrderInfo['data']['data'];
+                $order['trackingNum'] = $channelOrder['trackingNum'];
                 $order['volume'] = $channelOrder['volume'];
                 $order['volumeWeight'] = $channelOrder['volumeWeight'];
-                $order['weightActual'] = $channelOrder['weightFinal'];// 实际重量
-                $order['weightBill'] = $channelOrder['weightFee'];// 计费重量
-                $order['guaranteeValueAmount'] = $channelOrder['insuredValue'];// 保价价格
-                $order['insuranceFee'] = $channelOrder['insuredFee'];// 保价费
-                $order['channelToatlPrice'] = $channelOrder['total'];// 渠道总价格
+                $order['weightActual'] = $channelOrder['weightActual'];// 实际重量
+                $order['weightBill'] = $channelOrder['weightBill'];// 计费重量
+                // $order['guaranteeValueAmount'] = $channelOrder['insuredValue'];// 保价价格
+                $order['insuranceFee'] = $channelOrder['insuranceFee'];// 保价费
+                $order['channelToatlPrice'] = $channelOrder['payFee'];// 渠道总价格
                 $order['status'] = $channelOrder['status'];// 运单状态
-                $order['statusName'] = $channelOrder['orderStatus'];// 运单状态
-                $order['overWeightStatus'] = $channelOrder['overweightStatus'];// 1 超重 2 超重/耗材/保价/转寄/加长已处理  3 超轻
+                $order['statusName'] = $channelOrder['statusName'];// 运单状态
+                $order['overWeightStatus'] = $channelOrder['overWeightStatus'];// 1 超重 2 超重/耗材/保价/转寄/加长已处理  3 超轻
                 $order['otherFee'] = $channelOrder['otherFee'];// 其它费用
-                $order['consumeFee'] = $channelOrder['consumables'];// 耗材费用
+                $order['consumeFee'] = $channelOrder['consumeFee'];// 耗材费用
                 $order['serviceCharge'] = $channelOrder['serviceCharge'];// 服务费
                 $order['soliciter'] = $channelOrder['soliciter'];// 揽件员
                 self::where(['channel_order_id'=>$channel_order_id])->setField($order);
-                $order['traceList'] = $channelOrderInfo['data']['traceList'];//轨迹
+                $order['traceList'] = $channelOrder['traceList'];//轨迹
+
                 return rjson(0,'拉取订单成功',$order);
             }else{
                 return rjson(1,$channelOrderInfo['errmsg'],null);
@@ -300,6 +312,44 @@ class Expressorder extends Model
         ]);
     }
 
+    // 判断是否超重 生成 超重 等其它费用账单
+    public static function createOtherFeeBill($orderid) {
+
+        $exOrder = self::where(['id'=>$orderid, 'overWeightStatus'=> 1])->find();
+        $bill =M('expressorder_bill')->where(['order_number' =>$exOrder['out_trade_num'],'type'=> 2])->find();
+        if ($bill) {
+            return djson(0,'超重账单已经生成完毕',null);
+        }
+        if ($exOrder) {
+            $sumPrice = 0;
+            // 超重
+            $weight = $exOrder['weightBill'] - $exOrder['weight'];
+            if ($exOrder['discount'] >0 ) {
+                $sumPrice += $exOrder['']*$exOrder['discount'];
+            }
+            // 保价
+            if ($exOrder['insuredFee'] >0 ){
+                $sumPrice+=$exOrder['insuredFee'];
+            }
+            // 耗材费
+            if ($exOrder['consumeFee']) {
+                $sumPrice+=$exOrder['consumeFee'];
+            }
+            // 其它费
+            if ($exOrder['otherFee']) {
+                $sumPrice+=$exOrder['otherFee'];
+            }
+            if ($sumPrice>0) {
+                // 创建账单
+                ExpressorderBill::createBill($exOrder['userid'],$exOrder['out_trade_num'],2,$sumPrice);
+                return djson(0,'创建账单成功',null);
+            }
+        }else {
+            return djson(0,'没有需要额外收费订单',null);
+        }
+    }
+
+
     public static function notify($bill_no, $payway, $serial_number,$money)
     {
         // 查账单id
@@ -333,10 +383,10 @@ class Expressorder extends Model
     }
 
     //订单是否支付完成
-   public static function  findPayCompleteStatus($order_id) {
-       // 此单已经支付完成  //-2创建订单 -1 支付完成 0渠道预下单1待取件2运输中5已签收6取消订单7终止揽收
-     return  M('expressorder')->where(['id' => $order_id, 'status' => ExpressOrderEnum::PAY_COMPLETE])->find();
-   }
+    public static function  findPayCompleteStatus($order_id) {
+        // 此单已经支付完成  //-2创建订单 -1 支付完成 0渠道预下单1待取件2运输中5已签收6取消订单7终止揽收
+        return  M('expressorder')->where(['id' => $order_id, 'status' => ExpressOrderEnum::PAY_COMPLETE])->find();
+    }
     // 创建远程渠道生单
     public static function createChannelExpress($order_id) {
         Log::error("创建渠道生单".$order_id);
@@ -380,34 +430,27 @@ class Expressorder extends Model
             "sadd"=>$porder['sender_address'],
         ];
         Log::error("渠道生单发起请求".$order_id);
-        $res=$qbd->createOrder($data);
+        $res=$qbd->createAppOrder($data);
         Log::error("渠道生单结果".json_encode($res));
         //远程生单结果完成 讲 id  和渠道 id 放到redis中
         if ($res['errno'] == 0){
             if ($res['data']) {
-             $resOrder = $res['data'];
-                self::where(['id'=>$order_id])->setField(['channel_order_id'=>$resOrder['id'],'volume'=>$resOrder['volume'],'volumeWeight'=>$resOrder['volumeWeight'],'status'=> ExpressOrderEnum::CANCEL_ORDER]);
-                $confirmRes=$qbd->confirmOrder($resOrder['id'],$porder['type']);
-                Log::error("渠道确认生单结果".json_encode($confirmRes));
-                if ($confirmRes['errno'] == 0) {
-                    self::where(['id'=>$order_id])->setField(['channel_order_id'=>$resOrder['id'],'volume'=>$resOrder['volume'],'volumeWeight'=>$resOrder['volumeWeight'],'status'=>ExpressOrderEnum::DAI_QU_JIAN ]);
+                $resOrder = $res['data'];
+                self::where(['id'=>$order_id])->setField(['channel_order_id'=>$resOrder['id'],'status'=> ExpressOrderEnum::DAI_QU_JIAN]);
+                if ($resOrder['id'] ) {
                     // 加入到定时任务队列 拉取订单信息
                     //放到redis理
-                    $redisData = [
-                        'id'=> $order_id,
-                        'channel_order_id'=>$resOrder['id']
-                    ];
                     $redisData1=[$order_id];
-                  $expressOrderList =  RedisPackage::get('expressOrderList');
-                  if ($expressOrderList) {
-                      $expressOrderListArr = json_decode($expressOrderList,true);
-                      array_push($expressOrderListArr,$order_id);
-                      RedisPackage::set('expressOrderList',json_encode($expressOrderListArr));
-                  }else {
-                      RedisPackage::set('expressOrderList',json_encode($redisData1));
-                  }
+                    $expressOrderList =  RedisPackage::get('expressOrderList');
+                    if ($expressOrderList) {
+                        $expressOrderListArr = json_decode($expressOrderList,true);
+                        array_push($expressOrderListArr,$order_id);
+                        RedisPackage::set('expressOrderList',json_encode($expressOrderListArr));
+                    }else {
+                        RedisPackage::set('expressOrderList',json_encode($redisData1));
+                    }
                 }
-                return  rjson(1, $confirmRes['errmsg']);
+                return  rjson(1, $resOrder['errmsg']);
             }
 
         }else {
@@ -428,14 +471,14 @@ class Expressorder extends Model
             self::where(['id'=>$order_id])->setField(['status'=>6]);
             return rjson(1, '找不到渠道订单,本地订单取消完毕');
         }
-       $qbd= new Qbd();
-       $res = $qbd->cancelOrder($porder['channel_order_id'],$porder['type']);
-       if ($res['errno'] == 0) {
-           // 取消成功
-           return rjson(0, '取消成功订单');
-       }else {
-           return rjson(1, '取消失败');
-       }
+        $qbd= new Qbd();
+        $res = $qbd->cancelOrder($porder['channel_order_id'],$porder['type']);
+        if ($res['errno'] == 0) {
+            // 取消成功
+            return rjson(0, '取消成功订单');
+        }else {
+            return rjson(1, '取消失败');
+        }
     }
 
     //充值成功api
@@ -554,14 +597,14 @@ class Expressorder extends Model
         }else if ($porder['status'] == ExpressOrderEnum::CANCEL_ORDER){
             return rjson(0, "订单无需退款");
         }else {
-              $qbd= new Qbd();
-              //取消远程单子
-             if ($porder['channel_order_id']) {
-                   $res=$qbd->cancelOrder($porder['channel_order_id'],$porder['type']);
-                   if ($res['errno']!=0) {
-                       return rjson(1, "退款失败".$res['errmsg']);
-                   }
-             }
+            $qbd= new Qbd();
+            //取消远程单子
+            if ($porder['channel_order_id']) {
+                $res=$qbd->cancelOrder($porder['channel_order_id'],$porder['type']);
+                if ($res['errno']!=0) {
+                    return rjson(1, "退款失败".$res['errmsg']);
+                }
+            }
         }
         switch ($porder['pay_way']) {
             case 1://公众号微信支付-退款
