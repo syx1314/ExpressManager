@@ -64,6 +64,8 @@ class Work extends Base
             for ($i=0;count($arr);$i++) {
                 queue('app\queue\job\Work@fetchChannelExpressOrder', $arr[$i]);
             }
+        }else{
+            Log::error('没有需要运行的任务');
         }
     }
 

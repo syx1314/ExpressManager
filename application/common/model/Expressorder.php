@@ -226,14 +226,26 @@ class Expressorder extends Model
         return  $bill;
     }
 
-
+    //拉取远程订单 by 订单id
     public static function fetchRemoteOrderById ($id) {
         $expressorder = M('expressorder')->where(['id'=>$id])->find();
         if ($expressorder&& $expressorder['channel_order_id'] && $expressorder['type']) {
             $res=self::fetchRemoteOrder($expressorder['channel_order_id'],$expressorder['type']);
             if ($res['errno'] == 0){
-                // 加入任务队列 生成超重等账单
                 $order =$res['data'];
+                //如果订单 签收 终止揽收 取消了 就移除 redis 任务队列
+                Log::error('移除任务'.$order['status']);
+                if ($order['status']>=ExpressOrderEnum::YI_QIAN_SHOU) {
+                    Log::error('移除任务2'.$order['status']);
+                    $expressOrderList =  RedisPackage::get('expressOrderList');
+                    if ($expressOrderList) {
+                        $expressOrderListArr = json_decode($expressOrderList,true);
+                        $arr = array_diff($expressOrderListArr,[$id]);
+                        RedisPackage::set('expressOrderList',json_encode($arr));
+                    }
+                }
+                // 加入任务队列 生成超重等账单
+
                 if ($order['overWeightStatus'] == 1) {
                     queue('app\queue\job\Work@createOtherFeeBill', $id);
                 }

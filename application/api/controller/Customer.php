@@ -6,6 +6,7 @@ use app\common\model\Balance;
 use app\common\model\Client;
 use app\common\model\Customer as CustomerModel;
 use app\common\model\OrderUpgrade;
+use think\Log;
 
 class Customer
 {
@@ -33,6 +34,7 @@ class Customer
     public function saveAddress() {
         if (I('userId') ) {
             $res=json_decode(file_get_contents("php://input"),true);
+            Log::error(file_get_contents("php://input"));
             $data['userId'] =I('userId');
             $data['text'] =$res['text'];
             $data['uname'] =$res['uname'];
