@@ -6,6 +6,7 @@ use app\common\model\Balance;
 use app\common\model\Client;
 use app\common\model\Customer as CustomerModel;
 use app\common\model\OrderUpgrade;
+use think\Log;
 
 class Customer extends Home
 {
@@ -25,7 +26,7 @@ class Customer extends Home
     }
     public function getAddress() {
         if (I('userId')) {
-           $list= M('address')->where(['userId'=>I('userId')])->select();
+           $list= M('address')->where(['userId'=>I('userId')])->order("deafult asc")->select();
             return djson(0, '地址结果', $list);
         }
         return djson(1, '没有查询到用户地址', null);
@@ -33,23 +34,31 @@ class Customer extends Home
     public function saveAddress() {
         if (I('userId') ) {
             $res=json_decode(file_get_contents("php://input"),true);
-            $data['userId'] =I('userId');
-            $data['text'] =$res['text'];
-            $data['uname'] =$res['uname'];
-            $data['phone'] =$res['phone'];
-            $data['province'] =$res['province'];
-            $data['city'] =$res['city'];
-            $data['county'] =$res['county'];
-            $data['town'] =$res['town'];
-            $data['address_detail'] =$res['address_detail'];
-            if ($res['id']) {
-                M('address') -> where(['id' => $res['id']])->setField($data);
-                return djson(0, '更新成功', null);
-            }
-            M('address')->insert($data);
-            return djson(0, '保存成功', null);
-        }
 
+            if ($res) {
+                $data['userId'] =I('userId');
+                $data['text'] =$res['text'];
+                $data['uname'] =$res['uname'];
+                $data['phone'] =$res['phone'];
+                $data['province'] =$res['province'];
+                $data['city'] =$res['city'];
+                $data['county'] =$res['county'];
+                $data['town'] =$res['town'];
+                $data['address_detail'] =$res['address_detail'];
+                $data['deafult'] = $res['isDefault']?1:2;// 是否默认地址
+                if ($res['id']) {
+                    if ($data['deafult']==1) {
+                        M('address') -> where(['id' != $res['id']])->setField(['deafult' => 2]);
+                    }
+                    M('address') -> where(['id' => $res['id']])->setField($data);
+                    return djson(0, '更新成功', null);
+                }
+                M('address')->insert($data);
+                return djson(0, '保存成功', null);
+            }else {
+                return djson(1, '地址信息有误', null);
+            }
+        }
         return djson(1, '没有查询到用户地址', null);
     }
 

@@ -141,12 +141,12 @@
                                 </td>
                                 <td style="font-size: 12px; width: 200px;">
                                     ID:{$vo.userid}<br/>
-                                    昵称:{$vo.out_trade_num}<br/>
+                                    昵称:{$vo.username}<br/>
                                 </td>
                                 <td style="font-size: 12px; width: 200px;">
                                     运单编号:{$vo.trackingNum}<br/>
                                     订单编号:{$vo.out_trade_num}<br/>
-                                    下单时间:{$vo.create_time}<br/>
+                                    下单时间:{$vo.create_time|time_format}<br/>
                                     下单渠道: {$vo.channelName}
                                 </td>
                                 <td style="text-align: center">
@@ -194,7 +194,7 @@
                                     补差价超重1kg：{$vo.totalPrice}元
                                 </td>
                                 <td style="font-size: 12px;">
-                                    {if condition="($vo.status >=-1)"}
+                                    {if condition="($vo.status < 2)"}
                                     <button class="btn btn-sm btn-danger ajax-post" target-form="i-checks"
                                             href="{:U('cancelOrder?id='.$vo.id)}" title="多选框选中的订单">
                                         取消运单

@@ -1,6 +1,7 @@
 <?php
 namespace app\admin\controller;
 
+use app\common\enum\ExpressOrderEnum;
 use app\common\library\Createlog;
 use app\common\library\Notification;
 use app\common\model\Expressorder as ExorderModel;
@@ -28,7 +29,7 @@ class Expressorder extends Admin
 
         $list = M('expressorder')
             ->alias('ex')->join('expressorder_bill eb','eb.order_number = ex.out_trade_num','Left')
-            ->where($map)->field('ex.*, eb.pay_money, eb.type as bill_type, eb.pay_status')->order($sort)->paginate(C('LIST_ROWS'));
+            ->where($map)->field('ex.*, eb.pay_money, eb.type as bill_type, eb.pay_status,(select username from dyr_customer where id=ex.userid) as username')->order($sort)->paginate(C('LIST_ROWS'));
 
 //        $testList =  Db::query("select * from dyr_expressorder as a left join dyr_expressorder_bill as b on a.out_trade_num = b.order_number;");
 
@@ -85,7 +86,13 @@ class Expressorder extends Admin
         if (I('id')) {
             $res=  ExorderModel::cancelOrder(I('id'));
             if ($res['errno'] == 0) {
-                return $this->success('取消远程订单成功');
+                // TODO: 可以执行 退款了
+                $ret = ExorderModel::refund(I('id'),"后台|" . session('user_auth')['nickname'], '管理员：' . session('user_auth')['nickname']);
+                if ($ret['errno'] == 0) {
+                    return $this->success('取消远程订单成功 | 退款成功');
+                }else {
+                    return $this->success('取消远程订单成功 | 退款失败原因:'.$ret['errmsg']);
+                }
             }else{
                 return $this->success('取消远程订单失败:'.$res['errmsg']);
             }
@@ -103,18 +110,22 @@ class Expressorder extends Admin
 
 
 
+
+
+
     //退款
     public function refund()
     {
+        // 先查询 订单是什么状态 是不是支付了 并且 没有揽件 才可以退款 或者 已经退款了
         $ids = I('id/a');
-        $porders = M('porder')->where(['id' => ['in', $ids], 'status' => ['in', '5']])->select();
+        $porders = M('expressorder')->where(['id' => ['in', $ids], 'status' => ['in', ExpressOrderEnum::CREATE,ExpressOrderEnum::DAI_QU_JIAN]])->select();
         if (!$porders) {
             return $this->error('未查询到订单');
         }
         $counts = 0;
         $errmsg = '';
         foreach ($porders as $porder) {
-            $ret = PorderModel::refund($porder['id'], "后台|" . session('user_auth')['nickname'], '管理员：' . session('user_auth')['nickname']);
+            $ret = ExorderModel::refund($porder['id'], "后台|" . session('user_auth')['nickname'], '管理员：' . session('user_auth')['nickname']);
             if ($ret['errno'] == 0) {
                 $counts++;
             } else {
