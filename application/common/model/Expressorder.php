@@ -90,8 +90,7 @@ class Expressorder extends Model
         $priceA = $data['priceA'];
         $priceB = $data['priceB'];
         $discount = $data['discount'];
-        $totalFeeOri = $data['fee']; // 渠道原价
-        $sum= 0.0;
+        $totalFeeOri = $data['fee'];
         if ($priceA>0) {
             if ($priceB < 2.5) {
                 $priceB = 2.5;
@@ -370,7 +369,7 @@ class Expressorder extends Model
         if (!$bill) {
             return rjson(1, '账单不存在 或者已经支付过');
         }
-        //type : 1 快递费，2超重转寄等费用
+
         if ($bill['type'] ==1) {
             //支付快递费
             $porder = M('expressorder')->where(['out_trade_num' =>$bill['order_number'], 'status' => ExpressOrderEnum::CREATE])->find();
@@ -584,7 +583,12 @@ class Expressorder extends Model
         return rjson(0, '操作成功');
     }
 
+    public static function getApiOrderNumber($order_number, $api_cur_index = 0, $api_cur_count = 0, $num = 1)
+    {
+        return $order_number . 'A' . $api_cur_count . ($api_cur_index + 1) . 'N' . $num;
+    }
 
+    //退款
     //退款
     public static function refund($order_id, $remark, $operator)
     {
@@ -641,8 +645,63 @@ class Expressorder extends Model
         Notification::refundSus($porder['id']);
         return rjson(0, "退款成功");
     }
+    /**
+     * 代理返利计算
+     * 下单时进行返利计算
+     */
+    public static function compute_rebate($porder_id)
+    {
+        $porder = M('porder')->where(['id' => $porder_id, 'status' => ['in', '1,2'], 'is_del' => 0])->find();
+        if (!$porder) {
+            return rjson(1, '未找到订单');
+        }
+        $customer = M('customer')->where(['id' => $porder['customer_id'], 'is_del' => 0, 'status' => 1])->find();
+        if (!$customer) {
+            return rjson(1, '用户未找到');
+        }
+        //自身等级价格
+        $rebate_id = $customer['f_id'];
+        if (!$rebate_id) {
+            Createlog::porderLog($porder_id, '不返利,没有上级');
+            return rjson(1, '无上级，无需返利');
+        }
+        //查上级
+        $fcus = M('customer')->where(['id' => $customer['f_id'], 'is_del' => 0, 'status' => 1])->find();
+        if (!$fcus || $fcus['grade_id'] == $customer['grade_id']) {
+            Createlog::porderLog($porder_id, '同级用户，无需给上级返利');
+            return rjson(1, '等级无差异无需返利');
+        }
+        if (in_array($customer['grade_id'], [1, 3]) && M('customer_grade')->where(['is_zdy_price' => 1, 'id' => $fcus['grade_id']])->find()) {
+            //如果上级是自定义价格
+            $rebate_price = M('customer_hezuo_price')->where(['product_id' => $porder['product_id'], 'customer_id' => $fcus['id']])->value('ranges');
+        } else {
+            //非自定义价格
+            $price_f = M('customer_grade_price')->where(['product_id' => $porder['product_id'], 'grade_id' => $fcus['grade_id']])->find();
+            $price_m = M('customer_grade_price')->where(['product_id' => $porder['product_id'], 'grade_id' => $customer['grade_id']])->find();
+            $rebate_price = floatval($price_m['ranges'] - $price_f['ranges']);
+        }
+        if ($rebate_price <= 0) {
+            Createlog::porderLog($porder_id, '不返利,计算出金额：' . $rebate_price);
+            return rjson(1, '不返利,计算出金额：' . $rebate_price);
+        }
+        M('porder')->where(['id' => $porder_id])->setField(['rebate_id' => $rebate_id, 'rebate_price' => $rebate_price]);
+        Createlog::porderLog($porder_id, '计算返利ID：' . $rebate_id . '，返利金额:￥' . $rebate_price);
+        return rjson(0, '返利设置成功');
+    }
 
 
+    /**
+     * 返利
+     * 代理用户和普通用户
+     */
+    public static function rebate($porder_id)
+    {
+        $porder = M('porder')->where(['id' => $porder_id, 'status' => ['in', '4'], 'rebate_id' => ['gt', 0], 'rebate_price' => ['gt', 0], 'is_del' => 0, 'is_rebate' => 0])->find();
+        if ($porder) {
+            M('porder')->where(['id' => $porder_id])->setField(['is_rebate' => 1, 'rebate_time' => time()]);
+            Balance::revenue($porder['rebate_id'], $porder['rebate_price'], '用户充值返利，单号' . $porder['order_number'], Balance::STYLE_REWARDS, '系统');
+        }
+    }
 
 
     //存储日志,并检查是否可以执行回调操作

@@ -3,6 +3,7 @@
 namespace app\api\controller;
 
 
+use app\common\enum\ExpressEnum;
 use app\common\model\Product;
 use Map\Bmap;
 use Recharge\Yuanren;
@@ -45,11 +46,29 @@ class Index extends Home
     }
 
 
-    // 获取 通知
-    public function getNotice() {
+    public function getIndex() {
+
+
+        $expressList = [];
+        foreach (ExpressEnum::values() as $key) {
+            array_push($expressList,$key);
+        }
+        $bannerList = [
+            'http://81.68.198.45/uploads/b1.jpg',
+            'http://81.68.198.45/uploads/b2.jpg',
+            'http://81.68.198.45/uploads/b3.jpg',
+            'http://81.68.198.45/uploads/b4.jpg',
+        ];
         $list=M('tagline_txt')->select();
-        return djson(0, 'ok', $list);
+        $data = [
+            'expressList'=>$expressList,
+            'bannerList'=>$bannerList,
+            'noticeList' => $list
+        ];
+        return djson(0,'获取所有快递公司',$data);
     }
+
+
     // 以读 通知
     public function setNoticeStatus() {
         if (I('userId') && I('noticeId')) {

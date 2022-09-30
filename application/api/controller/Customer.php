@@ -7,8 +7,10 @@ use app\common\model\Client;
 use app\common\model\Customer as CustomerModel;
 use app\common\model\OrderUpgrade;
 use think\Log;
-
-class Customer extends Home
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Headers: *');
+header('Access-Control-Allow-Methods: *');
+class Customer
 {
     public function info()
     {
@@ -26,7 +28,7 @@ class Customer extends Home
     }
     public function getAddress() {
         if (I('userId')) {
-           $list= M('address')->where(['userId'=>I('userId')])->order("deafult asc")->select();
+            $list= M('address')->where(['userId'=>I('userId')])->order("deafult asc")->select();
             return djson(0, '地址结果', $list);
         }
         return djson(1, '没有查询到用户地址', null);
@@ -34,7 +36,9 @@ class Customer extends Home
     public function saveAddress() {
         if (I('userId') ) {
             $res=json_decode(file_get_contents("php://input"),true);
-
+            // Log::error("收到的地址".json_encode($res));
+            // Log::error("收到的地址2".json_encode($_POST));
+            // Log::error("收到的地址3".json_encode($_SERVER));
             if ($res) {
                 $data['userId'] =I('userId');
                 $data['text'] =$res['text'];
@@ -60,6 +64,13 @@ class Customer extends Home
             }
         }
         return djson(1, '没有查询到用户地址', null);
+    }
+    public function delAddress() {
+        if (I('userId') && I('id') ) {
+            M('address') -> where(['id' => I('id'),'userId' => I('userId')])->delete();
+            return djson(0, '删除成功', null);
+        }
+        return djson(1, '参数有误', null);
     }
 
     /**
