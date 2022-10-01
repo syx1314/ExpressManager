@@ -1,13 +1,11 @@
 <?php
 namespace app\admin\controller;
 
-use app\common\enum\ExpressOrderEnum;
 use app\common\library\Createlog;
 use app\common\library\Notification;
 use app\common\model\Expressorder as ExorderModel;
 use app\common\model\Product as ProductModel;
 use Recharge\Qbd;
-use think\Db;
 use think\Log;
 
 /**
@@ -28,29 +26,36 @@ class Expressorder extends Admin
         }
 
         $list = M('expressorder')
-            ->alias('ex')->join('expressorder_bill eb','eb.order_number = ex.out_trade_num','Left')
-            ->where($map)->field('ex.*, eb.pay_money, eb.type as bill_type, eb.pay_status,(select username from dyr_customer where id=ex.userid) as username')->order($sort)->paginate(C('LIST_ROWS'));
+            ->alias('ex') ->where($map)->field('ex.*,(select username from dyr_customer where id=ex.userid) as username')->order($sort)->paginate(C('LIST_ROWS'));
+        $dataList = $list->items();
+        for ($i=0; $i < count($dataList); $i++) {
+            $billList= M('expressorder_bill')->field('*')->where(['order_number'=>$dataList[$i]['out_trade_num']])->select();
+            $dataList[$i]['billList'] = $billList;
+
+        }
 
 //        $testList =  Db::query("select * from dyr_expressorder as a left join dyr_expressorder_bill as b on a.out_trade_num = b.order_number;");
-
         $this->assign('total_price', M('expressorder')->where($map)->sum("totalPrice"));
         $this->assign('_list', $list);
+        $this->assign('_dataList', $dataList);
         $this->assign('_total', $list->total());
         return view();
     }
     //远程更新渠道订单信息
     public function updateRemoteOrder() {
         if (I('channel_order_id') && I('type')) {
-              $res=ExorderModel::fetchRemoteOrder(I('channel_order_id'),I('type'));
-                if ($res['errno'] == 0){
-                    return $this->success('更新成功');
-                }else{
-                    return $this->error('失败原因'.$res['errmsg']);
-                }
+            $res=ExorderModel::fetchRemoteOrder(I('channel_order_id'),I('type'));
+            if ($res['errno'] == 0){
+                return $this->success('更新成功');
+            }else{
+                return $this->error('失败原因'.$res['errmsg']);
+            }
         }else {
             return $this->error('参数有误');
         }
     }
+
+
     //物流轨迹
     public function express_trail() {
         $expressorder = M('expressorder')->where(['id'=>I('id')])->find();
@@ -66,16 +71,15 @@ class Expressorder extends Admin
             echo '找不到渠道单子';
         }
     }
-
     //远程生单
     public function createChannelOrder() {
         if (I('id')) {
-         $res=  ExorderModel::createChannelExpress(I('id'));
-         if ($res['errno'] == 0) {
-             return $this->success('远程生单成功');
-         }else{
-             return $this->success('远程生单失败:'.$res['errmsg']);
-         }
+            $res=  ExorderModel::createChannelExpress(I('id'));
+            if ($res['errno'] == 0) {
+                return $this->success('远程生单成功');
+            }else{
+                return $this->success('远程生单失败:'.$res['errmsg']);
+            }
         }else {
             return $this->error('参数有误');
         }
@@ -83,27 +87,33 @@ class Expressorder extends Admin
 
     // 取消订单
     public function cancelOrder() {
-        if (I('id')) {
+        if (I('id') ) {
             $res=  ExorderModel::cancelOrder(I('id'));
             if ($res['errno'] == 0) {
+                Createlog::expressOrderLog(I('out_trade_num'),"后台|取消订单成功" . session('user_auth')['nickname'], '管理员：' . session('user_auth')['nickname']);
+
                 // TODO: 可以执行 退款了
                 $ret = ExorderModel::refund(I('id'),"后台|" . session('user_auth')['nickname'], '管理员：' . session('user_auth')['nickname']);
                 if ($ret['errno'] == 0) {
+                    Createlog::expressOrderLog(I('out_trade_num'),"后台|退款成功" . session('user_auth')['nickname'], '管理员：' . session('user_auth')['nickname']);
+
                     return $this->success('取消远程订单成功 | 退款成功');
                 }else {
+                    Createlog::expressOrderLog(I('out_trade_num'),"后台|退款失败原因:".$ret['errmsg']. session('user_auth')['nickname'], '管理员：' . session('user_auth')['nickname']);
+
                     return $this->success('取消远程订单成功 | 退款失败原因:'.$ret['errmsg']);
                 }
             }else{
+                Createlog::expressOrderLog(I('out_trade_num'),"后台|取消订单失败原因:".$res['errmsg'] . session('user_auth')['nickname'], '管理员：' . session('user_auth')['nickname']);
                 return $this->success('取消远程订单失败:'.$res['errmsg']);
             }
         }else {
             return $this->error('参数有误');
         }
     }
-
     public function log()
     {
-        $list = M('porder_log')->where(['porder_id' => I('id')])->order("id asc")->select();
+        $list = M('expressorder_log')->where(['out_trade_num' => I('out_trade_num')])->order("id asc")->select();
         $this->assign('_list', $list);
         return view();
     }
@@ -113,99 +123,7 @@ class Expressorder extends Admin
 
 
 
-    //退款
-    public function refund()
-    {
-        // 先查询 订单是什么状态 是不是支付了 并且 没有揽件 才可以退款 或者 已经退款了
-        $ids = I('id/a');
-        $porders = M('expressorder')->where(['id' => ['in', $ids], 'status' => ['in', ExpressOrderEnum::CREATE,ExpressOrderEnum::DAI_QU_JIAN]])->select();
-        if (!$porders) {
-            return $this->error('未查询到订单');
-        }
-        $counts = 0;
-        $errmsg = '';
-        foreach ($porders as $porder) {
-            $ret = ExorderModel::refund($porder['id'], "后台|" . session('user_auth')['nickname'], '管理员：' . session('user_auth')['nickname']);
-            if ($ret['errno'] == 0) {
-                $counts++;
-            } else {
-                $errmsg .= $ret['errmsg'] . ';';
-            }
-        }
-        if ($counts == 0) {
-            return $this->error('操作失败,' . $errmsg);
-        }
-        return $this->success("成功处理" . $counts . "条");
-    }
 
-    //设置充值成功
-    public function set_chenggong()
-    {
-        $ids = I('id/a');
-        $porders = M('porder')->where(['id' => ['in', $ids], 'status' => ['in', '2,3']])->select();
-        if (!$porders) {
-            return $this->error('未查询到订单');
-        }
-        $counts = 0;
-        $errmsg = '';
-        foreach ($porders as $porder) {
-            $ret = PorderModel::rechargeSus($porder['order_number'], "充值成功|后台|" . session('user_auth')['nickname']);
-            if ($ret['errno'] == 0) {
-                $counts++;
-            } else {
-                $errmsg .= $ret['errmsg'] . ';';
-            }
-        }
-        if ($counts == 0) {
-            return $this->error('操作失败,' . $errmsg);
-        }
-        return $this->success("成功处理" . $counts . "条");
-    }
-
-    //设置充值中
-    public function set_czing()
-    {
-        $ids = I('id/a');
-        $porders = M('porder')->where(['id' => ['in', $ids], 'status' => ['in', '2']])->select();
-        if (!$porders) {
-            return $this->error('未查询到订单');
-        }
-        $counts = 0;
-        $errmsg = '';
-        foreach ($porders as $porder) {
-            Createlog::porderLog($porder['id'], "将订单设置为充值中|后台|" . $this->adminuser['nickname']);
-            M('porder')->where(['id' => $porder['id']])->setField(['status' => 3]);
-            $counts++;
-        }
-        if ($counts == 0) {
-            return $this->error('操作失败,' . $errmsg);
-        }
-        return $this->success("成功处理" . $counts . "条");
-    }
-
-    //设置充值失败
-    public function set_shibai()
-    {
-        $ids = I('id/a');
-        $porders = M('porder')->where(['id' => ['in', $ids], 'status' => ['in', '2,3']])->select();
-        if (!$porders) {
-            return $this->error('未查询到订单');
-        }
-        $counts = 0;
-        $errmsg = '';
-        foreach ($porders as $porder) {
-            $ret = PorderModel::rechargeFailDo($porder['order_number'], "充值失败|后台|" . session('user_auth')['nickname']);
-            if ($ret['errno'] == 0) {
-                $counts++;
-            } else {
-                $errmsg .= $ret['errmsg'] . ';';
-            }
-        }
-        if ($counts == 0) {
-            return $this->error('操作失败,' . $errmsg);
-        }
-        return $this->success("成功处理" . $counts . "条");
-    }
 
     //回调通知
     public function notification()
@@ -252,21 +170,6 @@ class Expressorder extends Admin
     }
 
 
-    public function delete_porder_excel()
-    {
-        if (M('proder_excel')->where(['id' => I('id')])->delete()) {
-            return $this->success('删除成功');
-        } else {
-            return $this->error('删除失败');
-        }
-    }
-
-    public function empty_porder_excel()
-    {
-        $map['status'] = I('status');
-        M('proder_excel')->where($map)->delete();
-        return $this->success('清空成功');
-    }
 
     /**
      * 导出记录

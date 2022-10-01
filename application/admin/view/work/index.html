@@ -1,0 +1,91 @@
+{include file="public/header" /}
+<style>
+    .table-bordered > tbody > tr:hover {
+        background-color: #f5f5f5
+    }
+</style>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeIn">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>任务列表</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>索引</th>
+                                <th>任务id</th>
+                                <th>订单状态</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="_list" id="vo"}
+                            <tr>
+                                <td style="width: 70px;">
+                                    {$i}
+                                </td>
+                                <td style="font-size: 12px;">
+                                    订单号:{$vo.order_id}<br/>
+                                </td>
+                                <td>
+                                    {$vo.order_status}
+                                </td>
+                                <td>
+                                    <a class="text-danger ajax-get confirm" href="{:U('deletes?id='.$vo.id)}"
+                                       title="删除">删除</a>
+                                </td>
+                            </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="page">
+                        {$_list->render()}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="__JS__/laydate/laydate.js"></script>
+<script>
+    //执行一个laydate实例
+    laydate.render({
+        elem: '#begin_time',
+        type: 'datetime',
+        done: function (value, date, endDate) {
+            $('#begin_time').val(value);
+        }
+    });
+    laydate.render({
+        elem: '#end_time',
+        type: 'datetime',
+        done: function (value, date, endDate) {
+            $('#end_time').val(value);
+        }
+    });
+    $(".tiptext").click(function () {
+        var text = $(this).data('text');
+        layer.alert(text, {
+            skin: 'layui-layer-molv' //样式类名
+            , closeBtn: 0
+        }, function () {
+            layer.closeAll();
+        });
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green'
+        });
+    });
+</script>
+</body>
+</html>

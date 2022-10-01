@@ -58,11 +58,12 @@ class Work extends Base
         // 先从redis 拿到需要更新得任务队列
         $rd=new RedisPackage();
         $expressOrderJson =   $rd->get('expressOrderList');
-        echo "得到任务列表！" . $expressOrderJson;
+        echo "得到任务列表！" . $expressOrderJson. date("Y-m-d H:i:s", time()) . PHP_EOL;
         if ($expressOrderJson) {
             $arr = json_decode($expressOrderJson,true);
             for ($i=0;count($arr);$i++) {
-                queue('app\queue\job\Work@fetchChannelExpressOrder', $arr[$i]);
+                echo "得到任务订单id！" . $arr[$i]['order_id'];
+                queue('app\queue\job\Work@fetchChannelExpressOrder', $arr[$i]['order_id']);
             }
         }else{
             Log::error('没有需要运行的任务');

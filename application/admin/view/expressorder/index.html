@@ -120,7 +120,7 @@
                         <table class="table table-bordered">
                             <thead>
                             <tr>
-                                <th><input type="checkbox" class="i-checks check-all">全选</th>
+                                <!--<th><input type="checkbox" class="i-checks check-all">全选</th>-->
                                 <th>客户信息</th>
                                 <th>运单信息</th>
                                 <th>运单状态</th>
@@ -134,9 +134,9 @@
                             </tr>
                             </thead>
                             <tbody>
-                            {volist name="_list" id="vo"}
+                            {volist name="_dataList" id="vo"}
                             <tr>
-                                <td style="width: 70px;">
+                                <td style="width: 70px; display: none">
                                     <input type="checkbox" class="i-checks ids" name="id[]" value="{$vo.id}">
                                 </td>
                                 <td style="font-size: 12px; width: 200px;">
@@ -147,6 +147,7 @@
                                     运单编号:{$vo.trackingNum}<br/>
                                     订单编号:{$vo.out_trade_num}<br/>
                                     下单时间:{$vo.create_time|time_format}<br/>
+                                    更新时间:{$vo.update_time|time_format}<br/>
                                     下单渠道: {$vo.channelName}
                                 </td>
                                 <td style="text-align: center">
@@ -190,13 +191,28 @@
                                     渠道费用：{$vo.channelToatlPrice}元
                                 </td>
                                 <td>
-                                    首次支付：{$vo.totalPrice}元<br/>
-                                    补差价超重1kg：{$vo.totalPrice}元
+                                    {volist name="$vo.billList" id="bill"}
+                                    <span>账单:{$i}</span><br/>
+                                    <div style="margin-left: 10px">
+                                        {if condition="($bill.type ==1)"}
+                                        首付:￥{$bill.total_price}
+                                        {/if}
+                                        {if condition="($bill.type ==2)"}
+                                        超重转寄等费用:￥{$bill.total_price}
+                                        {/if}
+                                        {if condition="($bill.pay_status ==2)"}
+                                        <span style="color:lightskyblue">已支付￥{$bill.pay_money}</span><br/>
+                                        {else/}
+                                        <span style="color:red">未支付￥{$bill.pay_money}</span><br/>
+                                        {/if}
+                                    </div>
+                                    {/volist}
                                 </td>
+
                                 <td style="font-size: 12px;">
                                     {if condition="($vo.status < 2)"}
                                     <button class="btn btn-sm btn-danger ajax-post" target-form="i-checks"
-                                            href="{:U('cancelOrder?id='.$vo.id)}" title="多选框选中的订单">
+                                            href="{:U('cancelOrder?id='.$vo.id.'&out_trade_num='.$vo.out_trade_num)}" title="多选框选中的订单">
                                         取消运单
                                     </button>
                                     {/if}
@@ -209,6 +225,10 @@
                                     <button class="btn btn-sm btn-warning ajax-post" target-form="i-checks"
                                             href="{:U('updateRemoteOrder?channel_order_id='.$vo.channel_order_id.'&type='.$vo.type)}" title="多选框选中的订单">
                                         更新渠道信息
+                                    </button>
+                                    <button class="btn btn-sm btn-primary open-window no-refresh" target-form="i-checks"
+                                            href="{:U('log?order_number='.$vo.out_trade_num)}" title="详情">
+                                        详情日志
                                     </button>
                                 </td>
 

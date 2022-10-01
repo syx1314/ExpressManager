@@ -215,13 +215,16 @@ class Expressorder extends Model
         $model = new self();
         $model->save($data);
         if (!$aid = $model->id) {
+            Createlog::expressOrderLog($data['out_trade_num'],"下单失败，请重试！");
             return rjson(1, '下单失败，请重试！');
         }
         // 创建支付账单
         $bill=ExpressorderBill::createBill($data['userid'], $data['out_trade_num'],1,$data['totalPrice']);
         if ($bill['errno'] == 0) {
+            Createlog::expressOrderLog($data['out_trade_num'],"下单成功 | 创建支付账单成功");
             return rjson(0, '下单成功',$bill['data']);
         }
+        Createlog::expressOrderLog($data['out_trade_num'],"下单成功 | 创建支付账单失败");
         return  $bill;
     }
 
@@ -234,20 +237,23 @@ class Expressorder extends Model
             if ($res['errno'] == 0){
                 // 加入任务队列 生成超重等账单
                 $order =$res['data'];
-                //如果订单 签收 终止揽收 取消了 就移除 redis 任务队列
-                Log::error('移除任务'.$order['status']);
-                if ($order['status']>=ExpressOrderEnum::YI_QIAN_SHOU) {
-                    Log::error('移除任务2'.$order['status']);
-                    $expressOrderList =  RedisPackage::get('expressOrderList');
-                    if ($expressOrderList) {
-                        $expressOrderListArr = json_decode($expressOrderList,true);
-                        $arr = array_diff($expressOrderListArr,[$id]);
-                        RedisPackage::set('expressOrderList',json_encode($arr));
+                //如果 redis 的订单状态
+                $expressOrderList = RedisPackage::get('expressOrderList');
+                if ($expressOrderList) {
+                    $expressOrderListArr = json_decode($expressOrderList, true);
+                    for ($i = 0; $i < count($expressOrderListArr); $i++) {
+                        if ($id == $expressOrderListArr[$i]['order_id']) {
+                            // 拿到状态
+                            $expressOrderListArr[$i]['order_status'] = $order['status'];
+                        }
                     }
+                    RedisPackage::set('expressOrderList', json_encode($expressOrderListArr));
                 }
-                if ($order['overWeightStatus'] == 1) {
-                    queue('app\queue\job\Work@createOtherFeeBill', $id);
-                }
+                Log::error('fetchRemoteOrderById  任务完毕' .$id.'----'.$order['status']);
+                // 暂时不创建账单了
+//                if ($order['overWeightStatus'] == 1) {
+//                    queue('app\queue\job\Work@createOtherFeeBill', $id);
+//                }
                 return rjson(0,'拉取订单成功',null);
             }else{
                 return rjson(0,'拉取远程单子失败',$res['errmsg']);
@@ -285,6 +291,7 @@ class Expressorder extends Model
                 $order['consumeFee'] = $channelOrder['consumeFee'];// 耗材费用
                 $order['serviceCharge'] = $channelOrder['serviceCharge'];// 服务费
                 $order['soliciter'] = $channelOrder['soliciter'];// 揽件员
+                $order['update_time'] = time();// 更新时间
                 self::where(['channel_order_id'=>$channel_order_id])->setField($order);
                 $order['traceList'] = $channelOrder['traceList'];//轨迹
 
@@ -310,8 +317,10 @@ class Expressorder extends Model
         }
         $body= '';
         if ($bill['type']==1) {
+            Createlog::expressOrderLog($bill['order_number'],"发起账单支付--快递费");
             $body = '为订单号'.$bill['order_number'].'支付快递费'.$bill['total_price'].'元';
         }else if ($bill['type']==2) {
+            Createlog::expressOrderLog($bill['order_number'],"发起账单支付--超重转寄等费用");
             $body = '为订单号'.$bill['order_number'].'支付超重转寄等费用'.$bill['total_price'].'元';
         }
         return PayWay::create($payway, $client, [
@@ -352,6 +361,7 @@ class Expressorder extends Model
             }
             if ($sumPrice>0) {
                 // 创建账单
+                Createlog::expressOrderLog($exOrder['out_trade_num'],"创建账单--超重转寄等费用");
                 ExpressorderBill::createBill($exOrder['userid'],$exOrder['out_trade_num'],2,$sumPrice);
                 return djson(0,'创建账单成功',null);
             }
@@ -377,13 +387,14 @@ class Expressorder extends Model
             if (!$porder) {
                 return rjson(1, '不存在订单');
             }
-            Createlog::porderLog($porder['id'], "快递用户支付回调成功");
+            Createlog::expressOrderLog($bill['order_number'],"快递用户支付回调成功");
             //TODO 判断支付了多钱 比较
             //-2创建订单 -1 支付完成 0渠道预下单1待取件2运输中5已签收6取消订单7终止揽收
             M('expressorder')->where(['id' => $porder['id'], 'status' => ExpressOrderEnum::CREATE])->setField(['status' => ExpressOrderEnum::PAY_COMPLETE, 'pay_time' => time(), 'pay_way' => $payway,'statusName'=>'支付完毕']);
             Log::error("修改快递状态代取件");
 //         //api下单队列放到队列去远程生单
             queue('app\queue\job\Work@createChannelExpressApi', $porder['id']);
+            Createlog::expressOrderLog($bill['order_number'],"开启队列 生成远程快递单子");
 
         }
         $bill_id = $bill['id'];
@@ -445,26 +456,34 @@ class Expressorder extends Model
         Log::error("渠道生单结果".json_encode($res));
         //远程生单结果完成 讲 id  和渠道 id 放到redis中
         if ($res['errno'] == 0){
+            Createlog::expressOrderLog($porder['out_trade_num'],"远程快递单生成成功");
             if ($res['data']) {
                 $resOrder = $res['data'];
                 self::where(['id'=>$order_id])->setField(['channel_order_id'=>$resOrder['id'],'status'=> ExpressOrderEnum::DAI_QU_JIAN]);
                 if ($resOrder['id'] ) {
                     // 加入到定时任务队列 拉取订单信息
                     //放到redis理
-                    $redisData1=[$order_id];
+                    Createlog::expressOrderLog($porder['out_trade_num'],"加入到定时任务队列 拉取订单信息");
+                    $redisData1=[
+                        'order_id'=>$order_id,
+                        'order_status' => ExpressOrderEnum::DAI_QU_JIAN
+                    ];
                     $expressOrderList =  RedisPackage::get('expressOrderList');
                     if ($expressOrderList) {
                         $expressOrderListArr = json_decode($expressOrderList,true);
-                        array_push($expressOrderListArr,$order_id);
+                        array_push($expressOrderListArr,$redisData1);
                         RedisPackage::set('expressOrderList',json_encode($expressOrderListArr));
                     }else {
-                        RedisPackage::set('expressOrderList',json_encode($redisData1));
+                        $expressOrderListArr = [];
+                        array_push($expressOrderListArr,$redisData1);
+                        RedisPackage::set('expressOrderList',json_encode($expressOrderListArr));
                     }
                 }
                 return  rjson(1, $resOrder['errmsg']);
             }
 
         }else {
+            Createlog::expressOrderLog($porder['out_trade_num'],"远程生单失败原因:".$res['errmsg']);
             return  rjson(1, $res['errmsg']);
         }
         return rjson(0, '提交接口工作完成');
@@ -645,63 +664,8 @@ class Expressorder extends Model
         Notification::refundSus($porder['id']);
         return rjson(0, "退款成功");
     }
-    /**
-     * 代理返利计算
-     * 下单时进行返利计算
-     */
-    public static function compute_rebate($porder_id)
-    {
-        $porder = M('porder')->where(['id' => $porder_id, 'status' => ['in', '1,2'], 'is_del' => 0])->find();
-        if (!$porder) {
-            return rjson(1, '未找到订单');
-        }
-        $customer = M('customer')->where(['id' => $porder['customer_id'], 'is_del' => 0, 'status' => 1])->find();
-        if (!$customer) {
-            return rjson(1, '用户未找到');
-        }
-        //自身等级价格
-        $rebate_id = $customer['f_id'];
-        if (!$rebate_id) {
-            Createlog::porderLog($porder_id, '不返利,没有上级');
-            return rjson(1, '无上级，无需返利');
-        }
-        //查上级
-        $fcus = M('customer')->where(['id' => $customer['f_id'], 'is_del' => 0, 'status' => 1])->find();
-        if (!$fcus || $fcus['grade_id'] == $customer['grade_id']) {
-            Createlog::porderLog($porder_id, '同级用户，无需给上级返利');
-            return rjson(1, '等级无差异无需返利');
-        }
-        if (in_array($customer['grade_id'], [1, 3]) && M('customer_grade')->where(['is_zdy_price' => 1, 'id' => $fcus['grade_id']])->find()) {
-            //如果上级是自定义价格
-            $rebate_price = M('customer_hezuo_price')->where(['product_id' => $porder['product_id'], 'customer_id' => $fcus['id']])->value('ranges');
-        } else {
-            //非自定义价格
-            $price_f = M('customer_grade_price')->where(['product_id' => $porder['product_id'], 'grade_id' => $fcus['grade_id']])->find();
-            $price_m = M('customer_grade_price')->where(['product_id' => $porder['product_id'], 'grade_id' => $customer['grade_id']])->find();
-            $rebate_price = floatval($price_m['ranges'] - $price_f['ranges']);
-        }
-        if ($rebate_price <= 0) {
-            Createlog::porderLog($porder_id, '不返利,计算出金额：' . $rebate_price);
-            return rjson(1, '不返利,计算出金额：' . $rebate_price);
-        }
-        M('porder')->where(['id' => $porder_id])->setField(['rebate_id' => $rebate_id, 'rebate_price' => $rebate_price]);
-        Createlog::porderLog($porder_id, '计算返利ID：' . $rebate_id . '，返利金额:￥' . $rebate_price);
-        return rjson(0, '返利设置成功');
-    }
 
 
-    /**
-     * 返利
-     * 代理用户和普通用户
-     */
-    public static function rebate($porder_id)
-    {
-        $porder = M('porder')->where(['id' => $porder_id, 'status' => ['in', '4'], 'rebate_id' => ['gt', 0], 'rebate_price' => ['gt', 0], 'is_del' => 0, 'is_rebate' => 0])->find();
-        if ($porder) {
-            M('porder')->where(['id' => $porder_id])->setField(['is_rebate' => 1, 'rebate_time' => time()]);
-            Balance::revenue($porder['rebate_id'], $porder['rebate_price'], '用户充值返利，单号' . $porder['order_number'], Balance::STYLE_REWARDS, '系统');
-        }
-    }
 
 
     //存储日志,并检查是否可以执行回调操作

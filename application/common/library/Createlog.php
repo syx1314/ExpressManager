@@ -13,6 +13,19 @@ class Createlog
 {
 
     /**
+     *生成快递订单日志
+     */
+
+    public static function expressOrderLog($out_trade_num, $log)
+    {
+        M('expressorder_log')->insertGetId([
+            'out_trade_num' => $out_trade_num,
+            'log' => $log,
+            'create_time' => time()
+        ]);
+    }
+
+    /**
      *生成充值订单日志
      */
 

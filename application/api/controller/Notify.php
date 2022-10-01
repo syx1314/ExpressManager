@@ -75,6 +75,7 @@ class Notify extends \app\common\controller\Base
         if ($data['trade_state'] == "SUCCESS") {
             $info = [
                 'order_number' => $data['out_trade_no'],
+                //TODO 此处难道转成了 元
                 'money' => intval(strval(floatval($data['amount']['total']) * 0.01)),
                 'serial_number' => $data['transaction_id'],
                 'pay_time' => strtotime($data['success_time']),
