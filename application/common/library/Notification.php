@@ -12,6 +12,7 @@ namespace app\common\library;
 //下发通知
 use app\common\enum\ExpressOrderEnum;
 use app\common\model\Client;
+use app\common\model\Expressorder;
 use think\Log;
 use Util\Http;
 
@@ -173,7 +174,27 @@ class Notification
             return Templetmsg::paySus($bill['userid'], '超重/转寄等费用支付完毕', $bill['order_number'], $bill['pay_money'].'元');
         }
     }
+    //快递状态变更
+    public static function expressStatus($out_trade_num,$expressStatus)
+    {
+        Log::error('发送公众号模板消息');
+        //  待取件状态
+        $expressorder=M('expressorder')->where(['out_trade_num' => $out_trade_num] )->find();
+        if (!$expressorder) {
+            return rjson(1, '未找到符合的快递订单');
+        }
+        $customer = M('customer')->where(['id' => $expressorder['userid'], 'is_del' => 0, 'status' => 1])->find();
+        if (!$customer) {
+            return rjson(1, '用户未找到');
+        }
+        Log::error('发送公众号模板消息2');
+        $first ='您的快递当前进度详情如下。';
+        $sendAddress= Expressorder::getSendAddressStr($expressorder);
+        $receiveAddress= Expressorder::getReceiveAddressStr($expressorder);
+        return Templetmsg::expressStatus($expressorder['userid'],$first,$expressorder['channelName'],$expressorder['trackingNum'],
+            $sendAddress,$receiveAddress,$expressStatus);
 
+    }
     //生成回调数据
     private static function notify_data($customer, $porder)
     {

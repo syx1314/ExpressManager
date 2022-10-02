@@ -169,4 +169,31 @@ class Templetmsg
         return self::send($user_id, 'upsus_template_id', $data, $url);
     }
 
+    /**
+     * 快递状态变更
+     * @param $user_id
+     * @param $first
+     * @param $expressName  快递名字
+     * @param $trackNum     快递单号
+     * @param $sendAddress
+     * @param $receiveAddress
+     * @param $expressTrack 快递状态 物流 快递员等
+     * @param string $remark
+     * @param string $url     点击可以查看的连接
+     * @return array|\think\response\Json
+     */
+    public static function expressStatus($user_id, $first, $expressName, $trackNum, $sendAddress, $receiveAddress,$expressTrack,
+                                         $remark = "如有任何疑问请联系在线客服", $url = "")
+    {
+        $data = [
+            'first' => ['value' => $first, 'color' => '#000'],
+            'keyword1' => ['value' => $expressName, 'color' => '#000'],
+            'keyword2' => ['value' => $trackNum, 'color' => '#000'],
+            'keyword3' => ['value' => $sendAddress, 'color' => '#000'],
+            'keyword4' => ['value' => $receiveAddress, 'color' => '#000'],
+            'keyword5' => ['value' => $expressTrack, 'color' => '#000'],
+            'remark' => ['value' => $remark, 'color' => '#ff0000'],
+        ];
+        return self::send($user_id, 'express_status_template_id', $data, $url);
+    }
 }

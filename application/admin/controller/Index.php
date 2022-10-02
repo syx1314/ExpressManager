@@ -2,6 +2,7 @@
 
 namespace app\admin\controller;
 
+use app\common\enum\ExpressOrderEnum;
 use think\Db;
 use Util\GoogleAuth;
 
@@ -17,6 +18,13 @@ class Index extends Admin
         $data['agent_num'] = M('customer')->where(['type' => 2, 'is_del' => 0])->count();
         $data['cus_balance'] = M('customer')->where(['type' => 1, 'is_del' => 0])->sum('balance');
         $data['agent_balance'] = M('customer')->where(['type' => 2, 'is_del' => 0])->sum('balance');
+
+        // 今日快递营业额   把今天所有的账单 支付 金额 加起来
+
+        // 今日快递单数  快递总数
+        $data['express_total_num'] = M('expressorder')->where(['create_time' => ['egt', strtotime(date('Y-m-d'))]])->count();
+        // 今日快递单数  待取件总数
+        $data['express_daiqu_num'] = M('expressorder')->where(['status' => ExpressOrderEnum::DAI_QU_JIAN,'create_time' => ['egt', strtotime(date('Y-m-d'))]])->count();
         $this->assign('data', $data);
         return view();
     }

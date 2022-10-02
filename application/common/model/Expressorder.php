@@ -229,6 +229,13 @@ class Expressorder extends Model
     }
 
 
+    public static function getSendAddressStr($expressorder) {
+        return  $expressorder['senderProvince'].$expressorder['senderCity'].$expressorder['senderCounty'].$expressorder['senderTown'].$expressorder['sender_address'];
+    }
+    public static function getReceiveAddressStr($expressorder) {
+        return $expressorder['receiveProvince'].$expressorder['receiveCity'].$expressorder['receiveCounty'].$expressorder['receiveTown'].$expressorder['receiveAddress'];
+    }
+
     //拉取远程订单 by 订单id
     public static function fetchRemoteOrderById ($id) {
         $expressorder = M('expressorder')->where(['id'=>$id])->find();
@@ -245,6 +252,18 @@ class Expressorder extends Model
                         if ($id == $expressOrderListArr[$i]['order_id']) {
                             // 拿到状态
                             $expressOrderListArr[$i]['order_status'] = $order['status'];
+                            //TODO 订单号不是空的 但是redis 里面是空的 可以发一次 后面赋值 之后 就不会再发了
+                            if (isset($order['trackingNum']) && !isset($expressOrderListArr[$i]['trackingNum'])) {
+                                // 发送模板消息
+                                Notification::expressStatus($expressorder['out_trade_num'],$order['soliciter']);
+                            }else if (isset($order['soliciter']) && $expressOrderListArr[$i]['soliciter']!=$order['soliciter'] ) {
+                                //TODO 不能空 快递员不同 也就是改变了  并且有了快递员了
+                                // 发送模板消息
+                                Notification::expressStatus($expressorder['out_trade_num'],$order['soliciter']);
+                            }
+                            // 订单号
+                            $expressOrderListArr[$i]['trackingNum'] = $order['trackingNum'];
+                            $expressOrderListArr[$i]['soliciter'] = $order['soliciter'];
                         }
                     }
                     RedisPackage::set('expressOrderList', json_encode($expressOrderListArr));

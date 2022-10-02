@@ -212,18 +212,18 @@
                                 <td style="font-size: 12px;">
                                     {if condition="($vo.status < 2)"}
                                     <button class="btn btn-sm btn-danger ajax-post" target-form="i-checks"
-                                            href="{:U('cancelOrder?id='.$vo.id.'&out_trade_num='.$vo.out_trade_num)}" title="多选框选中的订单">
+                                            href="{:U('cancelOrder?id='.$vo.id.'&out_trade_num='.$vo.out_trade_num)}" title="取消运单">
                                         取消运单
                                     </button>
                                     {/if}
                                     {if condition="($vo.status == -1)"}
                                     <button type="button"
                                             class="btn btn-sm btn-primary ajax-post" target-form="i-checks"
-                                            href="{:U('createChannelOrder?id='.$vo.id)}" title="筛选条件中的所有订单"> 远程生单
+                                            href="{:U('createChannelOrder?id='.$vo.id)}" title="远程生单"> 远程生单
                                     </button>
                                     {/if}
                                     <button class="btn btn-sm btn-warning ajax-post" target-form="i-checks"
-                                            href="{:U('updateRemoteOrder?channel_order_id='.$vo.channel_order_id.'&type='.$vo.type)}" title="多选框选中的订单">
+                                            href="{:U('updateRemoteOrder?channel_order_id='.$vo.channel_order_id.'&type='.$vo.type)}" title="更新渠道信息">
                                         更新渠道信息
                                     </button>
                                     <button class="btn btn-sm btn-primary open-window no-refresh" target-form="i-checks"
