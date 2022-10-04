@@ -110,6 +110,23 @@ function return_material_video($media_id)
     return $ret['path'];
 }
 
+if (!function_exists('express_status')) {
+    /**
+     * 时间戳格式化
+     * @param int $time
+     * @return string 完整的时间显示
+     * @author huajie <1204887277@qq.com>
+     */
+    function express_status($express_status = NULL)
+    {
+        if (!$express_status) {
+            return "";
+        } else {
+            return \app\common\enum\ExpressOrderEnum::getStr($express_status);
+        }
+    }
+}
+
 function expressOrderStatusName($status) {
     switch ($status) {
         case \app\common\enum\ExpressOrderEnum::CREATE:

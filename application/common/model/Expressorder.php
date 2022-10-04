@@ -9,6 +9,7 @@
 namespace app\common\model;
 
 use app\common\enum\ExpressOrderEnum;
+use app\common\enum\ExpressOrderPayStatusEnum;
 use app\common\library\Createlog;
 use app\common\library\Notification;
 use app\common\library\PayWay;
@@ -257,7 +258,7 @@ class Expressorder extends Model
                                 // 发送模板消息
                                 Notification::expressStatus($expressorder['out_trade_num'],$order['soliciter']);
                             }else if (isset($order['soliciter']) && $expressOrderListArr[$i]['soliciter']!=$order['soliciter'] ) {
-                                //TODO 不能空 快递员不同 也就是改变了  并且有了快递员了
+                                //TODO  快递员不同 也就是改变了  并且有了快递员了
                                 // 发送模板消息
                                 Notification::expressStatus($expressorder['out_trade_num'],$order['soliciter']);
                             }
@@ -269,10 +270,10 @@ class Expressorder extends Model
                     RedisPackage::set('expressOrderList', json_encode($expressOrderListArr));
                 }
                 Log::error('fetchRemoteOrderById  任务完毕' .$id.'----'.$order['status']);
-                // 暂时不创建账单了
-//                if ($order['overWeightStatus'] == 1) {
-//                    queue('app\queue\job\Work@createOtherFeeBill', $id);
-//                }
+                // 创建账单了
+                if ($order['overWeightStatus'] == 1) {
+                    queue('app\queue\job\Work@createOtherFeeBill', $id);
+                }
                 return rjson(0,'拉取订单成功',null);
             }else{
                 return rjson(0,'拉取远程单子失败',$res['errmsg']);
@@ -356,19 +357,21 @@ class Expressorder extends Model
 
         $exOrder = self::where(['id'=>$orderid, 'overWeightStatus'=> 1])->find();
         $bill =M('expressorder_bill')->where(['order_number' =>$exOrder['out_trade_num'],'type'=> 2])->find();
-        if ($bill) {
-            return djson(0,'超重账单已经生成完毕',null);
-        }
+
+        Log::error('createOtherFeeBill  开始创建账单' );
+        //  此处注意 本次生成的账单是否合理
         if ($exOrder) {
             $sumPrice = 0;
             // 超重
             $weight = $exOrder['weightBill'] - $exOrder['weight'];
             if ($exOrder['discount'] >0 ) {
-                $sumPrice += $exOrder['']*$exOrder['discount'];
+                $sumPrice += $exOrder['originalFee']*$exOrder['discount']-$exOrder['totalPrice'];
+            }else {
+                $sumPrice += $exOrder['priceB']*$weight;
             }
             // 保价
-            if ($exOrder['insuredFee'] >0 ){
-                $sumPrice+=$exOrder['insuredFee'];
+            if ($exOrder['insuranceFee'] >0 ){
+                $sumPrice+=$exOrder['insuranceFee'];
             }
             // 耗材费
             if ($exOrder['consumeFee']) {
@@ -378,12 +381,29 @@ class Expressorder extends Model
             if ($exOrder['otherFee']) {
                 $sumPrice+=$exOrder['otherFee'];
             }
-            if ($sumPrice>0) {
-                // 创建账单
-                Createlog::expressOrderLog($exOrder['out_trade_num'],"创建账单--超重转寄等费用");
-                ExpressorderBill::createBill($exOrder['userid'],$exOrder['out_trade_num'],2,$sumPrice);
-                return djson(0,'创建账单成功',null);
+
+            if ($bill) {
+                // 其他费用的账单存在  比较 价格 是否合适
+                if ($bill['total_price']!=$sumPrice) {
+                    //TODO: 1.价格不对 要更新本次 生成的账单
+                    //TODO: 2. 账单有没有支付 支付的话  要显示账单异常
+                    if ($bill['pay_status'] == ExpressOrderPayStatusEnum::PAY_COMPLETE) {
+                        Createlog::expressOrderLog($exOrder['out_trade_num'],"创建账单--价格异常 已经支付");
+                        ExpressorderBill::updateBillError($exOrder['userid'],$exOrder['out_trade_num'],$sumPrice);
+                    }else {
+                        Createlog::expressOrderLog($exOrder['out_trade_num'],"创建账单--更新账单价格");
+                        ExpressorderBill::updateBill($exOrder['userid'],$exOrder['out_trade_num'],$sumPrice);
+                    }
+                }
+            }else {
+                if ($sumPrice>0) {
+                    // 创建账单
+                    Createlog::expressOrderLog($exOrder['out_trade_num'],"创建账单--超重转寄等费用");
+                    ExpressorderBill::createBill($exOrder['userid'],$exOrder['out_trade_num'],2,$sumPrice);
+                    return djson(0,'创建账单成功',null);
+                }
             }
+            Log::error('createOtherFeeBill  创建账单完毕'.$sumPrice ."订单id:".$orderid);
         }else {
             return djson(0,'没有需要额外收费订单',null);
         }

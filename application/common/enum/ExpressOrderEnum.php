@@ -14,4 +14,22 @@ class ExpressOrderEnum extends EnumBasics
   const YI_QIAN_SHOU = 5;
   const CANCEL_ORDER = 6;
   const ZUN_ZHI_LAN_SHOU = 7;
+
+  public static  function getStr($val) {
+
+      switch ($val) {
+
+          case -2: return "创建订单";
+          case -1: return "支付完成";
+          case  0: return "渠道预下单";
+          case  1: return "待取件";
+          case  2: return "运输中";
+          case  5: return "已签收";
+          case  6: return "取消订单";
+          case  7: return "终止揽收";
+          default:  return "";
+      }
+  }
+
+
 }

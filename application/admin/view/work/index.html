@@ -33,7 +33,7 @@
                                     订单号:{$vo.order_id}<br/>
                                 </td>
                                 <td>
-                                    {$vo.order_status}
+                                    {$vo.order_status | express_status}
                                 </td>
                                 <td>
                                     <a class="text-danger ajax-get confirm" href="{:U('deletes?id='.$vo.id)}"
