@@ -32,6 +32,7 @@ class Work extends Admin
         if ($expressOrderList) {
             $list = json_decode($expressOrderList, true);
         }
+        array_multisort(array_column($list,'order_status'), SORT_DESC, $a); //SORT_DESC降序，SORT_ASC升序
         $this->assign('_list', $list);
         return view();
     }

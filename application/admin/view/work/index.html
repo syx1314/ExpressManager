@@ -19,6 +19,7 @@
                             <tr>
                                 <th>索引</th>
                                 <th>任务id</th>
+                                <th>运单号</th>
                                 <th>订单状态</th>
                                 <th>操作</th>
                             </tr>
@@ -33,7 +34,16 @@
                                     订单号:{$vo.order_id}<br/>
                                 </td>
                                 <td>
-                                    {$vo.order_status | express_status}
+                                    {$vo.trackingNum}
+                                </td>
+                                <td>
+
+                                    {if condition = "($vo.order_status == 1)"}
+                                    <span  style="color: lightseagreen">{$vo.order_status | express_status}</span>
+                                    {else/}
+                                     {$vo.order_status | express_status}
+                                    {/if}
+
                                 </td>
                                 <td>
                                     <a class="text-danger ajax-get confirm" href="{:U('deletes?id='.$vo.id)}"
