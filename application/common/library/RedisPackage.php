@@ -89,6 +89,18 @@ class RedisPackage
     }
 
     /**
+     * @param $key
+     * @param $value
+     * @param int $count
+     * count > 0 : 从表头开始向表尾搜索，移除与 VALUE 相等的元素，数量为 COUNT 。
+       count < 0 : 从表尾开始向表头搜索，移除与 VALUE 相等的元素，数量为 COUNT 的绝对值。
+       count = 0 : 移除表中所有与 VALUE 相等的值。
+     * @return bool|int
+     */
+    public static function LRem($key, $value,$count=0) {
+        return self::$handler->lRem($key,$value);
+    }
+    /**
      * 移出并获取列表的第一个元素
      * @param string $key
      * @return string

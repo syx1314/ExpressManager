@@ -11,6 +11,7 @@ namespace app\common\library;
 
 //下发通知
 use app\common\enum\ExpressOrderEnum;
+use app\common\enum\ExpressOrderPayStatusEnum;
 use app\common\model\Client;
 use app\common\model\Expressorder;
 use think\Log;
@@ -173,6 +174,30 @@ class Notification
         }else if ($bill['type'] ==1) {
             return Templetmsg::paySus($bill['userid'], '超重/转寄等费用支付完毕', $bill['order_number'], $bill['pay_money'].'元');
         }
+    }
+    //快递退款成功
+    public static function expressreFundSus($order_number)
+    {
+        $bill = M('expressorder_bill')->where(['order_number' => $order_number, 'pay_status' => ExpressOrderPayStatusEnum::REFUND_COMPLETE])->find();
+        if (!$bill) {
+            return rjson(1, '未找到订单');
+        }
+        $customer = M('customer')->where(['id' => $bill['userid'], 'is_del' => 0, 'status' => 1])->find();
+        if (!$customer) {
+            return rjson(1, '用户未找到');
+        }
+
+        return Templetmsg::refund($bill['userid'], '订单' . $order_number . '退款成功！', $bill['pay_money'], date('Y-m-d H:i', time()));
+
+//        switch ($porder['client']) {
+//            case Client::CLIENT_WX://公众号
+//                return Templetmsg::refund($porder['customer_id'], '订单' . $order_number . '退款成功！', $porder['total_price'], date('Y-m-d H:i', time()));
+//            case Client::CLIENT_MP://小程序
+//                return SubscribeMessage::refundSus($porder['customer_id'], $porder['order_number'], $porder['total_price'], '原路退回', '退款成功', date('Y-m-d H:i', time()));
+//            default:
+//                Createlog::porderLog($porder['id'], '该端订单无需退款通知');
+//                return rjson(0, '无需通知');
+//        }
     }
     //快递状态变更
     public static function expressStatus($out_trade_num,$expressStatus)

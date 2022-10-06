@@ -88,25 +88,16 @@ class Expressorder extends Admin
     // 取消订单
     public function cancelOrder() {
         if (I('id') ) {
-            $res=  ExorderModel::cancelOrder(I('id'));
-            if ($res['errno'] == 0) {
-                Createlog::expressOrderLog(I('out_trade_num'),"后台|取消订单成功" . session('user_auth')['nickname'], '管理员：' . session('user_auth')['nickname']);
-
-                // TODO: 可以执行 退款了
+            Createlog::expressOrderLog(I('out_trade_num'),"后台 | 执行取消订单  退款操作" . session('user_auth')['nickname'], '管理员：' . session('user_auth')['nickname']);
+            // TODO: 可以执行 退款了  里面会包含取消远程订单
                 $ret = ExorderModel::refund(I('id'),"后台|" . session('user_auth')['nickname'], '管理员：' . session('user_auth')['nickname']);
                 if ($ret['errno'] == 0) {
                     Createlog::expressOrderLog(I('out_trade_num'),"后台|退款成功" . session('user_auth')['nickname'], '管理员：' . session('user_auth')['nickname']);
-
                     return $this->success('取消远程订单成功 | 退款成功');
                 }else {
                     Createlog::expressOrderLog(I('out_trade_num'),"后台|退款失败原因:".$ret['errmsg']. session('user_auth')['nickname'], '管理员：' . session('user_auth')['nickname']);
-
                     return $this->success('取消远程订单成功 | 退款失败原因:'.$ret['errmsg']);
                 }
-            }else{
-                Createlog::expressOrderLog(I('out_trade_num'),"后台|取消订单失败原因:".$res['errmsg'] . session('user_auth')['nickname'], '管理员：' . session('user_auth')['nickname']);
-                return $this->success('取消远程订单失败:'.$res['errmsg']);
-            }
         }else {
             return $this->error('参数有误');
         }

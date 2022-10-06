@@ -9,6 +9,7 @@
 namespace app\common\library;
 
 use app\common\enum\ExpressOrderEnum;
+use app\common\enum\ExpressOrderPayStatusEnum;
 use Util\Random;
 
 // 快递单子退款
@@ -17,12 +18,18 @@ class WxExpressrefundapi
     /**
      * 充值订单退款
      */
-    public static function porder_wxpay_refund($id)
+    public static function porder_wxpay_refund($order_number)
     {
-        $porder = M('expressorder')->where(['id' => $id])->where('status','gt',ExpressOrderEnum::PAY_COMPLETE)->find();
-        $customer = M('customer')->where(['id' => $porder['userid']])->find();
-        if (!$porder || !$customer) {
-            return ['errno' => 1, 'errmsg' => '数据错误', 'data' => ''];
+
+
+        $bill =  M('expressorder_bill')->where(['order_number' => $order_number])->find();
+        if(!$bill) {
+            Createlog::expressOrderLog($order_number, '账单：'.$bill['bill_no'].' 退款失败 找不到账单');
+            return djson(1,"退款失败 找不到账单","退款失败 找不到账单");
+        }
+        $customer = M('customer')->where(['id' => $bill['userid']])->find();
+        if (!$customer) {
+            return djson(1,"退款失败 没有此用户","退款失败 没有此用户");
         }
 
         if (!C('weixin.mch_id')) return rjson(1, '未配置微信的mch_id');
@@ -34,10 +41,10 @@ class WxExpressrefundapi
             'mch_id' => C('weixin.mch_id'),
             'nonce_str' => Random::alnum(25),
             'sign_type' => 'MD5',
-            'out_trade_no' => $porder['out_trade_num'],
-            'out_refund_no' => $porder['out_trade_num'],
-            'total_fee' => (int)($porder['totalPrice'] * 100),
-            'refund_fee' => (int)($porder['totalPrice'] * 100),
+            'out_trade_no' => $bill['bill_no'],  // 本账单号
+            'out_refund_no' => $bill['bill_no'],  // 微信交易流水号
+            'total_fee' => (int)($bill['pay_money'] * 100), // 推支付的金额
+            'refund_fee' => (int)($bill['pay_money'] * 100),
         ];
         $wxpay = new \Util\Wxpay();
         $data['sign'] = $wxpay->getSign($data, C('weixin.key'));
@@ -47,19 +54,21 @@ class WxExpressrefundapi
         $sslkey = ROOT_PATH . DS . 'public' . C('wxpub_apiclient_key');
         $ret = $wxpay->postXmlSSLCurl($wxpay->arrayToXml($data), $url, $sslcert, $sslkey);
         if (!$ret) {
-            Createlog::porderLog($porder['id'], '退款失败|接口|请求接口未成功|可能原因：证书文件错误');
+            Createlog::expressOrderLog($bill['order_number'], '账单：'.$bill['bill_no'].' 退款失败|接口|请求接口未成功|可能原因：证书文件错误');
             return rjson(1, '退款接口未请求成功');
         }
         $json = json_decode(json_encode(simplexml_load_string($ret, 'SimpleXMLElement', LIBXML_NOCDATA)), true);
         if ($json['return_code'] != 'SUCCESS') {
-            Createlog::porderLog($porder['id'], '退款失败|接口|请求退款失败' . $json['return_msg']);
+            Createlog::expressOrderLog($bill['order_number'], '账单：'.$bill['bill_no'].' 退款失败|接口|请求退款失败' . $json['return_msg']);
             return ['errno' => 1, 'errmsg' => $json['return_msg'], 'data' => ''];
         }
         if ($json['result_code'] != 'SUCCESS') {
-            Createlog::porderLog($porder['id'], '退款失败|接口|' . $json['err_code_des']);
+            Createlog::expressOrderLog($bill['order_number'], '账单：'.$bill['bill_no'].' 退款失败|接口|' . $json['err_code_des']);
             return ['errno' => 1, 'errmsg' => $json['err_code_des'], 'data' => ''];
         }
-        Createlog::porderLog($porder['id'], '退款成功|接口|' . json_encode($json));
+        Createlog::expressOrderLog($bill['order_number'], '账单：'.$bill['bill_no'].' 退款成功|接口|' . json_encode($json));
+        // 退款置状态
+        M('expressorder_bill')->where(['order_number' => $order_number])->setField(['pay_status'=>ExpressOrderPayStatusEnum::REFUND_COMPLETE]);
         return ['errno' => 0, 'errmsg' => "退款成功", 'data' => ''];
     }
 

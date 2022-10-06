@@ -254,7 +254,7 @@ class Expressorder extends Model
                             // 拿到状态
                             $expressOrderListArr[$i]['order_status'] = $order['status'];
                             //TODO 订单号不是空的 但是redis 里面是空的 可以发一次 后面赋值 之后 就不会再发了
-                            if (isset($order['trackingNum']) && !isset($expressOrderListArr[$i]['trackingNum'])) {
+                            if ($order['trackingNum'] && !isset($expressOrderListArr[$i]['trackingNum'])) {
                                 // 发送模板消息
                                 Notification::expressStatus($expressorder['out_trade_num'],$order['soliciter']);
                             }else if (isset($order['soliciter']) && $expressOrderListArr[$i]['soliciter']!=$order['soliciter'] ) {
@@ -276,10 +276,10 @@ class Expressorder extends Model
                 }
                 return rjson(0,'拉取订单成功',null);
             }else{
-                return rjson(0,'拉取远程单子失败',$res['errmsg']);
+                return rjson(1,'拉取远程单子失败',$res['errmsg']);
             }
         }else{
-            return rjson(0,'找不到渠道单子');
+            return rjson(1,'找不到渠道单子');
         }
     }
     /**
@@ -507,6 +507,7 @@ class Expressorder extends Model
                         'order_id'=>$order_id,
                         'order_status' => ExpressOrderEnum::DAI_QU_JIAN
                     ];
+
                     $expressOrderList =  RedisPackage::get('expressOrderList');
                     if ($expressOrderList) {
                         $expressOrderListArr = json_decode($expressOrderList,true);
@@ -538,7 +539,7 @@ class Expressorder extends Model
 
             // 加入到任务队列退款
             self::where(['id'=>$order_id])->setField(['status'=>6]);
-            return rjson(1, '找不到渠道订单,本地订单取消完毕');
+            return rjson(0, '找不到渠道订单,本地订单取消完毕');
         }
         $qbd= new Qbd();
         $res = $qbd->cancelOrder($porder['channel_order_id'],$porder['type']);
@@ -650,58 +651,66 @@ class Expressorder extends Model
     //退款
     public static function refund($order_id, $remark, $operator)
     {
-        //-2创建订单 -1 支付完成 0渠道预下单1待取件2运输中5已签收6取消订单7终止揽收
-        // 没有到达运输中
-        // 渠道查询运单状态
-        $porder = M('expressorder')->where(['id' => $order_id])->find();
-        if (!$porder) {
-            return rjson(1, '未查询到退款订单');
-        }
-        //创建订单 直接取消订单
-        if ($porder['status'] == ExpressOrderEnum::CREATE){
-            //直接退款
-            self::where(['id'=>$order_id])->setField(['status'=>ExpressOrderEnum::CANCEL_ORDER]);
-            Createlog::porderLog($porder['id'], "退款成功|" . $remark);
-            Notification::refundSus($porder['id']);
-            return rjson(0, "订单无需退款 取消成功");
-        }else if ($porder['status'] == ExpressOrderEnum::CANCEL_ORDER){
-            return rjson(0, "订单无需退款");
-        }else if ($porder['status'] == ExpressOrderEnum::DAI_QU_JIAN) {
-            // 待取件  可以请求远程去 取消订单
-            $qbd= new Qbd();
-            //取消远程单子
-            if ($porder['channel_order_id']) {
-                $res=$qbd->cancelOrder($porder['channel_order_id'],$porder['type']);
-                if ($res['errno']!=0) {
-                    return rjson(1, "退款失败".$res['errmsg']);
-                }
-            }
-        }
 
-        switch ($porder['pay_way']) {
-            case 1://公众号微信支付-退款
-                $ret = WxExpressrefundapi::porder_wxpay_refund($porder['id']);
-                break;
-            case 2://余额
-                $ret = Balance::revenue($porder['userid'], $porder['totalPrice'], "订单:" . $porder['out_trade_num'] . "充值失败退款", Balance::STYLE_REFUND, $operator);
-                break;
-            case 3://小程序微信支付
-                $ret = WxExpressrefundapi::porder_wxpay_refund($porder['id']);
-                break;
-            case 4://线下支付
-                $ret = rjson(0, '线下支付无需退款');
-                break;
-            default:
-                $ret = rjson(1, '不支持');
-        }
-        if ($ret['errno'] != 0) {
-            Createlog::porderLog($porder['id'], "退款失败|" . $remark);
-            return rjson(1, $ret['errmsg']);
-        }
-        M('porder')->where(['id' => $porder['id']])->setField(['status' => 6, 'refund_time' => time()]);
-        Createlog::porderLog($porder['id'], "退款成功|" . $remark);
-        Notification::refundSus($porder['id']);
-        return rjson(0, "退款成功");
+        // 先拉取一下远程的状态 在判断
+       $ret = self::fetchRemoteOrderById($order_id);
+       if ($ret['errno'] == 0) {
+           //-2创建订单 -1 支付完成 0渠道预下单1待取件2运输中5已签收6取消订单7终止揽收
+           // 没有到达运输中
+           // 渠道查询运单状态
+           $porder = M('expressorder')->where(['id' => $order_id])->find();
+           if (!$porder) {
+               return rjson(1, '未查询到退款订单');
+           }
+           //创建订单 直接取消订单
+           if ($porder['status'] == ExpressOrderEnum::CREATE){
+               //直接退款
+               self::where(['id'=>$order_id])->setField(['status'=>ExpressOrderEnum::CANCEL_ORDER]);
+               Createlog::porderLog($porder['id'], "订单无需退款 取消成功" . $remark);
+               Notification::refundSus($porder['id']);
+               return rjson(0, "订单无需退款 取消成功");
+           }else if ($porder['status'] == ExpressOrderEnum::CANCEL_ORDER){
+               Createlog::porderLog($porder['id'], "订单已经是取消状态 无需退款" . $remark);
+               return rjson(0, "订单已经是取消状态 无需退款");
+           }else if ($porder['status'] == ExpressOrderEnum::DAI_QU_JIAN) {
+               // 待取件  可以请求远程去 取消订单
+               $qbd= new Qbd();
+               //取消远程单子
+               if ($porder['channel_order_id']) {
+                   $res=$qbd->cancelOrder($porder['channel_order_id'],$porder['type']);
+                   if ($res['errno']!=0) {
+                       return rjson(1, "退款失败, 请联系客服".$res['errmsg']);
+                   }
+               }
+           }
+
+           switch ($porder['pay_way']) {
+               case 1://公众号微信支付-退款
+                   $ret = WxExpressrefundapi::porder_wxpay_refund($porder['out_trade_num']);
+                   break;
+               case 2://余额
+                   $ret = Balance::revenue($porder['userid'], $porder['totalPrice'], "订单:" . $porder['out_trade_num'] . "充值失败退款", Balance::STYLE_REFUND, $operator);
+                   break;
+               case 3://小程序微信支付
+                   $ret = WxExpressrefundapi::porder_wxpay_refund($porder['out_trade_num']);
+                   break;
+               case 4://线下支付
+                   $ret = rjson(0, '线下支付无需退款');
+                   break;
+               default:
+                   $ret = rjson(1, '不支持');
+           }
+           if ($ret['errno'] != 0) {
+               Createlog::porderLog($porder['id'], "退款失败,请联系客服|" . $remark);
+               return rjson(1, "退款失败|" .$ret['errmsg']);
+           }
+           M('porder')->where(['id' => $porder['id']])->setField(['status' => 6, 'refund_time' => time()]);
+           Createlog::porderLog($porder['id'], "退款成功|" . $remark);
+           Notification::expressreFundSus($porder['out_trade_num']);
+           return rjson(0, "退款成功");
+       } else {
+           return rjson(1, "退款失败| 无法拉取远程订单 请联系客服");
+       }
     }
 
 

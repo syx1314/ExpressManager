@@ -3,6 +3,7 @@
 namespace app\queue\job;
 
 use app\common\controller\Base;
+use app\common\enum\ExpressOrderEnum;
 use app\common\library\Createlog;
 use app\common\library\RedisPackage;
 use app\common\model\Porder;
@@ -11,7 +12,6 @@ use think\Log;
 use think\queue\Job;
 
 /**
-
  **/
 class Work extends Base
 {
@@ -44,34 +44,55 @@ class Work extends Base
         Porder::subApi($porder_id);
         $job->delete();
     }
+
     //提交远程快递生单
-    public function createChannelExpressApi(Job $job, $order_id) {
-       Expressorder::createChannelExpress($order_id);
-       $job->delete();
+    public function createChannelExpressApi(Job $job, $order_id)
+    {
+        Expressorder::createChannelExpress($order_id);
+        $job->delete();
     }
-    public function createOtherFeeBill(Job $job, $order_id) {
+
+    public function createOtherFeeBill(Job $job, $order_id)
+    {
         Expressorder::createOtherFeeBill($order_id);
         $job->delete();
     }
 
-    public function contab1hFetchExpress(Job $job) {
+    public function contab1hFetchExpress(Job $job)
+    {
         // 先从redis 拿到需要更新得任务队列
-        $rd=new RedisPackage();
-        $expressOrderJson =   $rd->get('expressOrderList');
-        echo "得到任务列表！" . $expressOrderJson. date("Y-m-d H:i:s", time()) . PHP_EOL;
+        $redis = new RedisPackage();
+        $expressOrderJson = $redis->get('expressOrderList');
+
+
+        $saveOrder = [];
+
         if ($expressOrderJson) {
-            $arr = json_decode($expressOrderJson,true);
-            for ($i=0;count($arr);$i++) {
-                echo "得到任务订单id！" . $arr[$i]['order_id'];
-                queue('app\queue\job\Work@fetchChannelExpressOrder', $arr[$i]['order_id']);
+            $arr = json_decode($expressOrderJson, true);
+            for ($i = 0; $i<count($arr); $i++) {
+                // 待取件之前的状态  是可以继续执行任务的
+                echo "遍历任务订单id".$arr[$i]['order_id'] ."-------". $arr[$i]['order_status'];
+                if ($arr[$i]['order_status'] < ExpressOrderEnum::YI_QIAN_SHOU) {
+                    array_push($saveOrder, $arr[$i]);
+                }
             }
-        }else{
+            // 存储去掉的任务
+            $redis::set("expressOrderList", json_encode($saveOrder));
+            echo "得到任务列表！" . json_encode($saveOrder) . date("Y-m-d H:i:s", time()) . PHP_EOL;
+            // 执行任务
+            for ($j = 0; $j<count($saveOrder); $j++) {
+                echo "得到任务订单id！" . $saveOrder[$j]['order_id'];
+                queue('app\queue\job\Work@fetchChannelExpressOrder', $saveOrder[$j]['order_id']);
+            }
+        } else {
             Log::error('没有需要运行的任务');
         }
+        $job->delete();
     }
 
     //拉去远程订单详情
-    public function fetchChannelExpressOrder(Job $job, $order_id) {
+    public function fetchChannelExpressOrder(Job $job, $order_id)
+    {
         Expressorder::fetchRemoteOrderById($order_id);
         $job->delete();
     }

@@ -10,7 +10,7 @@
         <div class="col-sm-12">
             <div class="ibox float-e-margins">
                 <div class="ibox-title">
-                    <h5>订单列表（{$_total}）&nbsp;&nbsp;总金额：￥{$total_price}&nbsp;&nbsp;利润：￥{$total_price-$cost}</h5>
+                    <h5>订单列表（{$_total}）&nbsp;&nbsp;总金额：￥{$total_price}&nbsp;&nbsp;利润：￥{$total_price}</h5>
                 </div>
                 <div class="ibox-content">
                     <div class="row input-groups">
@@ -48,48 +48,10 @@
                                     {/volist}
                                 </select>
                             </div>
-                            <div class="form-group">
-                                <?php $type=C('PRODUCT_TYPE'); ?>
-                                <label class="control-label">类型:</label>
-                                <select class="input-sm form-control input-s-sm inline serach_selects" name="type"
-                                        style="width: auto;">
-                                    <option value="0">请选择</option>
-                                    {volist name="type" id="vo"}
-                                    <option value="{$key}"
-                                    <?php if(I('type')==$key){ echo "selected='selected'"; } ?>>{$vo}</option>
-                                    {/volist}
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label">分类:</label>
-                                <select class="input-sm form-control input-s-sm inline serach_selects" name="cate"
-                                        style="width: auto;">
-                                    <option value="0">请选择</option>
-                                    {notempty name="cates"}
-                                    {volist name="cates" id="vo"}
-                                    <option value="{$vo['id']}"
-                                    <?php if(I('cate')==$vo['id']){ echo "selected='selected'"; } ?>>{$vo.cate}</option>
-                                    {/volist}
-                                    {/notempty}
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label">套餐:</label>
-                                <select class="input-sm form-control input-s-sm inline serach_selects" name="product_id"
-                                        style="width: auto;">
-                                    <option value="0">请选择</option>
-                                    {notempty name="products"}
-                                    {volist name="products" id="vo"}
-                                    <option value="{$vo['id']}"
-                                    <?php if(I('product_id')==$vo['id']){ echo "selected='selected'"; } ?>
-                                    >{$vo.name}</option>
-                                    {/volist}
-                                    {/notempty}
-                                </select>
-                            </div>
+
                             <div class="form-group">
                                 <?php $isps=C('ISP_TEXT');?>
-                                <label class="control-label">运营商:</label>
+                                <label class="control-label">渠道商:</label>
                                 <select class="input-sm form-control input-s-sm inline serach_selects" name="isp"
                                         style="width: auto;">
                                     <option value="0">请选择</option>
@@ -124,282 +86,157 @@
                                     {/volist}
                                 </select>
                             </div>
-                            <div class="form-group">
-                                <label class="control-label">接口:</label>
-                                <select class="input-sm form-control input-s-sm inline serach_selects"
-                                        name="reapi_id"
-                                        style="width: auto;">
-                                    <option value="0">请选择</option>
-                                    {volist name="reapi" id="vo"}
-                                    <option value="{$vo['id']}"
-                                    <?php if(I('reapi_id')==$vo['id']){ echo "selected='selected'"; } ?>
-                                    >{$vo.name}</option>
-                                    {/volist}
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label">排序:</label>
-                                <select class="input-sm form-control input-s-sm inline serach_selects" name="sort"
-                                        style="width: auto;">
-                                    <option value="">默认</option>
-                                    <option value="create_time desc"
-                                    <?php if(I('sort')=='create_time desc'){ echo "selected='selected'"; } ?>
-                                    >下单时间</option>
-                                    <option value="finish_time desc"
-                                    <?php if(I('sort')=='finish_time desc'){ echo "selected='selected'"; } ?>
-                                    >完成时间</option>
-                                    <option value="refund_time desc"
-                                    <?php if(I('sort')=='refund_time desc'){ echo "selected='selected'"; } ?>
-                                    >退款时间</option>
-                                    <option value="notification_time desc"
-                                    <?php if(I('sort')=='notification_time desc'){ echo "selected='selected'"; } ?>
-                                    >回调时间</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label">批量手机:</label>
-                                <textarea name="batch_mobile" class="form-control"
-                                          placeholder="批量手机查询，多个回车分割">{:I('batch_mobile')}</textarea>
-                            </div>
+
+
                             <div class="form-group">
                                 <label class="control-label">查询条件:</label>
                                 <select class="input-sm form-control input-s-sm inline" name="query_name"
                                         style="width: auto;">
                                     <option value="">模糊</option>
-                                    <option value="customer_id"
-                                    <?php if(I('query_name')=='customer_id'){ echo "selected='selected'"; } ?>
+                                    <option value="userid"
+                                    <?php if(I('query_name')=='userid'){ echo "selected='selected'"; } ?>
                                     >用户ID</option>
-                                    <option value="order_number"
-                                    <?php if(I('query_name')=='order_number'){ echo "selected='selected'"; } ?>
+                                    <option value="out_trade_num"
+                                    <?php if(I('query_name')=='out_trade_num'){ echo "selected='selected'"; } ?>
                                     >订单号</option>
-                                    <option value="mobile"
-                                    <?php if(I('query_name')=='mobile'){ echo "selected='selected'"; } ?>>手机号</option>
-                                    <option value="rebate_id"
-                                    <?php if(I('query_name')=='rebate_id'){ echo "selected='selected'"; } ?>
-                                    >返利ID</option>
-                                    <option value="customer.wx_openid.customer_id"
-                                    <?php if(I('query_name')=='customer.wx_openid.customer_id'){ echo "selected='selected'"; } ?>
-                                    >openid</option>
-                                    <option value="customer.weixin_appid.customer_id"
-                                    <?php if(I('query_name')=='customer.weixin_appid.customer_id'){ echo "selected='selected'"; } ?>
-                                    >appid</option>
+                                    <option value="sender_phone"
+                                    <?php if(I('query_name')=='sender_phone'){ echo "selected='selected'"; } ?>>手机号</option>
                                 </select>
                             </div>
                             <div class="form-group">
                                 <div class="input-group">
-                                    <input type="hidden" name="customer_id" value="{:I('customer_id')}">
-                                    <input type="text" name="key" placeholder="请输入套餐/单号/手机号" value="{:I('key')}"
+                                    <input type="hidden" name="userid" value="{:I('userid')}">
+                                    <input type="text" name="key" placeholder="请输入名字/单号/手机号" value="{:I('key')}"
                                            class="input-sm form-control">
                                     <span class="input-group-btn"><button type="button" id="search"
                                                                           class="btn btn-sm btn-primary"
                                                                           url="{:U('index')}"> 搜索</button></span>
                                 </div>
                             </div>
-
-
                         </div>
-                        <div class="col-md-12 form-inline text-left">
-                            <div class="form-group">
-                                <a class="btn btn-sm btn-white open-reload"><i
-                                        class="glyphicon glyphicon-repeat"></i></a>
-                            </div>
-                            <div class="form-group">
-                                <a class="btn btn-sm btn-primary open-window" href="{:U('porder_excel')}" title="手动提单">导入提单</a>
-                            </div>
-                            <div class="form-group">
-                                <button class="btn btn-sm btn-warning ajax-post" target-form="i-checks"
-                                        href="{:U('set_czing')}" title="多选框选中的订单">
-                                    批量充值中
-                                </button>
-                            </div>
-                            <div class="form-group">
-                                <button class="btn btn-sm btn-info ajax-post" target-form="i-checks"
-                                        href="{:U('set_chenggong')}" title="多选框选中的订单">
-                                    批量成功
-                                </button>
-                            </div>
-                            <div class="form-group">
-                                <button class="btn btn-sm btn-warning ajax-post" target-form="i-checks"
-                                        href="{:U('set_shibai')}" title="多选框选中的订单">
-                                    批量失败
-                                </button>
-                            </div>
-                            <div class="form-group">
-                                <button class="btn btn-sm btn-danger ajax-post" target-form="i-checks"
-                                        href="{:U('refund')}" title="多选框选中的订单">
-                                    批量退款
-                                </button>
-                            </div>
-                            <div class="form-group">
-                                <button type="button" id="excel"
-                                        class="btn btn-sm btn-primary"
-                                        url="{:U('out_excel')}" title="筛选条件中的所有订单"> 导出
-                                </button>
-                            </div>
-                            <div class="form-group">
-                                <button type="button"
-                                        class="btn btn-sm btn-primary batchsub"
-                                        url="{:U('batch_api')}" title="筛选条件中的所有订单"> 批量提交接口
-                                </button>
-                            </div>
-                        </div>
+
                     </div>
                     <div class="table-responsive">
                         <table class="table table-bordered">
                             <thead>
                             <tr>
                                 <th><input type="checkbox" class="i-checks check-all">全选</th>
-                                <th>单号</th>
-                                <th>客户</th>
-                                <th>类型</th>
-                                <th>套餐</th>
-                                <th>充值号码</th>
-                                <th>渠道/支付</th>
-                                <td>状态</td>
-                                <th>支付金额</th>
-                                <th>时间</th>
-                                <th>返利</th>
-                                <th style="min-width: 150px">接口充值</th>
-                                <th>回调/次数</th>
+                                <th>序号</th>
+                                <th>客户信息</th>
+                                <th>运单信息</th>
+                                <th>运单状态</th>
+                                <th>客户信息</th>
+                                <th>体积信息</th>
+                                <th>重量信息</th>
+                                <th>其它费用</th>
+                                <th>运费信息</th>
+                                <th>支付明细</th>
                                 <th>操作</th>
                             </tr>
                             </thead>
                             <tbody>
-                            {volist name="_list" id="vo"}
+                            {volist name="_dataList" id="vo"}
                             <tr>
                                 <td style="width: 70px;">
                                     <input type="checkbox" class="i-checks ids" name="id[]" value="{$vo.id}">
                                 </td>
-                                <td style="font-size: 12px;">
-                                    {$vo.order_number}<br/>
-                                    {notempty name="vo.out_trade_num"}
-                                    api：{$vo.out_trade_num}
-                                    {/notempty}
+                                <td style="width: 20px; margin: auto">
+                                    {$key+1}
                                 </td>
-                                <td>
-                                    <div style="max-width: 100px;overflow-x: scroll;font-size: 12px;white-space:nowrap;">
-                                        [ID:{$vo.customer_id}]&nbsp;{$vo.username}
+                                <td style="font-size: 12px; width: 200px;">
+                                    ID:{$vo.userid}<br/>
+                                    昵称:{$vo.username}<br/>
+                                </td>
+                                <td style="font-size: 12px; width: 200px;">
+                                    运单编号:{$vo.trackingNum}<br/>
+                                    订单编号:{$vo.out_trade_num}<br/>
+                                    下单时间:{$vo.create_time|time_format}<br/>
+                                    更新时间:{$vo.update_time|time_format}<br/>
+                                    下单渠道: {$vo.channelName}
+                                </td>
+                                <td style="text-align: center">
+                                    {$vo.status | expressOrderStatusName}<br/>
+                                    <div class="form-group">
+                                        <span style="display: none" id="order_id">{$vo.id}</span>
+                                        <button type="button"
+                                                class="btn btn-sm btn-primary express_trail" value="{$vo.id}">运单详细
+                                        </button>
                                     </div>
-                                </td>
-                                <td>{:C('PRODUCT_TYPE')[$vo['type']]}</td>
-                                <td>{$vo.product_name}</td>
-                                <td>
-                                    {$vo.mobile}<br/>
-                                    {$vo.guishu}{$vo.isp}
+
                                 </td>
                                 <td>
-                                    渠道：{:C('CLIENT_TYPE')[$vo.client]}<br/>
-                                    支付：{:C('PAYWAY')[$vo.pay_way]}<br/>
+                                    <span style="color: #000;font-weight: 700">寄件姓名: {$vo.sender_name}</span><br/>
+                                    寄件电话: {$vo.sender_phone}<br/>
+                                    寄件城市: {$vo.senderCity}<br/>
+                                    <span style="color: #000;font-weight: 700">收件姓名: {$vo.receiveName}</span><br/>
+                                    收件电话: {$vo.receivePhone}<br/>
+                                    收件城市: {$vo.receiveCity}<br/>
+                                    物品名称: {$vo.goods}<br/>
                                 </td>
                                 <td>
-                                    {switch name="vo.status"}
-                                    {case value="1"}
-                                    <span class="label label-default">
-                                    {:C('PORDER_STATUS')[$vo['status']]}
-                                    </span>
-                                    {/case}
-                                    {case value="2"}
-                                    <span class="label label-success">
-                                    {:C('PORDER_STATUS')[$vo['status']]}
-                                    </span>
-                                    {/case}
-                                    {case value="3"}
-                                    <span class="label label-warning">
-                                    {:C('PORDER_STATUS')[$vo['status']]}
-                                    </span>
-                                    {/case}
-                                    {case value="4"}
-                                    <span class="label label-primary">
-                                    {:C('PORDER_STATUS')[$vo['status']]}
-                                    </span>
-                                    {/case}
-                                    {case value="5"}
-                                    <span class="label label-danger">
-                                    {:C('PORDER_STATUS')[$vo['status']]}
-                                    </span>
-                                    {/case}
-                                    {case value="6"}
-                                    <span class="label label-default">
-                                    {:C('PORDER_STATUS')[$vo['status']]}
-                                    </span>
-                                    {/case}
-                                    {default /}
-                                    <span class="label label-default">
-                                    {:C('PORDER_STATUS')[$vo['status']]}
-                                    </span>
-                                    {/switch}
-                                </td>
-                                <td>{$vo.total_price}</td>
-                                <td>
-                                    <div style="max-height: 100px;overflow-y: scroll;font-size: 12px;">
-                                        下单：{$vo.create_time|time_format}<br/>
-                                        支付：{$vo.pay_time|time_format}<br/>
-                                        api失败：{$vo.apifail_time|time_format}<br/>
-                                        完成：{$vo.finish_time|time_format}<br/>
-                                        退款：{$vo.refund_time|time_format}<br/>
-                                        回调：{$vo.notification_time|time_format}
-                                    </div>
-                                </td>
-                                <td style="font-size: 12px;">
-                                    {gt name="vo.rebate_id" value="0"}
-                                    代理：{$vo.rebate_id|get_name}<br/>金额：{$vo.rebate_price}<br/>状态：{$vo.is_rebate?'已返利':'未返利'}
-                                    {/gt}
+                                    体积: {$vo.volume}m³<br/>
+                                    换算: {$vo.volumeWeight}kg<br/>
+                                    取整: {$vo.volumeWeight}kg
                                 </td>
                                 <td>
-                                    <div style="max-height: 100px;overflow-y: scroll;font-size: 12px;">
-                                        {eq name="vo.api_open" value="1"}
-                                        <?php $apiarr = json_decode($vo['api_arr'],true);?>
-                                        {volist name="apiarr" id="ap" key="key"}
-                                        {$key}.
-                                        {$vo['api_cur_index']==$key-1?'[当前]':''}{$ap.reapi_id|getReapiName}-{$ap.param_id|getReapiParamName}<br/>
-                                        {/volist}
-                                        {notempty name="apireq_time"}
-                                        提交时间：{$vo.apireq_time|time_format}
-                                        {/notempty}
+                                    下单重量: {$vo.weight}kg<br/>
+                                    实际重量: {$vo.weightActual}kg<br/>
+                                    计费重量: {$vo.weightBill}kg
+                                </td>
+                                <td>
+                                    保价费: {$vo.insuranceFee}元<br/>
+                                    耗材费: {$vo.consumeFee}元<br/>
+                                    服务费: {$vo.serviceCharge}元<br/>
+                                    其它费: {$vo.otherFee}元
+                                </td>
+                                <td>
+                                    快递费用: {$vo.totalPrice}元<br/>
+                                    总计费用: {$vo.totalPrice}元<br/>
+                                    渠道费用：{$vo.channelToatlPrice}元
+                                </td>
+                                <td>
+                                    {volist name="$vo.billList" id="bill"}
+                                    <span>账单:{$i}</span><br/>
+                                    <div style="margin-left: 10px">
+                                        {if condition="($bill.type ==1)"}
+                                        首付:￥{$bill.total_price}
+                                        {/if}
+                                        {if condition="($bill.type ==2)"}
+                                        超重转寄等费用:￥{$bill.total_price}
+                                        {/if}
+                                        {if condition="($bill.pay_status ==2)"}
+                                        <span style="color:lightskyblue">已支付￥{$bill.pay_money}</span><br/>
                                         {else/}
-                                        {$vo.api_open?'打开':'关闭'}
-                                        {/eq}
+                                        <span style="color:red">未支付￥{$bill.pay_money}</span><br/>
+                                        {/if}
                                     </div>
+                                    {/volist}
                                 </td>
-                                <td>{eq name="vo.client" value="4"}
-                                    {$vo.is_notification?'已回调':'未回调'}/{$vo.notification_num}<br/>
-                                    <span class="tiptext text-success" data-text='{$vo.notify_url}'>回调地址</span><br/>
-                                    <a class="text-danger ajax-get confirm" href="{:U('notification?id='.$vo.id)}"
-                                       title="手动回调">手动回调</a>
-                                    {else/}
-                                    非API
-                                    {/eq}
+
+                                <td style="font-size: 12px;">
+                                    {if condition="($vo.status < 2)"}
+                                    <button class="btn btn-sm btn-danger ajax-post" target-form="i-checks"
+                                            href="{:U('cancelOrder?id='.$vo.id.'&out_trade_num='.$vo.out_trade_num)}" title="取消运单">
+                                        取消运单
+                                    </button>
+
+                                    {/if}
+                                    {if condition="($vo.status == -1)"}
+                                    <button type="button"
+                                            class="btn btn-sm btn-primary ajax-post"
+                                            href="{:U('createChannelOrder?id='.$vo.id)}" title="远程生单"> 远程生单
+                                    </button>
+                                    {/if}
+                                    <button class="btn btn-sm btn-warning ajax-post test" target-form="i-checks"
+                                            href="{:U('updateRemoteOrder?channel_order_id='.$vo.channel_order_id.'&type='.$vo.type)}" title="更新渠道信息">
+                                        更新渠道信息
+                                    </button>
+                                    <button class="btn btn-sm btn-primary open-window no-refresh" target-form="i-checks"
+                                            href="{:U('log?out_trade_num='.$vo.out_trade_num)}" title="详情">
+                                        详情日志
+                                    </button>
                                 </td>
-                                <td>
-                                    <a class="open-window no-refresh" href="{:U('log?id='.$vo.id)}"
-                                       title="详情">详情日志</a>
-                                    {switch name="vo.status"}
-                                    {case value="1"}
-                                    <a class="text-danger ajax-get confirm" href="{:U('deletes?id='.$vo.id)}"
-                                       title="删除">删除</a>
-                                    {/case}
-                                    {case value="2" break="0"}
-                                    <a class="text-warning ajax-get confirm" href="{:U('set_czing?id='.$vo.id)}"
-                                       title="将订单设置为充值中，一般手工单才这样做">设为充值中</a>
-                                    {/case}
-                                    {case value="3"}
-                                    <a class="ajax-get confirm" href="{:U('set_chenggong?id='.$vo.id)}"
-                                       title="将订单设置为充值成功">充值成功</a>
-                                    <a class="text-danger ajax-get confirm" href="{:U('set_shibai?id='.$vo.id)}"
-                                       title="将订单设置为充值失败，谨慎操作">充值失败</a>
-                                    {/case}
-                                    {case value="4"}
-                                    <a class="text-warning open-window no-refresh"
-                                       href="{:C('WEB_URL')}yrapi.php/open/voucher/id/{$vo.id}.html"
-                                       title="凭证">凭证</a>
-                                    {/case}
-                                    {case value="5"}
-                                    <a class="text-danger ajax-get confirm" href="{:U('refund?id='.$vo.id)}"
-                                       title="操作退款">操作退款</a>
-                                    {/case}
-                                    {default /}
-                                    {/switch}
-                                </td>
+
                             </tr>
                             {/volist}
                             </tbody>
@@ -439,6 +276,20 @@
             layer.closeAll();
         });
     });
+
+
+    $('.express_trail').click(function (){
+        layer.open({
+            type:2,
+            fixed: false, //不固定
+            maxmin: true,
+            title: false,
+            area: ['800px', '560px'],
+            shade: 0.8,
+            title: false,
+            content: "{:U('express_trail')}?id="+$(this).val()
+        });
+    })
 </script>
 <script>
     $(document).ready(function () {
